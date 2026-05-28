@@ -14,10 +14,29 @@ function signToken(user) {
 const authController = {
   async register(req, res, next) {
     try {
-      const { email, password, name, role } = req.body;
+      const { email, password, name } = req.body;
 
       if (!email || !password || !name) {
         res.status(400).json({ error: "Name, email, and password parameters are required." });
+        return;
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        res.status(400).json({ error: "Please provide a valid email address." });
+        return;
+      }
+
+      // Enforce minimum password length
+      if (password.length < 8) {
+        res.status(400).json({ error: "Password must be at least 8 characters long." });
+        return;
+      }
+
+      // Enforce name length limits
+      if (name.length > 255) {
+        res.status(400).json({ error: "Name must not exceed 255 characters." });
         return;
       }
 
@@ -28,7 +47,9 @@ const authController = {
       }
 
       const passwordHash = bcryptjs.hashSync(password, 10);
-      const assignedRole = role === "admin" ? "admin" : "user";
+      // Security: Always assign 'user' role on self-registration.
+      // Admin accounts must be created via database seeding or by an existing admin.
+      const assignedRole = "user";
 
       const newUser = await userRepository.createUser({
         email,
@@ -53,6 +74,13 @@ const authController = {
 
       if (!email || !password) {
         res.status(400).json({ error: "Email and password are required." });
+        return;
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        res.status(400).json({ error: "Please provide a valid email address." });
         return;
       }
 
