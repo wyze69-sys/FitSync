@@ -1,0 +1,147 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+import React, { useState } from 'react';
+import { Dumbbell, Lock, Mail, User as UserIcon, Eye, EyeOff, Loader2 } from 'lucide-react';
+export default function AuthScreen({ onLoginSuccess }) {
+    const [isLogin, setIsLogin] = useState(true);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [name, setName] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
+    async function handleSubmit(e) {
+        e.preventDefault();
+        setError(null);
+        setLoading(true);
+        const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+        const payload = isLogin ? { email, password } : { email, password, name };
+        try {
+            const resp = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+            const data = await resp.json();
+            if (!resp.ok) {
+                throw new Error(data.error || 'Authentication process failed.');
+            }
+            onLoginSuccess(data.user, data.token);
+        }
+        catch (err) {
+            setError(err.message || 'An unknown error occurred.');
+        }
+        finally {
+            setLoading(false);
+        }
+    }
+    // Quick fill logins for Term 3 graders
+    function fillCredentials(type) {
+        if (type === 'user') {
+            setEmail('user@fitsync.com');
+            setPassword('fitness123');
+        }
+        else {
+            setEmail('admin@fitsync.com');
+            setPassword('admin123');
+        }
+        setIsLogin(true);
+    }
+    return (<div id="auth-screen-container" className="min-h-screen flex items-center justify-center bg-[#050505] text-[#E0E0E0] px-4 py-12 sm:px-6 lg:px-8">
+      <div id="auth-box" className="max-w-md w-full space-y-8 bg-[#0E0E0E] p-8 border border-white/10 rounded-sm shadow-2xl">
+        
+        {/* Brand Header */}
+        <div className="text-center space-y-2">
+          <div className="mx-auto h-12 w-12 rounded border border-white/15 bg-white/5 flex items-center justify-center text-white">
+            <Dumbbell className="h-6 w-6"/>
+          </div>
+          <h2 className="text-3xl font-serif italic tracking-tight text-white">FitSync AI</h2>
+          <p className="text-xs text-white/40 uppercase tracking-widest leading-relaxed">
+            {isLogin ? 'Sign in to continue performance indexing' : 'Create your secure profile node'}
+          </p>
+        </div>
+
+        {/* Demo Credentials Box */}
+        <div id="demo-guide-box" className="p-4 rounded border border-white/5 bg-white/[0.02] space-y-2.5">
+          <div className="text-[10px] font-semibold text-white/30 font-mono uppercase tracking-[0.22em]">Course Evaluation seed users</div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button type="button" onClick={() => fillCredentials('user')} className="flex-1 py-1.5 px-3 rounded-sm text-[10px] font-bold uppercase tracking-wider border border-white/10 bg-white/5 hover:bg-white/10 text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+              Athlete Profile
+            </button>
+            <button type="button" onClick={() => fillCredentials('admin')} className="flex-1 py-1.5 px-3 rounded-sm text-[10px] font-bold uppercase tracking-wider border border-white/10 bg-white/5 hover:bg-white/10 text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-400"></span>
+              Admin Profile
+            </button>
+          </div>
+        </div>
+
+        {/* Auth Error Alarm */}
+        {error && (<div id="auth-error-banner" className="bg-red-950/45 border border-red-900/40 text-red-200 text-xs text-left p-3.5 rounded-sm font-medium flex items-start gap-2">
+            <span className="font-bold underline uppercase tracking-wider font-mono text-[10px]">Error:</span>
+            <span>{error}</span>
+          </div>)}
+
+        <form className="mt-8 space-y-5 text-left" onSubmit={handleSubmit}>
+          {!isLogin && (<div id="form-group-name">
+              <label htmlFor="name-input" className="block text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-1.5 font-mono">
+                Full Name
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white/30">
+                  <UserIcon className="h-4 w-4"/>
+                </div>
+                <input id="name-input" name="name" type="text" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Sarah Coleman" className="block w-full pl-9 pr-4 py-2 bg-[#080808] border border-white/10 rounded-sm focus:bg-black focus:border-white text-sm placeholder-white/20 text-white transition-all font-sans focus:outline-none"/>
+              </div>
+            </div>)}
+
+          <div id="form-group-email">
+            <label htmlFor="email-input" className="block text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-1.5 font-mono">
+              Email Address
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white/30">
+                <Mail className="h-4 w-4"/>
+              </div>
+              <input id="email-input" name="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="user@fitsync.com" className="block w-full pl-9 pr-4 py-2 bg-[#080808] border border-white/10 rounded-sm focus:bg-black focus:border-white text-sm placeholder-white/20 text-white transition-all font-sans focus:outline-none"/>
+            </div>
+          </div>
+
+          <div id="form-group-password">
+            <label htmlFor="password-input" className="block text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-1.5 font-mono">
+              Password
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white/30">
+                <Lock className="h-4 w-4"/>
+              </div>
+              <input id="password-input" name="password" type={showPassword ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="block w-full pl-9 pr-10 py-2 bg-[#080808] border border-white/10 rounded-sm focus:bg-black focus:border-white text-sm placeholder-white/20 text-white transition-all font-sans focus:outline-none"/>
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-white/30 hover:text-white transition-colors cursor-pointer">
+                {showPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
+              </button>
+            </div>
+          </div>
+
+          <button id="auth-submit-btn" type="submit" disabled={loading} className="w-full py-2.5 px-4 bg-white text-black rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-white/90 active:scale-[0.99] flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-70 disabled:pointer-events-none">
+            {loading ? (<>
+                <Loader2 className="h-3.5 w-3.5 animate-spin"/>
+                <span>INDEXING CORE NODE...</span>
+              </>) : (<span>{isLogin ? 'Sign In' : 'Synthesize Profile'}</span>)}
+          </button>
+        </form>
+
+        <div className="text-center mt-6">
+          <button type="button" onClick={() => {
+            setIsLogin(!isLogin);
+            setError(null);
+        }} className="text-xs font-semibold text-white/50 hover:text-white transition-all underline underline-offset-4 cursor-pointer">
+            {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Log in'}
+          </button>
+        </div>
+      </div>
+    </div>);
+}
