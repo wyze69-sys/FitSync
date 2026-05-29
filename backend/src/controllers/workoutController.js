@@ -3,8 +3,8 @@ const { workoutService } = require("../services/workoutService");
 const workoutController = {
   async getWorkouts(req, res, next) {
     try {
-      const workouts = await workoutService.getWorkoutsByUserId(req.user.id);
-      res.json(workouts);
+      const result = await workoutService.getWorkoutsByUserId(req.user.id, req.query);
+      res.json(result);
     } catch (err) {
       next(err);
     }
@@ -14,7 +14,10 @@ const workoutController = {
     try {
       const { date, title, notes, exercises } = req.body;
       const newWorkout = await workoutService.createWorkout(req.user.id, {
-        date, title, notes, exercises
+        date,
+        title,
+        notes,
+        exercises
       });
       res.status(201).json(newWorkout);
     } catch (err) {
@@ -27,7 +30,10 @@ const workoutController = {
       const { id } = req.params;
       const { date, title, notes, exercises } = req.body;
       const updated = await workoutService.updateWorkout(req.user.id, id, {
-        date, title, notes, exercises
+        date,
+        title,
+        notes,
+        exercises
       });
       res.json(updated);
     } catch (err) {

@@ -3,8 +3,39 @@ const { adminService } = require("../services/adminService");
 const adminController = {
   async getUsers(req, res, next) {
     try {
-      const users = await adminService.getUsers();
+      const users = await adminService.getUsers(req.query);
       res.json(users);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async getUserDetail(req, res, next) {
+    try {
+      const detail = await adminService.getUserDetail(req.params.id);
+      res.json(detail);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async updateUserRole(req, res, next) {
+    try {
+      const updated = await adminService.updateUserRole(req.user.id, req.params.id, req.body.role);
+      res.json(updated);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async updateUserStatus(req, res, next) {
+    try {
+      const updated = await adminService.updateUserStatus(
+        req.user.id,
+        req.params.id,
+        req.body.isActive
+      );
+      res.json(updated);
     } catch (err) {
       next(err);
     }
@@ -36,6 +67,15 @@ const adminController = {
       const { id } = req.params;
       const result = await adminService.deleteCategory(id);
       res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async getCategoryAnalytics(req, res, next) {
+    try {
+      const analytics = await adminService.getCategoryAnalytics();
+      res.json(analytics);
     } catch (err) {
       next(err);
     }

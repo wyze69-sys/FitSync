@@ -1,27 +1,26 @@
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
-import Login from "../../pages/Login.jsx";
+import Spinner from "./Spinner.jsx";
 
 /**
- * ProtectedRoute ensures only authenticated users can access wrapped content.
- * If not logged in, renders the Login page.
+ * Route guard: only authenticated users may access nested routes.
+ * Unauthenticated users are redirected to /login (preserving the attempted path).
  */
-export default function ProtectedRoute({ children }) {
+export default function ProtectedRoute() {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#050505] text-white">
-        <div className="text-center space-y-3">
-          <div className="h-8 w-8 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-xs font-mono text-white/50 uppercase tracking-widest">Verifying session...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-[#050505]">
+        <Spinner label="Verifying session..." />
       </div>
     );
   }
 
   if (!user) {
-    return <Login />;
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
-  return children;
+  return <Outlet />;
 }

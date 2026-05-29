@@ -1,33 +1,47 @@
-import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
+import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/common/ProtectedRoute.jsx";
+import AdminRoute from "./components/common/AdminRoute.jsx";
+import AppLayout from "./components/layout/AppLayout.jsx";
+import AdminLayout from "./components/layout/AdminLayout.jsx";
+import Login from "./pages/Login.jsx";
+import Register from "./pages/Register.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+import Workouts from "./pages/Workouts.jsx";
+import Progress from "./pages/Progress.jsx";
+import Insights from "./pages/Insights.jsx";
+import Profile from "./pages/Profile.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
+import NotFound from "./pages/NotFound.jsx";
 
 /**
- * AppContent renders the appropriate page based on user role.
- * Admin users see AdminDashboard; regular users see Dashboard.
- */
-function AppContent() {
-  const { user } = useAuth();
-
-  if (!user) return null;
-
-  if (user.role === "admin") {
-    return <AdminDashboard />;
-  }
-
-  return <Dashboard />;
-}
-
-/**
- * App - Root component wrapping the application with AuthProvider and ProtectedRoute.
+ * Application routes. Public auth routes, a protected user shell, and a
+ * protected + admin-gated portal. Real URLs mean refresh and browser
+ * back/forward work as expected.
  */
 export default function App() {
   return (
-    <AuthProvider>
-      <ProtectedRoute>
-        <AppContent />
-      </ProtectedRoute>
-    </AuthProvider>
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+
+      <Route element={<ProtectedRoute />}>
+        <Route element={<AppLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/workouts" element={<Workouts />} />
+          <Route path="/progress" element={<Progress />} />
+          <Route path="/insights" element={<Insights />} />
+          <Route path="/profile" element={<Profile />} />
+        </Route>
+
+        <Route element={<AdminRoute />}>
+          <Route element={<AdminLayout />}>
+            <Route path="/admin" element={<AdminDashboard />} />
+          </Route>
+        </Route>
+      </Route>
+
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }

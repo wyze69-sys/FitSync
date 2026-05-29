@@ -31,15 +31,19 @@ async function createTables() {
       id VARCHAR(50) PRIMARY KEY,
       email VARCHAR(255) UNIQUE NOT NULL,
       name VARCHAR(255) NOT NULL,
-      role VARCHAR(20) NOT NULL DEFAULT 'user',
+      role ENUM('user', 'admin') NOT NULL DEFAULT 'user',
       password_hash VARCHAR(255) NOT NULL,
       age INT,
       gender VARCHAR(50),
       height DECIMAL(5,2),
       weight DECIMAL(5,2),
+      target_weight DECIMAL(5,2),
+      preferred_workout_type VARCHAR(50),
       goal VARCHAR(255) DEFAULT 'Maintain fitness',
       activity_level VARCHAR(255) DEFAULT 'Sedentary',
-      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      is_active BOOLEAN NOT NULL DEFAULT TRUE,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     )
   `);
 
@@ -48,7 +52,9 @@ async function createTables() {
       id VARCHAR(50) PRIMARY KEY,
       name VARCHAR(255) UNIQUE NOT NULL,
       description TEXT NOT NULL,
-      is_custom BOOLEAN NOT NULL DEFAULT FALSE
+      is_custom BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     )
   `);
 
@@ -62,7 +68,9 @@ async function createTables() {
       calories_total INT NOT NULL DEFAULT 0,
       notes TEXT,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      INDEX idx_workouts_user_date (user_id, date)
     )
   `);
 
@@ -99,7 +107,8 @@ async function createTables() {
       bmi DECIMAL(4,1) NOT NULL,
       notes TEXT,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      INDEX idx_weight_user_date (user_id, date)
     )
   `);
 
@@ -119,20 +128,131 @@ async function createTables() {
       recommendations JSON NOT NULL,
       goal_progress TEXT NOT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      INDEX idx_insights_user_created (user_id, created_at)
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS daily_checkins (
+      id VARCHAR(50) PRIMARY KEY,
+      user_id VARCHAR(50) NOT NULL,
+      date DATE NOT NULL,
+      type VARCHAR(50) NOT NULL DEFAULT 'Wellness check-in',
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uniq_checkin_user_date (user_id, date),
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )
   `);
 
-  await pool.query("ALTER TABLE ai_insights MODIFY goal_progress TEXT NOT NULL");
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS achievements (
+      code VARCHAR(50) PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      description VARCHAR(500) NOT NULL,
+      requirement_type VARCHAR(30) NOT NULL DEFAULT 'streak',
+      requirement_value INT NOT NULL DEFAULT 0,
+      sort_order INT NOT NULL DEFAULT 0
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS user_achievements (
+      id VARCHAR(50) PRIMARY KEY,
+      user_id VARCHAR(50) NOT NULL,
+      achievement_code VARCHAR(50) NOT NULL,
+      unlocked_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uniq_user_achievement (user_id, achievement_code),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (achievement_code) REFERENCES achievements(code) ON DELETE CASCADE
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS user_streaks (
+      user_id VARCHAR(50) PRIMARY KEY,
+      current_streak INT NOT NULL DEFAULT 0,
+      longest_streak INT NOT NULL DEFAULT 0,
+      last_active_date DATE,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+}
+
+/**
+ * Idempotent, information_schema-driven upgrades for databases created before
+ * newer columns existed. This replaces blind "ALTER TABLE" statements that ran
+ * on every boot and only performs work when something is genuinely missing.
+ */
+async function columnExists(table, column) {
+  const [rows] = await pool.query(
+    `SELECT COUNT(*) AS total FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?`,
+    [table, column]
+  );
+  return Number(rows[0].total) > 0;
+}
+
+async function ensureColumn(table, column, definition) {
+  if (!(await columnExists(table, column))) {
+    await pool.query(`ALTER TABLE \`${table}\` ADD COLUMN ${definition}`);
+  }
+}
+
+async function applySchemaUpgrades() {
+  await ensureColumn("users", "target_weight", "target_weight DECIMAL(5,2)");
+  await ensureColumn("users", "preferred_workout_type", "preferred_workout_type VARCHAR(50)");
+  await ensureColumn("users", "is_active", "is_active BOOLEAN NOT NULL DEFAULT TRUE");
+  await ensureColumn(
+    "users",
+    "updated_at",
+    "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+  );
+  await ensureColumn(
+    "exercise_categories",
+    "created_at",
+    "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
+  );
+  await ensureColumn(
+    "exercise_categories",
+    "updated_at",
+    "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+  );
+  await ensureColumn(
+    "workouts",
+    "updated_at",
+    "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+  );
 }
 
 async function seedCategories() {
   const categories = [
-    ["cat_1", "Cardio Training", "Running, running tracks, jogging, cycling, walking, and swimming.", false],
-    ["cat_2", "Strength & Core", "Gym weight machines, free dumbbells, barbell lifts, and core training.", false],
-    ["cat_3", "Flexibility & Yoga", "Stretching, standard yoga, and body recovery movements.", false],
-    ["cat_4", "HIIT & Circuit", "High-intensity interval training, fast calisthenics, and active circuit routines.", false],
-    ["cat_5", "Hybrid Wellness", "Mixed cardio and strength routines in a single training block.", false]
+    ["cat_1", "Cardio Training", "Running, jogging, cycling, walking, and swimming.", false],
+    [
+      "cat_2",
+      "Strength & Core",
+      "Gym weight machines, free dumbbells, barbell lifts, and core training.",
+      false
+    ],
+    [
+      "cat_3",
+      "Flexibility & Yoga",
+      "Stretching, standard yoga, and body recovery movements.",
+      false
+    ],
+    [
+      "cat_4",
+      "HIIT & Circuit",
+      "High-intensity interval training, fast calisthenics, and active circuit routines.",
+      false
+    ],
+    [
+      "cat_5",
+      "Hybrid Wellness",
+      "Mixed cardio and strength routines in a single training block.",
+      false
+    ]
   ];
 
   for (const category of categories) {
@@ -140,6 +260,29 @@ async function seedCategories() {
       `INSERT IGNORE INTO exercise_categories (id, name, description, is_custom)
        VALUES (?, ?, ?, ?)`,
       category
+    );
+  }
+}
+
+async function seedAchievements() {
+  const achievements = [
+    ["streak_3", "Three Day Start", "Maintained a 3-day activity streak.", "streak", 3, 1],
+    ["streak_7", "One Week Streak", "Maintained a 7-day activity streak.", "streak", 7, 2],
+    ["streak_14", "Two Week Habit", "Maintained a 14-day activity streak.", "streak", 14, 3],
+    ["streak_30", "Thirty Day Streak", "Maintained a 30-day activity streak.", "streak", 30, 4]
+  ];
+
+  for (const achievement of achievements) {
+    await pool.execute(
+      `INSERT INTO achievements (code, name, description, requirement_type, requirement_value, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+         name = VALUES(name),
+         description = VALUES(description),
+         requirement_type = VALUES(requirement_type),
+         requirement_value = VALUES(requirement_value),
+         sort_order = VALUES(sort_order)`,
+      achievement
     );
   }
 }
@@ -157,9 +300,10 @@ async function seedUsers() {
 
   await pool.execute(
     `INSERT IGNORE INTO users (
-       id, email, name, role, password_hash, age, gender, height, weight, goal, activity_level, created_at
+       id, email, name, role, password_hash, age, gender, height, weight, target_weight,
+       preferred_workout_type, goal, activity_level, created_at
      )
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       "usr_demo",
       "user@fitsync.com",
@@ -170,6 +314,8 @@ async function seedUsers() {
       "female",
       168.0,
       65.0,
+      62.0,
+      "Strength",
       "Lose weight & Tone muscle",
       "Moderately active",
       toMysqlDateTime(thirtyDaysAgo)
@@ -195,7 +341,15 @@ async function seedWeightLogs(today) {
     await pool.execute(
       `INSERT IGNORE INTO weight_logs (id, user_id, date, weight, bmi, notes, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [`w_demo_${i}`, "usr_demo", toMysqlDate(recordDate), record.weight, bmi, record.notes, toMysqlDateTime(recordDate)]
+      [
+        `w_demo_${i}`,
+        "usr_demo",
+        toMysqlDate(recordDate),
+        record.weight,
+        bmi,
+        record.notes,
+        toMysqlDateTime(recordDate)
+      ]
     );
   }
 }
@@ -206,7 +360,7 @@ async function seedWorkouts(today) {
       id: "wk_demo_0",
       title: "Monday Energizing Jog",
       offsetDays: 12,
-      notes: "Outdoors track, felt very fresh",
+      notes: "Outdoor track, felt very fresh",
       exercises: [
         {
           id: "ex_seed_1",
@@ -261,7 +415,7 @@ async function seedWorkouts(today) {
       id: "wk_demo_3",
       title: "Full Body Circuit Blast",
       offsetDays: 5,
-      notes: "Incredible calorie burner. Peak heart rate 174",
+      notes: "Strong calorie burn. Peak heart rate 174",
       exercises: [
         {
           id: "ex_seed_4",
@@ -301,7 +455,10 @@ async function seedWorkouts(today) {
     const workoutDate = new Date(today);
     workoutDate.setDate(today.getDate() - workout.offsetDays);
     const totalDuration = workout.exercises.reduce((sum, exercise) => sum + exercise.duration, 0);
-    const totalCalories = workout.exercises.reduce((sum, exercise) => sum + exercise.caloriesBurned, 0);
+    const totalCalories = workout.exercises.reduce(
+      (sum, exercise) => sum + exercise.caloriesBurned,
+      0
+    );
 
     await pool.execute(
       `INSERT IGNORE INTO workouts (id, user_id, date, title, duration_total, calories_total, notes, created_at)
@@ -356,8 +513,8 @@ async function seedInsight(today) {
   const startDate = new Date(today);
   startDate.setDate(today.getDate() - 7);
   const recommendations = [
-    "Incorporate one additional low-intensity cardio session to promote a stronger stamina base.",
-    "Sustain hydration habits by aiming for 2.4 liters of water daily.",
+    "Incorporate one additional low-intensity cardio session to build a stronger stamina base.",
+    "Sustain hydration habits by aiming for around 2.4 liters of water daily.",
     "Next strength workout, try increasing row reps by 2 to support muscular tone progression."
   ];
 
@@ -378,9 +535,9 @@ async function seedInsight(today) {
       97,
       23.0,
       65.3,
-      "You maintained excellent routine consistency this past week with 3 logged sessions. Your weight records showed healthy downward progress and your training split favored efficient circuits.",
+      "You kept good routine consistency this past week with 3 logged sessions. Your weight records showed healthy downward progress and your training split favored efficient circuits.",
       JSON.stringify(recommendations),
-      "On track to target. Body mass indicators show safe pacing with excellent routine compliance."
+      "On track toward your target. Body weight is trending down at a safe pace with good routine compliance."
     ]
   );
 }
@@ -389,6 +546,7 @@ async function seedDefaults() {
   const today = new Date();
 
   await seedCategories();
+  await seedAchievements();
   await seedUsers();
   await seedWeightLogs(today);
   await seedWorkouts(today);
@@ -398,6 +556,7 @@ async function seedDefaults() {
 async function initializeDatabase() {
   await ensureDatabaseExists();
   await createTables();
+  await applySchemaUpgrades();
   await seedDefaults();
 }
 

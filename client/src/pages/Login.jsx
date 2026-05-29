@@ -1,11 +1,16 @@
+import { Navigate } from "react-router-dom";
 import AuthScreen from "../components/AuthScreen.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 
 /**
- * Login page - wraps the AuthScreen component with auth context integration.
+ * Login page. Redirects already-authenticated users to their home.
  */
 export default function Login() {
-  const { handleLoginSuccess } = useAuth();
+  const { user, loading } = useAuth();
 
-  return <AuthScreen onLoginSuccess={handleLoginSuccess} />;
+  if (!loading && user) {
+    return <Navigate to={user.role === "admin" ? "/admin" : "/dashboard"} replace />;
+  }
+
+  return <AuthScreen defaultMode="login" />;
 }

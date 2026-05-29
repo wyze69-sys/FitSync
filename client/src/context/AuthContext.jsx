@@ -1,75 +1,71 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import authService from "../services/authService.js";
+import { tokenStore } from "../services/apiClient.js";
 
 const AuthContext = createContext(null);
 
 /**
- * AuthProvider wraps the app and provides authentication state + actions.
+ * AuthProvider holds the authenticated user/session and exposes auth actions.
+ * Token persistence is delegated to the central apiClient token store, so no
+ * component touches localStorage directly.
  */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // On mount, check for existing session
   useEffect(() => {
-    const cachedToken = localStorage.getItem("fitsync_token");
-    if (cachedToken) {
-      setToken(cachedToken);
-      verifySession(cachedToken);
-    } else {
-      setLoading(false);
+    let active = true;
+
+    async function restoreSession() {
+      if (!tokenStore.get()) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const userData = await authService.getMe();
+        if (active) setUser(userData);
+      } catch (err) {
+        tokenStore.clear();
+        if (active) setUser(null);
+      } finally {
+        if (active) setLoading(false);
+      }
     }
+
+    restoreSession();
+    return () => {
+      active = false;
+    };
   }, []);
 
-  async function verifySession(authToken) {
-    try {
-      const userData = await authService.getMe();
-      setUser(userData);
-      setToken(authToken);
-    } catch (err) {
-      console.error("Session validation failed:", err);
-      handleLogout();
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function handleLoginSuccess(loggedInUser, sessionToken) {
-    localStorage.setItem("fitsync_token", sessionToken);
-    setToken(sessionToken);
+  const login = useCallback(async (email, password) => {
+    const { user: loggedInUser, token } = await authService.login(email, password);
+    tokenStore.set(token);
     setUser(loggedInUser);
-  }
+    return loggedInUser;
+  }, []);
 
-  function handleLogout() {
-    localStorage.removeItem("fitsync_token");
-    setToken(null);
+  const register = useCallback(async (email, password, name) => {
+    const { user: newUser, token } = await authService.register(email, password, name);
+    tokenStore.set(token);
+    setUser(newUser);
+    return newUser;
+  }, []);
+
+  const logout = useCallback(() => {
+    tokenStore.clear();
     setUser(null);
-  }
+  }, []);
 
-  function updateUser(updatedUser) {
+  const updateUser = useCallback((updatedUser) => {
     setUser(updatedUser);
-  }
+  }, []);
 
-  const value = {
-    user,
-    token,
-    loading,
-    handleLoginSuccess,
-    handleLogout,
-    updateUser,
-  };
+  const value = { user, loading, login, register, logout, updateUser };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-/**
- * Hook to access auth context in any component.
- */
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

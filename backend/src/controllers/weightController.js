@@ -14,7 +14,9 @@ const weightController = {
     try {
       const { date, weight, notes } = req.body;
       const newLog = await progressService.createWeightLog(req.user.id, {
-        date, weight, notes
+        date,
+        weight,
+        notes
       });
       res.status(201).json(newLog);
     } catch (err) {
