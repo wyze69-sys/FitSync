@@ -7,7 +7,7 @@ import { useAuth } from "../context/AuthContext.jsx";
  */
 export default function NotFound() {
   const { user } = useAuth();
-  const homePath = user ? (user.role === "admin" ? "/admin" : "/dashboard") : "/login";
+  const homePath = user ? (user.role === "admin" ? "/admin/dashboard" : "/dashboard") : "/login";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#050505] text-[#E0E0E0] px-4 text-center">

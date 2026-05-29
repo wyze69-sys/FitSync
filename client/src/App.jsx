@@ -5,6 +5,7 @@ import AppLayout from "./components/layout/AppLayout.jsx";
 import AdminLayout from "./components/layout/AdminLayout.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
+import AdminLogin from "./pages/AdminLogin.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Workouts from "./pages/Workouts.jsx";
 import Progress from "./pages/Progress.jsx";
@@ -23,6 +24,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/admin/login" element={<AdminLogin />} />
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
@@ -35,11 +37,14 @@ export default function App() {
 
         <Route element={<AdminRoute />}>
           <Route element={<AdminLayout />}>
-            <Route path="/admin" element={<AdminDashboard />} />
+            {/* Single mounted view; the :section param drives which panel shows
+                (dashboard | users | categories | statistics) without remounting. */}
+            <Route path="/admin/:section" element={<AdminDashboard />} />
           </Route>
         </Route>
       </Route>
 
+      <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
