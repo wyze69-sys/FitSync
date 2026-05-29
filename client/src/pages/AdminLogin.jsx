@@ -1,71 +1,82 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Dumbbell, Lock, Mail, User as UserIcon, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Navigate, useNavigate, Link } from "react-router-dom";
+import { ShieldCheck, Lock, Mail, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 
 /**
- * Authentication screen handling both sign in and registration.
- * Uses the auth context (which calls the centralized service layer) and routes
- * the user to the correct home after success.
+ * Internal admin login page.
+ *
+ * Reuses the existing /api/auth/login endpoint (no separate admin API or token).
+ * If the authenticated account is not an admin, it is immediately logged out and
+ * an error is shown. This page is intentionally not linked from the public
+ * login/register pages — note that this is UX separation, NOT a security
+ * boundary. The real protection is the backend `requireAdmin` middleware.
  */
-export default function AuthScreen({ defaultMode = "login" }) {
-  const { login, register } = useAuth();
+export default function AdminLogin() {
+  const { user, loading, login, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [isLogin, setIsLogin] = useState(defaultMode !== "register");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  // An already-authenticated admin skips the form.
+  if (!loading && user && user.role === "admin") {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
 
   async function handleSubmit(event) {
     event.preventDefault();
     setError(null);
-    setLoading(true);
+    setSubmitting(true);
     try {
-      const account = isLogin
-        ? await login(email, password)
-        : await register(email, password, name);
-      navigate(account.role === "admin" ? "/admin/dashboard" : "/dashboard", { replace: true });
+      const account = await login(email, password);
+      if (account.role === "admin") {
+        navigate("/admin/dashboard", { replace: true });
+      } else {
+        // Valid credentials but not an admin: drop the session and refuse access.
+        logout();
+        setError("This account does not have administrator access.");
+        setPassword("");
+      }
     } catch (err) {
-      setError(err.message || "Authentication failed. Please try again.");
+      setError(err.message || "Login failed. Please try again.");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   }
 
-  function fillCredentials() {
-    setEmail("user@fitsync.com");
-    setPassword("fitness123");
-    setIsLogin(true);
+  function fillAdminDemo() {
+    setEmail("admin@fitsync.com");
+    setPassword("admin123");
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#050505] text-[#E0E0E0] px-4 py-12 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-[#0E0E0E] p-8 border border-white/10 rounded-sm shadow-2xl">
         <div className="text-center space-y-2">
-          <div className="mx-auto h-12 w-12 rounded border border-white/15 bg-white/5 flex items-center justify-center text-white">
-            <Dumbbell className="h-6 w-6" aria-hidden="true" />
+          <div className="mx-auto h-12 w-12 rounded border border-blue-500/30 bg-blue-500/10 flex items-center justify-center text-blue-300">
+            <ShieldCheck className="h-6 w-6" aria-hidden="true" />
           </div>
-          <h1 className="text-3xl font-serif italic tracking-tight text-white">FitSync</h1>
+          <h1 className="text-2xl font-serif italic tracking-tight text-white">Admin Portal</h1>
           <p className="text-xs text-white/40 uppercase tracking-widest leading-relaxed">
-            {isLogin ? "Sign in to continue tracking" : "Create your FitSync profile"}
+            Internal management access
           </p>
         </div>
 
         <div className="p-4 rounded border border-white/5 bg-white/[0.02] space-y-2.5">
           <div className="text-[10px] font-semibold text-white/30 font-mono uppercase tracking-[0.22em]">
-            Demo account
+            Demo admin account
           </div>
           <button
             type="button"
-            onClick={fillCredentials}
+            onClick={fillAdminDemo}
             className="w-full py-1.5 px-3 rounded-sm text-[10px] font-bold uppercase tracking-wider border border-white/10 bg-white/5 hover:bg-white/10 text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            Use demo account
+            <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+            Use admin demo
           </button>
         </div>
 
@@ -80,51 +91,25 @@ export default function AuthScreen({ defaultMode = "login" }) {
         )}
 
         <form className="mt-8 space-y-5 text-left" onSubmit={handleSubmit}>
-          {!isLogin && (
-            <div>
-              <label
-                htmlFor="name-input"
-                className="block text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-1.5 font-mono"
-              >
-                Full Name
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white/30">
-                  <UserIcon className="h-4 w-4" aria-hidden="true" />
-                </div>
-                <input
-                  id="name-input"
-                  name="name"
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  placeholder="Sarah Coleman"
-                  className="block w-full pl-9 pr-4 py-2 bg-[#080808] border border-white/10 rounded-sm focus:bg-black focus:border-white text-sm placeholder-white/20 text-white transition-all font-sans focus:outline-none"
-                />
-              </div>
-            </div>
-          )}
-
           <div>
             <label
-              htmlFor="email-input"
+              htmlFor="admin-email"
               className="block text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-1.5 font-mono"
             >
-              Email Address
+              Admin Email
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white/30">
                 <Mail className="h-4 w-4" aria-hidden="true" />
               </div>
               <input
-                id="email-input"
+                id="admin-email"
                 name="email"
                 type="email"
                 required
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="user@fitsync.com"
+                placeholder="admin@fitsync.com"
                 className="block w-full pl-9 pr-4 py-2 bg-[#080808] border border-white/10 rounded-sm focus:bg-black focus:border-white text-sm placeholder-white/20 text-white transition-all font-sans focus:outline-none"
               />
             </div>
@@ -132,7 +117,7 @@ export default function AuthScreen({ defaultMode = "login" }) {
 
           <div>
             <label
-              htmlFor="password-input"
+              htmlFor="admin-password"
               className="block text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-1.5 font-mono"
             >
               Password
@@ -142,13 +127,13 @@ export default function AuthScreen({ defaultMode = "login" }) {
                 <Lock className="h-4 w-4" aria-hidden="true" />
               </div>
               <input
-                id="password-input"
+                id="admin-password"
                 name="password"
                 type={showPassword ? "text" : "password"}
                 required
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                placeholder="At least 8 characters"
+                placeholder="Password"
                 className="block w-full pl-9 pr-10 py-2 bg-[#080808] border border-white/10 rounded-sm focus:bg-black focus:border-white text-sm placeholder-white/20 text-white transition-all font-sans focus:outline-none"
               />
               <button
@@ -164,31 +149,27 @@ export default function AuthScreen({ defaultMode = "login" }) {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={submitting}
             className="w-full py-2.5 px-4 bg-white text-black rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-white/90 active:scale-[0.99] flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-70 disabled:pointer-events-none"
           >
-            {loading ? (
+            {submitting ? (
               <>
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                <span>{isLogin ? "Signing in..." : "Creating account..."}</span>
+                <span>Signing in...</span>
               </>
             ) : (
-              <span>{isLogin ? "Sign In" : "Create Account"}</span>
+              <span>Sign in to admin</span>
             )}
           </button>
         </form>
 
         <div className="text-center mt-6">
-          <button
-            type="button"
-            onClick={() => {
-              setIsLogin((value) => !value);
-              setError(null);
-            }}
-            className="text-xs font-semibold text-white/50 hover:text-white transition-all underline underline-offset-4 cursor-pointer"
+          <Link
+            to="/login"
+            className="text-xs font-semibold text-white/50 hover:text-white transition-all underline underline-offset-4"
           >
-            {isLogin ? "Don't have an account? Sign up" : "Already have an account? Log in"}
-          </button>
+            Return to user login
+          </Link>
         </div>
       </div>
     </div>

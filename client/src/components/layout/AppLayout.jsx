@@ -130,7 +130,7 @@ export default function AppLayout() {
 
   // Admins use a dedicated portal, not this user shell.
   if (user && user.role === "admin") {
-    return <Navigate to="/admin" replace />;
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   const context = {

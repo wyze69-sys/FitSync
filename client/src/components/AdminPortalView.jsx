@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate, Navigate } from "react-router-dom";
 import {
   ShieldCheck,
   Trash2,
@@ -49,12 +50,23 @@ function StatCard({ label, value, icon: Icon, hint }) {
 export default function AdminPortalView() {
   const { user: currentUser } = useAuth();
   const { push } = useToast();
+  const { section } = useParams();
+  const navigate = useNavigate();
+
+  // Map the URL section to the panel to show. Dashboard and statistics both
+  // surface the platform stats/analytics panel.
+  const SECTION_TO_TAB = {
+    dashboard: "stats",
+    statistics: "stats",
+    users: "users",
+    categories: "categories"
+  };
+  const activeTab = SECTION_TO_TAB[section];
 
   const [stats, setStats] = useState(null);
   const [categories, setCategories] = useState([]);
   const [analytics, setAnalytics] = useState([]);
   const [users, setUsers] = useState([]);
-  const [activeTab, setActiveTab] = useState("stats");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -183,10 +195,15 @@ export default function AdminPortalView() {
   }
 
   const TABS = [
-    { key: "stats", label: "Platform Stats", icon: BarChart3 },
-    { key: "categories", label: "Categories", icon: Layers },
-    { key: "users", label: "Users", icon: Users }
+    { key: "stats", label: "Platform Stats", icon: BarChart3, path: "/admin/dashboard" },
+    { key: "categories", label: "Categories", icon: Layers, path: "/admin/categories" },
+    { key: "users", label: "Users", icon: Users, path: "/admin/users" }
   ];
+
+  // Unknown section in the URL (e.g. /admin/foo) -> send to the default panel.
+  if (!activeTab) {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
 
   return (
     <div className="space-y-6 text-left text-[#E0E0E0]">
@@ -219,7 +236,7 @@ export default function AdminPortalView() {
           <button
             key={tab.key}
             type="button"
-            onClick={() => setActiveTab(tab.key)}
+            onClick={() => navigate(tab.path)}
             className={`py-2 px-4 font-serif italic font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
               activeTab === tab.key
                 ? "border-white text-white"

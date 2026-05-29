@@ -5,7 +5,9 @@ import {
   Scale,
   Sparkles,
   LayoutDashboard,
-  ShieldCheck,
+  Users,
+  Layers,
+  BarChart3,
   LogOut,
   Menu,
   X,
@@ -21,7 +23,12 @@ const USER_LINKS = [
   { to: "/profile", label: "Profile", icon: UserCog }
 ];
 
-const ADMIN_LINKS = [{ to: "/admin", label: "Admin Controls", icon: ShieldCheck }];
+const ADMIN_LINKS = [
+  { to: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/admin/users", label: "Users", icon: Users },
+  { to: "/admin/categories", label: "Categories", icon: Layers },
+  { to: "/admin/statistics", label: "Statistics", icon: BarChart3 }
+];
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -33,8 +40,9 @@ export default function Navbar() {
   const links = user.role === "admin" ? ADMIN_LINKS : USER_LINKS;
 
   function handleLogout() {
+    const target = user.role === "admin" ? "/admin/login" : "/login";
     logout();
-    navigate("/login", { replace: true });
+    navigate(target, { replace: true });
   }
 
   const desktopClass = ({ isActive }) =>
