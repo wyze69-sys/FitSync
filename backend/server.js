@@ -1,13 +1,6 @@
 require("dotenv").config();
 
-const requiredEnv = [
-  "DB_HOST",
-  "DB_PORT",
-  "DB_USER",
-  "DB_PASSWORD",
-  "DB_NAME",
-  "JWT_SECRET",
-];
+const requiredEnv = ["DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD", "DB_NAME", "JWT_SECRET"];
 
 for (const key of requiredEnv) {
   if (!process.env[key]) {

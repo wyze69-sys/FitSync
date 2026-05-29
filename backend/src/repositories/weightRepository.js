@@ -25,8 +25,11 @@ async function createWeightLog(log) {
   return mapWeightLogRow(rows[0]);
 }
 
-async function deleteWeightLog(id) {
-  const [result] = await pool.execute("DELETE FROM weight_logs WHERE id = ?", [id]);
+async function deleteWeightLog(id, userId) {
+  const [result] = await pool.execute("DELETE FROM weight_logs WHERE id = ? AND user_id = ?", [
+    id,
+    userId
+  ]);
   return result.affectedRows > 0;
 }
 

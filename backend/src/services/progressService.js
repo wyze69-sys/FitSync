@@ -1,12 +1,11 @@
+const { calculateBMI } = require("../utils/calculateBMI");
 const { userRepository } = require("../repositories/userRepository");
 const { weightRepository } = require("../repositories/weightRepository");
 
-/**
- * Calculate BMI from weight (kg) and height (cm)
- */
-function calculateBMI(weightKg, heightCm) {
-  const heightMeters = heightCm / 100;
-  return Number((weightKg / (heightMeters * heightMeters)).toFixed(1));
+function httpError(message, status) {
+  const err = new Error(message);
+  err.status = status;
+  return err;
 }
 
 const progressService = {
@@ -16,14 +15,11 @@ const progressService = {
 
   async createWeightLog(userId, { date, weight, notes }) {
     if (!date || !weight) {
-      const err = new Error("Date and Weight parameters are required.");
-      err.status = 400;
-      throw err;
+      throw httpError("Date and weight are required.", 400);
     }
 
     const user = await userRepository.getUserById(userId);
-    const height = user?.height || 170;
-    const bmi = calculateBMI(Number(weight), height);
+    const bmi = calculateBMI(Number(weight), user?.height || 170);
 
     return weightRepository.createWeightLog({
       userId,
@@ -35,18 +31,12 @@ const progressService = {
   },
 
   async deleteWeightLog(userId, logId) {
-    const logs = await weightRepository.getWeightLogsByUserId(userId);
-    const exists = logs.some((log) => log.id === logId);
-
-    if (!exists) {
-      const err = new Error("Weight log entry not found or belongs to another user.");
-      err.status = 404;
-      throw err;
+    const deleted = await weightRepository.deleteWeightLog(logId, userId);
+    if (!deleted) {
+      throw httpError("Weight log entry not found.", 404);
     }
-
-    await weightRepository.deleteWeightLog(logId);
     return { success: true, message: "Weight log entry deleted." };
   }
 };
 
-module.exports = { progressService, calculateBMI };
+module.exports = { progressService };

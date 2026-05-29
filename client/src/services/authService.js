@@ -1,33 +1,24 @@
-import { apiRequest } from "./api.js";
+import apiClient from "./apiClient.js";
 
 /**
- * Authentication service - handles login, register, and session verification.
+ * Authentication and profile service.
  */
 const authService = {
-  async login(email, password) {
-    return apiRequest("/auth/login", {
-      method: "POST",
-      body: { email, password },
-    });
+  login(email, password) {
+    return apiClient.post("/auth/login", { email, password });
   },
 
-  async register(email, password, name) {
-    return apiRequest("/auth/register", {
-      method: "POST",
-      body: { email, password, name },
-    });
+  register(email, password, name) {
+    return apiClient.post("/auth/register", { email, password, name });
   },
 
-  async getMe() {
-    return apiRequest("/auth/me");
+  getMe() {
+    return apiClient.get("/auth/me");
   },
 
-  async updateProfile(profileData) {
-    return apiRequest("/profile/update", {
-      method: "POST",
-      body: profileData,
-    });
-  },
+  updateProfile(profileData) {
+    return apiClient.post("/profile/update", profileData);
+  }
 };
 
 export default authService;

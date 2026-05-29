@@ -1,9 +1,11 @@
 const { Type } = require("@google/genai");
 const { AI_CONFIG } = require("../config/ai");
+const { calculateBMI } = require("../utils/calculateBMI");
 const { insightRepository } = require("../repositories/insightRepository");
 const { userRepository } = require("../repositories/userRepository");
 const { weightRepository } = require("../repositories/weightRepository");
 const { workoutRepository } = require("../repositories/workoutRepository");
+const { gamificationService } = require("./gamificationService");
 
 function dateString(date) {
   return date.toISOString().slice(0, 10);
@@ -20,8 +22,10 @@ const aiService = {
       throw new Error("User profile not found.");
     }
 
-    const workouts = await workoutRepository.getWorkoutsByUserId(user.id);
+    const workoutResult = await workoutRepository.getWorkoutsByUserId(user.id, { limit: 100 });
+    const workouts = workoutResult.items;
     const weightLogs = await weightRepository.getWeightLogsByUserId(user.id);
+    const streak = await gamificationService.getSummary(user.id);
 
     const today = new Date();
     const sevenDaysAgo = new Date();
@@ -31,8 +35,7 @@ const aiService = {
     const totalCalories = recentWorkouts.reduce((sum, workout) => sum + workout.caloriesTotal, 0);
     const totalMinutes = recentWorkouts.reduce((sum, workout) => sum + workout.durationTotal, 0);
     const currentWeight = user.weight || weightLogs[0]?.weight || 70;
-    const heightMeters = (user.height || 170) / 100;
-    const currentBmi = Number((currentWeight / (heightMeters * heightMeters)).toFixed(1));
+    const currentBmi = calculateBMI(currentWeight, user.height || 170);
 
     const recentWeights = weightLogs.filter((log) => new Date(log.date) >= sevenDaysAgo);
     let weightProgressSummary = "Stable";
@@ -43,16 +46,23 @@ const aiService = {
       weightProgressSummary = `${weightDiff > 0 ? "+" : ""}${weightDiff.toFixed(1)} kg`;
     }
 
-    const workoutsText = recentWorkouts.length > 0
-      ? recentWorkouts
-          .map((workout) => {
-            const exercises = workout.exercises.map((exercise) => exercise.exerciseName).join(", ");
-            return `- Date: ${workout.date}, Workout Title: "${workout.title}", Duration: ${workout.durationTotal}m, Calories: ${workout.caloriesTotal}kcal. Exercises: ${exercises}`;
-          })
-          .join("\n")
-      : "No workouts logged this week.";
+    const targetWeightLine = user.targetWeight
+      ? `- Target Weight: ${user.targetWeight} kg`
+      : "- Target Weight: Not set";
 
-    const systemPrompt = `You are a supportive fitness coach. Focus on workout consistency, recovery, body-weight trend awareness, and realistic next training steps. Do not provide medical advice, meal plans, or calorie targets. Keep goalProgress under 600 characters. Generate a JSON object with this exact shape:
+    const workoutsText =
+      recentWorkouts.length > 0
+        ? recentWorkouts
+            .map((workout) => {
+              const exercises = workout.exercises
+                .map((exercise) => exercise.exerciseName)
+                .join(", ");
+              return `- Date: ${workout.date}, Workout Title: "${workout.title}", Duration: ${workout.durationTotal}m, Calories: ${workout.caloriesTotal}kcal. Exercises: ${exercises}`;
+            })
+            .join("\n")
+        : "No workouts logged this week.";
+
+    const systemPrompt = `You are a supportive fitness coach. Focus on workout consistency, recovery, body-weight trend awareness, streak motivation, and realistic next training steps. Do not provide medical advice, meal plans, or calorie targets. Keep goalProgress under 600 characters. Generate a JSON object with this exact shape:
 {
   "summary": "A friendly weekly coaching summary.",
   "recommendations": ["tip 1", "tip 2", "tip 3"],
@@ -67,8 +77,11 @@ Analyze this athlete training log:
 - Goal: ${user.goal || "General Health"}
 - Activity Profile: ${user.activityLevel || "Active"}
 - Weight: ${currentWeight} kg
+${targetWeightLine}
 - BMI: ${currentBmi}
-- Weight Delta: ${weightProgressSummary}
+- Weight Delta (7 days): ${weightProgressSummary}
+- Current Activity Streak: ${streak.currentStreak} day(s) (best: ${streak.longestStreak})
+- Weekly Consistency: ${streak.weeklyConsistency}%
 
 Weekly Active Workout Logs:
 ${workoutsText}`;
@@ -100,12 +113,13 @@ ${workoutsText}`;
 
       generatedInsight = JSON.parse(response.text || "{}");
     } catch (err) {
-      const activeQuote = recentWorkouts.length > 2
-        ? "Your workout consistency is strong and your momentum is building."
-        : "You are building the foundation, and every logged effort counts.";
+      const activeQuote =
+        recentWorkouts.length > 2
+          ? "Your workout consistency is strong and your momentum is building."
+          : "You are building the foundation, and every logged effort counts.";
 
       generatedInsight = {
-        summary: `Hey ${user.name}! ${activeQuote} This week, you logged ${recentWorkouts.length} sessions for ${totalMinutes} active minutes and ${totalCalories} estimated calories. Your BMI is ${currentBmi} with body weight at ${currentWeight} kg.`,
+        summary: `Hey ${user.name}! ${activeQuote} This week, you logged ${recentWorkouts.length} sessions for ${totalMinutes} active minutes and ${totalCalories} estimated calories. Your BMI is ${currentBmi} with body weight at ${currentWeight} kg, and your current activity streak is ${streak.currentStreak} day(s).`,
         recommendations: [
           `Target at least ${recentWorkouts.length > 2 ? "4" : "3"} sessions this coming week to strengthen routine consistency.`,
           "Use rest days, hydration, and sleep to support recovery between sessions.",

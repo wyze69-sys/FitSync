@@ -1,20 +1,21 @@
 const pool = require("../config/db");
 const { createId } = require("../utils/ids");
+const { calculateBMI } = require("../utils/calculateBMI");
 const { mapUserRow } = require("../utils/rowMappers");
 
-async function getUsers() {
-  const [rows] = await pool.execute("SELECT * FROM users ORDER BY created_at DESC");
-  return rows.map(mapUserRow);
-}
+const USER_COLUMNS = `id, email, name, role, password_hash, age, gender, height, weight,
+  target_weight, preferred_workout_type, goal, activity_level, is_active, created_at, updated_at`;
 
 async function getUserById(id) {
-  const [rows] = await pool.execute("SELECT * FROM users WHERE id = ?", [id]);
+  const [rows] = await pool.execute(`SELECT ${USER_COLUMNS} FROM users WHERE id = ?`, [id]);
   return rows[0] ? mapUserRow(rows[0]) : undefined;
 }
 
 async function getUserByEmail(email) {
   const normalizedEmail = email.toLowerCase().trim();
-  const [rows] = await pool.execute("SELECT * FROM users WHERE LOWER(email) = ?", [normalizedEmail]);
+  const [rows] = await pool.execute(`SELECT ${USER_COLUMNS} FROM users WHERE LOWER(email) = ?`, [
+    normalizedEmail
+  ]);
   return rows[0] ? mapUserRow(rows[0]) : undefined;
 }
 
@@ -27,9 +28,10 @@ async function createUser(user) {
 
   await pool.execute(
     `INSERT INTO users (
-       id, email, name, role, password_hash, age, gender, height, weight, goal, activity_level
+       id, email, name, role, password_hash, age, gender, height, weight,
+       target_weight, preferred_workout_type, goal, activity_level
      )
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       id,
       email,
@@ -40,6 +42,8 @@ async function createUser(user) {
       user.gender || null,
       user.height || null,
       user.weight || null,
+      user.targetWeight || null,
+      user.preferredWorkoutType || null,
       goal,
       activityLevel
     ]
@@ -51,9 +55,7 @@ async function createUser(user) {
 async function syncProfileWeightLog(id, updatedUser, weight) {
   if (weight === undefined || weight === null || weight === "") return;
 
-  const height = updatedUser.height || 170;
-  const heightMeters = height / 100;
-  const bmi = Number((Number(weight) / (heightMeters * heightMeters)).toFixed(1));
+  const bmi = calculateBMI(Number(weight), updatedUser.height || 170);
   const today = new Date().toISOString().slice(0, 10);
 
   const [existingLogs] = await pool.execute(
@@ -62,10 +64,11 @@ async function syncProfileWeightLog(id, updatedUser, weight) {
   );
 
   if (existingLogs.length > 0) {
-    await pool.execute(
-      "UPDATE weight_logs SET weight = ?, bmi = ? WHERE id = ?",
-      [weight, bmi, existingLogs[0].id]
-    );
+    await pool.execute("UPDATE weight_logs SET weight = ?, bmi = ? WHERE id = ?", [
+      weight,
+      bmi,
+      existingLogs[0].id
+    ]);
     return;
   }
 
@@ -76,6 +79,18 @@ async function syncProfileWeightLog(id, updatedUser, weight) {
   );
 }
 
+const PROFILE_FIELD_MAP = {
+  name: "name",
+  age: "age",
+  gender: "gender",
+  height: "height",
+  weight: "weight",
+  targetWeight: "target_weight",
+  preferredWorkoutType: "preferred_workout_type",
+  goal: "goal",
+  activityLevel: "activity_level"
+};
+
 async function updateUser(id, updates) {
   const existing = await getUserById(id);
   if (!existing) {
@@ -85,33 +100,11 @@ async function updateUser(id, updates) {
   const fields = [];
   const values = [];
 
-  if (updates.name !== undefined) {
-    fields.push("name = ?");
-    values.push(updates.name);
-  }
-  if (updates.age !== undefined) {
-    fields.push("age = ?");
-    values.push(updates.age);
-  }
-  if (updates.gender !== undefined) {
-    fields.push("gender = ?");
-    values.push(updates.gender);
-  }
-  if (updates.height !== undefined) {
-    fields.push("height = ?");
-    values.push(updates.height);
-  }
-  if (updates.weight !== undefined) {
-    fields.push("weight = ?");
-    values.push(updates.weight);
-  }
-  if (updates.goal !== undefined) {
-    fields.push("goal = ?");
-    values.push(updates.goal);
-  }
-  if (updates.activityLevel !== undefined) {
-    fields.push("activity_level = ?");
-    values.push(updates.activityLevel);
+  for (const [key, column] of Object.entries(PROFILE_FIELD_MAP)) {
+    if (updates[key] !== undefined) {
+      fields.push(`${column} = ?`);
+      values.push(updates[key]);
+    }
   }
 
   if (fields.length > 0) {
@@ -124,18 +117,129 @@ async function updateUser(id, updates) {
   return updatedUser;
 }
 
-async function getAdminUserList() {
-  const users = await getUsers();
-  return users.map(({ passwordHash, ...safeUser }) => safeUser);
+async function updateUserRole(id, role) {
+  const [result] = await pool.execute("UPDATE users SET role = ? WHERE id = ?", [role, id]);
+  if (result.affectedRows === 0) return undefined;
+  return getUserById(id);
+}
+
+async function updateUserStatus(id, isActive) {
+  const [result] = await pool.execute("UPDATE users SET is_active = ? WHERE id = ?", [
+    isActive ? 1 : 0,
+    id
+  ]);
+  if (result.affectedRows === 0) return undefined;
+  return getUserById(id);
+}
+
+function toSafeUser(user) {
+  if (!user) return user;
+  const { passwordHash, ...safeUser } = user;
+  return safeUser;
+}
+
+/**
+ * Admin listing with optional search (name/email), role, and status filters.
+ * Includes per-user activity counts for the admin overview.
+ */
+async function getAdminUserList({ search, role, status } = {}) {
+  const conditions = [];
+  const params = [];
+
+  if (search) {
+    conditions.push("(u.name LIKE ? OR u.email LIKE ?)");
+    params.push(`%${search}%`, `%${search}%`);
+  }
+  if (role) {
+    conditions.push("u.role = ?");
+    params.push(role);
+  }
+  if (status === "active") {
+    conditions.push("u.is_active = 1");
+  } else if (status === "inactive") {
+    conditions.push("u.is_active = 0");
+  }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+  const [rows] = await pool.execute(
+    `SELECT u.id, u.email, u.name, u.role, u.age, u.gender, u.height, u.weight,
+            u.target_weight, u.preferred_workout_type, u.goal, u.activity_level,
+            u.is_active, u.created_at, u.updated_at,
+            (SELECT COUNT(*) FROM workouts w WHERE w.user_id = u.id) AS workout_count,
+            (SELECT COUNT(*) FROM weight_logs wl WHERE wl.user_id = u.id) AS weight_count
+     FROM users u
+     ${whereClause}
+     ORDER BY u.created_at DESC`,
+    params
+  );
+
+  return rows.map((row) => ({
+    ...toSafeUser(mapUserRow(row)),
+    workoutCount: Number(row.workout_count),
+    weightCount: Number(row.weight_count)
+  }));
+}
+
+async function getUserDetail(id) {
+  const user = await getUserById(id);
+  if (!user) return undefined;
+
+  const [[workoutAgg]] = await pool.query(
+    `SELECT COUNT(*) AS workout_count,
+            COALESCE(SUM(calories_total), 0) AS total_calories,
+            COALESCE(SUM(duration_total), 0) AS total_minutes,
+            MAX(date) AS last_workout_date
+     FROM workouts WHERE user_id = ?`,
+    [id]
+  );
+  const [[weightAgg]] = await pool.query(
+    "SELECT COUNT(*) AS weight_count, MAX(date) AS last_weight_date FROM weight_logs WHERE user_id = ?",
+    [id]
+  );
+  const [[insightAgg]] = await pool.query(
+    "SELECT COUNT(*) AS insight_count FROM ai_insights WHERE user_id = ?",
+    [id]
+  );
+  const [recentWorkouts] = await pool.execute(
+    "SELECT id, date, title, duration_total, calories_total FROM workouts WHERE user_id = ? ORDER BY date DESC LIMIT 5",
+    [id]
+  );
+
+  return {
+    user: toSafeUser(user),
+    stats: {
+      workoutCount: Number(workoutAgg.workout_count),
+      totalCalories: Number(workoutAgg.total_calories),
+      totalMinutes: Number(workoutAgg.total_minutes),
+      lastWorkoutDate: workoutAgg.last_workout_date
+        ? String(workoutAgg.last_workout_date).slice(0, 10)
+        : null,
+      weightCount: Number(weightAgg.weight_count),
+      lastWeightDate: weightAgg.last_weight_date
+        ? String(weightAgg.last_weight_date).slice(0, 10)
+        : null,
+      insightCount: Number(insightAgg.insight_count)
+    },
+    recentWorkouts: recentWorkouts.map((row) => ({
+      id: row.id,
+      date: String(row.date).slice(0, 10),
+      title: row.title,
+      durationTotal: Number(row.duration_total),
+      caloriesTotal: Number(row.calories_total)
+    }))
+  };
 }
 
 module.exports = {
   userRepository: {
-    getUsers,
     getUserById,
     getUserByEmail,
     createUser,
     updateUser,
-    getAdminUserList
+    updateUserRole,
+    updateUserStatus,
+    getAdminUserList,
+    getUserDetail
   }
 };

@@ -70,12 +70,68 @@ async function hydrateWorkouts(workoutRows, executor = pool) {
   }));
 }
 
-async function getWorkoutsByUserId(userId) {
-  const [rows] = await pool.execute(
-    "SELECT * FROM workouts WHERE user_id = ? ORDER BY date DESC, created_at DESC",
-    [userId]
+const SORT_OPTIONS = {
+  date_desc: "date DESC, created_at DESC",
+  date_asc: "date ASC, created_at ASC",
+  calories_desc: "calories_total DESC, date DESC",
+  duration_desc: "duration_total DESC, date DESC"
+};
+
+/**
+ * List a user's workouts with optional filtering, sorting and pagination.
+ * Returns { items, total, page, limit, totalPages }.
+ */
+async function getWorkoutsByUserId(userId, filters = {}) {
+  const conditions = ["w.user_id = ?"];
+  const params = [userId];
+
+  if (filters.category) {
+    // Match workouts that contain at least one exercise in the given category.
+    conditions.push(
+      "EXISTS (SELECT 1 FROM workout_exercises we WHERE we.workout_id = w.id AND we.category_id = ?)"
+    );
+    params.push(filters.category);
+  }
+  if (filters.search) {
+    conditions.push("(w.title LIKE ? OR w.notes LIKE ?)");
+    params.push(`%${filters.search}%`, `%${filters.search}%`);
+  }
+  if (filters.from) {
+    conditions.push("w.date >= ?");
+    params.push(filters.from);
+  }
+  if (filters.to) {
+    conditions.push("w.date <= ?");
+    params.push(filters.to);
+  }
+
+  const whereClause = `WHERE ${conditions.join(" AND ")}`;
+  const orderBy = SORT_OPTIONS[filters.sort] || SORT_OPTIONS.date_desc;
+
+  const [[countRow]] = await pool.query(
+    `SELECT COUNT(*) AS total FROM workouts w ${whereClause}`,
+    params
   );
-  return hydrateWorkouts(rows);
+  const total = Number(countRow.total);
+
+  const page = Math.max(1, Number(filters.page) || 1);
+  const limit = Math.min(100, Math.max(1, Number(filters.limit) || 50));
+  const offset = (page - 1) * limit;
+
+  const [rows] = await pool.query(
+    `SELECT w.* FROM workouts w ${whereClause} ORDER BY ${orderBy} LIMIT ${limit} OFFSET ${offset}`,
+    params
+  );
+
+  const items = await hydrateWorkouts(rows);
+
+  return {
+    items,
+    total,
+    page,
+    limit,
+    totalPages: Math.max(1, Math.ceil(total / limit))
+  };
 }
 
 async function getWorkoutById(id) {
@@ -204,8 +260,11 @@ async function updateWorkout(id, updates) {
   return getWorkoutById(id);
 }
 
-async function deleteWorkout(id) {
-  const [result] = await pool.execute("DELETE FROM workouts WHERE id = ?", [id]);
+async function deleteWorkout(id, userId) {
+  const [result] = await pool.execute("DELETE FROM workouts WHERE id = ? AND user_id = ?", [
+    id,
+    userId
+  ]);
   return result.affectedRows > 0;
 }
 

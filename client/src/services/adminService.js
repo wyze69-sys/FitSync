@@ -1,40 +1,48 @@
-import { apiRequest } from "./api.js";
+import apiClient from "./apiClient.js";
 
 /**
- * Admin service - handles admin-only operations (stats, users, categories).
+ * Admin-only operations: stats, user management, and category management.
  */
 const adminService = {
-  async getStats() {
-    return apiRequest("/admin/stats");
+  getStats() {
+    return apiClient.get("/admin/stats");
   },
 
-  async getUsers() {
-    return apiRequest("/admin/users");
+  getUsers(filters = {}) {
+    return apiClient.get("/admin/users", filters);
   },
 
-  async getCategories() {
-    return apiRequest("/categories");
+  getUserDetail(id) {
+    return apiClient.get(`/admin/users/${id}`);
   },
 
-  async createCategory(categoryData) {
-    return apiRequest("/admin/categories", {
-      method: "POST",
-      body: categoryData,
-    });
+  updateUserRole(id, role) {
+    return apiClient.put(`/admin/users/${id}/role`, { role });
   },
 
-  async updateCategory(id, categoryData) {
-    return apiRequest(`/admin/categories/${id}`, {
-      method: "PUT",
-      body: categoryData,
-    });
+  updateUserStatus(id, isActive) {
+    return apiClient.put(`/admin/users/${id}/status`, { isActive });
   },
 
-  async deleteCategory(id) {
-    return apiRequest(`/admin/categories/${id}`, {
-      method: "DELETE",
-    });
+  getCategories() {
+    return apiClient.get("/categories");
   },
+
+  getCategoryAnalytics() {
+    return apiClient.get("/admin/categories/analytics");
+  },
+
+  createCategory(categoryData) {
+    return apiClient.post("/admin/categories", categoryData);
+  },
+
+  updateCategory(id, categoryData) {
+    return apiClient.put(`/admin/categories/${id}`, categoryData);
+  },
+
+  deleteCategory(id) {
+    return apiClient.del(`/admin/categories/${id}`);
+  }
 };
 
 export default adminService;

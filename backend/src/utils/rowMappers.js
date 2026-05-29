@@ -10,6 +10,10 @@ function formatTimestamp(value) {
   return value.toISOString();
 }
 
+function toNumberOrUndefined(value) {
+  return value === null || value === undefined ? undefined : Number(value);
+}
+
 function mapUserRow(row) {
   return {
     id: row.id,
@@ -17,13 +21,17 @@ function mapUserRow(row) {
     name: row.name,
     role: row.role,
     passwordHash: row.password_hash,
-    age: row.age === null || row.age === undefined ? undefined : Number(row.age),
+    age: toNumberOrUndefined(row.age),
     gender: row.gender || undefined,
-    height: row.height === null || row.height === undefined ? undefined : Number(row.height),
-    weight: row.weight === null || row.weight === undefined ? undefined : Number(row.weight),
+    height: toNumberOrUndefined(row.height),
+    weight: toNumberOrUndefined(row.weight),
+    targetWeight: toNumberOrUndefined(row.target_weight),
+    preferredWorkoutType: row.preferred_workout_type || undefined,
     goal: row.goal || undefined,
     activityLevel: row.activity_level || undefined,
-    createdAt: formatTimestamp(row.created_at)
+    isActive: row.is_active === undefined || row.is_active === null ? true : Boolean(row.is_active),
+    createdAt: formatTimestamp(row.created_at),
+    updatedAt: formatTimestamp(row.updated_at)
   };
 }
 

@@ -1,0 +1,24 @@
+const { gamificationService } = require("../services/gamificationService");
+
+const gamificationController = {
+  async getSummary(req, res, next) {
+    try {
+      const summary = await gamificationService.getSummary(req.user.id);
+      res.json(summary);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async createCheckin(req, res, next) {
+    try {
+      const { type } = req.body;
+      const summary = await gamificationService.recordCheckin(req.user.id, type);
+      res.status(201).json(summary);
+    } catch (err) {
+      next(err);
+    }
+  }
+};
+
+module.exports = { gamificationController };

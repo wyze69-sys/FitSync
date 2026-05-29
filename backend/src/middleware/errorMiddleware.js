@@ -10,9 +10,7 @@ function errorHandler(err, req, res, next) {
 
   // Only expose error messages for client errors (4xx).
   // For server errors (5xx), return a generic message to avoid leaking internals.
-  const message = statusCode < 500
-    ? (err.message || "Request failed.")
-    : "Internal server error.";
+  const message = statusCode < 500 ? err.message || "Request failed." : "Internal server error.";
 
   res.status(statusCode).json({ error: message });
 }

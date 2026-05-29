@@ -1,36 +1,30 @@
-import { apiRequest } from "./api.js";
+import apiClient from "./apiClient.js";
 
 /**
- * Workout service - handles all workout CRUD and category fetching.
+ * Workout CRUD and category fetching.
+ * `getWorkouts` accepts optional filters: { category, search, from, to, sort, page, limit }
+ * and returns { items, total, page, limit, totalPages }.
  */
 const workoutService = {
-  async getWorkouts() {
-    return apiRequest("/workouts");
+  getWorkouts(filters = {}) {
+    return apiClient.get("/workouts", filters);
   },
 
-  async createWorkout(workoutData) {
-    return apiRequest("/workouts", {
-      method: "POST",
-      body: workoutData,
-    });
+  createWorkout(workoutData) {
+    return apiClient.post("/workouts", workoutData);
   },
 
-  async updateWorkout(id, workoutData) {
-    return apiRequest(`/workouts/${id}`, {
-      method: "PUT",
-      body: workoutData,
-    });
+  updateWorkout(id, workoutData) {
+    return apiClient.put(`/workouts/${id}`, workoutData);
   },
 
-  async deleteWorkout(id) {
-    return apiRequest(`/workouts/${id}`, {
-      method: "DELETE",
-    });
+  deleteWorkout(id) {
+    return apiClient.del(`/workouts/${id}`);
   },
 
-  async getCategories() {
-    return apiRequest("/categories");
-  },
+  getCategories() {
+    return apiClient.get("/categories");
+  }
 };
 
 export default workoutService;

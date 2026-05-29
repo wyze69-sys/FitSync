@@ -3,7 +3,9 @@ const { createId } = require("../utils/ids");
 const { mapCategoryRow } = require("../utils/rowMappers");
 
 async function getCategories() {
-  const [rows] = await pool.execute("SELECT * FROM exercise_categories ORDER BY is_custom ASC, name ASC");
+  const [rows] = await pool.execute(
+    "SELECT * FROM exercise_categories ORDER BY is_custom ASC, name ASC"
+  );
   return rows.map(mapCategoryRow);
 }
 
@@ -46,7 +48,10 @@ async function updateCategory(id, updates) {
   }
 
   if (updates.name !== undefined) {
-    await pool.execute("UPDATE workout_exercises SET category_name = ? WHERE category_id = ?", [updates.name, id]);
+    await pool.execute("UPDATE workout_exercises SET category_name = ? WHERE category_id = ?", [
+      updates.name,
+      id
+    ]);
   }
 
   const [rows] = await pool.execute("SELECT * FROM exercise_categories WHERE id = ?", [id]);
@@ -74,12 +79,14 @@ async function countRows(sql, params = []) {
 }
 
 async function getSystemStats() {
-  const [totalUsers, totalWorkouts, totalWeightEntries, totalInsightsGenerated] = await Promise.all([
-    countRows("SELECT COUNT(*) AS total FROM users WHERE role <> 'admin'"),
-    countRows("SELECT COUNT(*) AS total FROM workouts"),
-    countRows("SELECT COUNT(*) AS total FROM weight_logs"),
-    countRows("SELECT COUNT(*) AS total FROM ai_insights")
-  ]);
+  const [totalUsers, totalWorkouts, totalWeightEntries, totalInsightsGenerated] = await Promise.all(
+    [
+      countRows("SELECT COUNT(*) AS total FROM users WHERE role <> 'admin'"),
+      countRows("SELECT COUNT(*) AS total FROM workouts"),
+      countRows("SELECT COUNT(*) AS total FROM weight_logs"),
+      countRows("SELECT COUNT(*) AS total FROM ai_insights")
+    ]
+  );
 
   return {
     totalUsers,
@@ -89,12 +96,39 @@ async function getSystemStats() {
   };
 }
 
+/**
+ * Usage analytics per exercise category: how many times each category has been
+ * logged, plus the total minutes and calories attributed to it.
+ */
+async function getCategoryAnalytics() {
+  const [rows] = await pool.query(
+    `SELECT c.id, c.name, c.is_custom,
+            COUNT(we.id) AS usage_count,
+            COALESCE(SUM(we.duration), 0) AS total_minutes,
+            COALESCE(SUM(we.calories_burned), 0) AS total_calories
+     FROM exercise_categories c
+     LEFT JOIN workout_exercises we ON we.category_id = c.id
+     GROUP BY c.id, c.name, c.is_custom
+     ORDER BY usage_count DESC, c.name ASC`
+  );
+
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    isCustom: Boolean(row.is_custom),
+    usageCount: Number(row.usage_count),
+    totalMinutes: Number(row.total_minutes),
+    totalCalories: Number(row.total_calories)
+  }));
+}
+
 module.exports = {
   categoryRepository: {
     getCategories,
     createCategory,
     updateCategory,
     deleteCategory,
-    getSystemStats
+    getSystemStats,
+    getCategoryAnalytics
   }
 };

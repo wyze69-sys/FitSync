@@ -1,73 +1,93 @@
-# FitSync Cleanup Report
+# FitSync Refactor Report
 
-## Files Cleaned
+This report documents the project-wide refactor that cleaned up architecture,
+completed core features, and aligned the documentation with the actual code.
+The project remains JavaScript only (no TypeScript, same stack).
 
-- `README.md`
-- `docs/README.md`
-- `SECURITY_AUDIT.md`
-- `backend/src/docs/swagger.json`
-- `frontend/.env.example`
-- `frontend/vite.config.js`
-- `frontend/package.json`
-- `frontend/package-lock.json`
-- `frontend/src/App.jsx`
-- `frontend/src/components/AuthScreen.jsx`
-- `frontend/src/components/DashboardView.jsx`
-- `frontend/src/components/WeeklyInsightsView.jsx`
-- `frontend/src/components/AdminPortalView.jsx`
-- `frontend/src/components/WorkoutView.jsx`
-- `frontend/src/components/WeightTrackerView.jsx`
-- `frontend/src/index.css`
-- `frontend/src/utils/workoutUtils.js`
+## Frontend
 
-## AI-Generated Notes Removed or Rewritten
+- Added real routing with `react-router-dom` (`/login`, `/register`,
+  `/dashboard`, `/workouts`, `/progress`, `/insights`, `/profile`, `/admin`, and
+  a 404 page). Browser refresh and back/forward now work. Replaced the previous
+  `useState` tab switching.
+- Added route guards: `ProtectedRoute` (auth) and `AdminRoute` (admin), plus
+  `AppLayout` (user shell) and `AdminLayout` (admin shell).
+- Centralized all API calls through `client/src/services` built on a single
+  `apiClient` (base URL, token storage, headers, error handling). Removed every
+  direct `fetch` call and direct `localStorage` token access from components.
+- Split the ~944-line `DashboardView` into focused components under
+  `components/dashboard/`, `components/charts/`, `components/workout/`,
+  `components/modals/`, and `components/layout/`.
+- Added reusable UI: `Spinner`, `ErrorBanner`, `EmptyState`, `ConfirmDialog`,
+  and a `ToastContext` provider (replacing `window.alert` / `window.confirm`).
+- Normalized code style (2-space indent, double quotes, consistent imports)
+  across the frontend, which previously mixed transpiled-looking and hand-written
+  styles.
 
-- Replaced old `FitSync AI` branding with `FitSync` while keeping the weekly AI insight feature.
-- Removed generated-looking license banners from frontend source files.
-- Removed obvious JSX comments that only repeated what the markup already showed.
-- Rewrote overly polished UI copy such as "database shard", "telemetry", "tuples", "synthesize", and "suggest nodes".
-- Simplified the weekly AI insight wording and disclaimer.
-- Updated Swagger documentation to use simple project wording.
+## Backend
+
+- Centralized request validation in `middleware/validate.js` with schemas in
+  `validation/schemas.js`; removed scattered manual checks.
+- Added a global rate limiter (in addition to the stricter auth limiter).
+- Added ownership scoping (`AND user_id = ?`) to workout and weight deletes.
+- Centralized BMI calculation in `utils/calculateBMI.js` (removed three
+  duplicated implementations). `authService` now uses the shared
+  `utils/generateToken.js` (removed a duplicate token helper).
+- Added workout filtering, sorting, and pagination on `GET /workouts`.
+- Replaced random `Math.random` IDs with `crypto.randomUUID()`-based IDs.
+- Replaced the "ALTER on every boot" hack with idempotent,
+  `information_schema`-driven schema upgrades.
+
+## New Features
+
+- Persistent gamification: streaks, daily wellness check-ins, and achievement
+  badges are stored in MySQL (`daily_checkins`, `achievements`,
+  `user_achievements`, `user_streaks`) instead of `localStorage`.
+- Target weight and preferred workout type are now persisted and used in the
+  dashboard, chart (target line), progress card, and AI insight.
+- Expanded admin: user search/filter, role change, activate/deactivate, user
+  detail modal, category usage analytics, and streak statistics.
+
+## Database
+
+- `schema.sql` updated to the full schema (gamification tables, `role` ENUM,
+  `created_at`/`updated_at` audit timestamps, performance indexes).
+- `seed.sql` seeds categories and the achievement catalog.
+- `queries.sql` updated to reflect current repository queries.
+- Added `database/migrations/` (baseline + profile/timestamps + gamification).
+
+## Bug Fixes
+
+- Fixed invalid Tailwind classes (`text-red-105`, `text-rose-550`/`bg-rose-550`,
+  `text-red-350`) that silently failed to render.
+- Fixed mismatched exercise category IDs in dashboard quick-logs and templates.
+- Removed AI-styled UI copy (e.g. "INDEXING CORE NODE", "POWERED BY GEMINI PRO
+  METRICS INTELLIGENCE", "Broadcasting to MySQL") and unified branding to
+  "FitSync".
 
 ## Dead Code Removed
 
-- Removed the unused `motion` frontend dependency from `frontend/package.json` and `frontend/package-lock.json`.
+- `client/src/services/api.js` (replaced by `apiClient.js`).
+- `client/src/components/common/RoleRoute.jsx` (replaced by `AdminRoute`).
+- Monolithic views `DashboardView`, `WorkoutView`, `WeightTrackerView`,
+  `WeeklyInsightsView` (replaced by pages + small components).
+- `localStorage`-only streak/badge logic in `utils/workoutUtils.js`.
 
-## Bugs Fixed
+## Documentation
 
-- Updated Swagger server URL from `http://localhost:3000/api` to `http://localhost:5000/api`.
-- Removed the obsolete `role` request field from the register endpoint documentation.
-- Added `frontend/.env.example` for the Vite API proxy target.
-- Changed the Vite proxy to use `VITE_API_PROXY_TARGET` with the existing `http://localhost:5000` fallback.
-- Changed `ai_insights.goal_progress` to `TEXT` so longer Gemini goal progress responses can be saved.
-- Added a startup database adjustment for existing local MySQL databases with the old `goal_progress VARCHAR(255)` column.
+- `README.md` rewritten to match the implementation: corrected the stack
+  (custom SVG charts, not Recharts; removed the Framer Motion claim), documented
+  the real routes and API, and the actual folder structure.
 
-## Security Improvements Made
+## Intentionally Not Changed
 
-- Documentation now matches the current backend security behavior.
-- Security audit now reflects fixes already present in the code:
-  - no hardcoded JWT fallback secret
-  - forced `user` role on self-registration
-  - environment-based CORS configuration
-  - Helmet enabled
-  - auth rate limiting enabled
-  - limited database privileges script
-- No secrets were added to the repository.
+- Stack and language: React + Vite, Node + Express, MySQL, JWT, JavaScript only.
+- Gemini usage remains backend-only and limited to the weekly insight.
+- Existing table names and core layout/visual design were preserved.
 
-## Things Intentionally Not Changed
+## Known Limitations
 
-- JavaScript was kept as JavaScript. No TypeScript files were added.
-- Project name and scope were kept as FitSync.
-- Gemini API logic remains backend-only.
-- Existing endpoints, table names, folder structure, and UI layout were not redesigned.
-- Existing calorie fields were kept because they are already part of workout tracking.
-- Parameterized `SELECT *` queries were not rewritten because row mappers and repositories already depend on the current result shape.
-- Demo seed users were kept for local evaluation.
-
-## Remaining Recommended Improvements
-
-- Run basic endpoint testing with the backend and MySQL server running.
-- Consider adding length validation for workout notes, category descriptions, and other free-text fields.
-- Use stronger demo passwords if the project is deployed outside a local demo environment.
-- Run `npm audit` before final submission.
-- Consider httpOnly cookies for JWT storage in a production version.
+- No automated test suite yet.
+- JWT is stored in `localStorage` (acceptable for this course scope; httpOnly
+  cookies would be the production hardening step).
+- Live end-to-end testing requires a local MySQL instance.
