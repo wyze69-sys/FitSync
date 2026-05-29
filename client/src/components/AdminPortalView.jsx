@@ -1,7 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Trash2, Plus, Users, Layers, BarChart3, AlertCircle, FileCheck, Scale, Edit2, RefreshCw, Info } from 'lucide-react';
 export default function AdminPortalView({ token, onUnauthorized, onCategoryChanged }) {
@@ -9,7 +5,6 @@ export default function AdminPortalView({ token, onUnauthorized, onCategoryChang
     const [categories, setCategories] = useState([]);
     const [users, setUsers] = useState([]);
     const [activeTab, setActiveTab] = useState('stats');
-    // Category management sub-states
     const [catName, setCatName] = useState('');
     const [catDesc, setCatDesc] = useState('');
     const [editingCatId, setEditingCatId] = useState(null);
@@ -40,7 +35,6 @@ export default function AdminPortalView({ token, onUnauthorized, onCategoryChang
         }
         return data;
     }
-    // Load Administrative Data
     async function loadAdminData() {
         if (!token) {
             setAdminError('Admin session is missing. Please log in again.');
@@ -66,7 +60,6 @@ export default function AdminPortalView({ token, onUnauthorized, onCategoryChang
             setLoading(false);
         }
     }
-    // Load once on mounting
     useEffect(() => {
         loadAdminData();
     }, [token]);
@@ -94,7 +87,6 @@ export default function AdminPortalView({ token, onUnauthorized, onCategoryChang
             setCatDesc('');
             setEditingCatId(null);
             setIsAddingCat(false);
-            // reload lists
             loadAdminData();
             onCategoryChanged();
         }
@@ -126,28 +118,25 @@ export default function AdminPortalView({ token, onUnauthorized, onCategoryChang
     }
     return (<div id="admin-view-root" className="space-y-6 text-left font-sans text-[#E0E0E0]">
       
-      {/* Branding Administration Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#0E0E0E] p-6 rounded-sm border border-white/10 text-white shadow-lg">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5 text-emerald-400"/>
             <h2 className="text-base font-serif italic text-white font-bold">FitSync Administration Portal</h2>
           </div>
-          <p className="text-xs text-white/40">Manage global categories, overview system activity telemetry, and review athlete accounts.</p>
+          <p className="text-xs text-white/40">Manage exercise categories, review activity totals, and check user accounts.</p>
         </div>
         <button type="button" onClick={loadAdminData} disabled={loading} className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 text-xs font-mono rounded-sm border border-white/10 cursor-pointer flex items-center gap-1.5 transition-all text-white/80">
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`}/>
-          Refresh Registry Data
+          Refresh Data
         </button>
       </div>
 
-      {/* Tabs list navigation */}
       {adminError && (<div className="p-3.5 bg-red-950/45 border border-red-900/40 text-red-100 text-xs rounded-sm font-medium flex items-start gap-2">
         <AlertCircle className="h-4 w-4 text-red-400 shrink-0 mt-0.5"/>
         <span>{adminError}</span>
       </div>)}
 
-      {/* Tabs list navigation */}
       <div className="flex items-center gap-2.5 border-b border-white/10 pb-1 text-xs text-white/40">
         <button onClick={() => setActiveTab('stats')} className={`py-2 px-4 font-serif italic font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 ${activeTab === 'stats' ? 'border-white text-white' : 'border-transparent text-white/40 hover:text-white/70'}`}>
           <BarChart3 className="h-4 w-4"/>
@@ -163,7 +152,6 @@ export default function AdminPortalView({ token, onUnauthorized, onCategoryChang
         </button>
       </div>
 
-      {/* Tab Panel 1: Stats */}
       {activeTab === 'stats' && (<div id="stats-tab-panel" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="bg-[#0E0E0E] p-5 border border-white/10 rounded-sm shadow-sm relative">
@@ -194,7 +182,7 @@ export default function AdminPortalView({ token, onUnauthorized, onCategoryChang
             </div>
 
             <div className="bg-[#0E0E0E] p-5 border border-white/10 rounded-sm shadow-sm relative">
-              <span className="text-white/30 font-mono text-[9px] uppercase tracking-widest block">AI Insights Synthesized</span>
+              <span className="text-white/30 font-mono text-[9px] uppercase tracking-widest block">Weekly Insights</span>
               <strong className="text-2xl font-black text-white mt-1 block font-mono">{stats?.totalInsightsGenerated ?? '--'}</strong>
               <span className="text-[10px] text-white/40 font-sans mt-1.5 block flex items-center gap-1">
                 <ShieldCheck className="h-3 w-3 text-emerald-400"/>
@@ -203,24 +191,21 @@ export default function AdminPortalView({ token, onUnauthorized, onCategoryChang
             </div>
           </div>
 
-          {/* Quick instructions panel details */}
           <div className="bg-[#0E0E0E] border border-white/10 p-6 rounded-sm shadow-sm flex items-start gap-4">
             <div className="h-10 w-10 bg-white/5 rounded-sm border border-white/5 text-white/50 flex items-center justify-center shrink-0">
               <Info className="h-5 w-5 text-emerald-400"/>
             </div>
             <div className="space-y-1 text-xs">
-              <h4 className="font-serif italic font-bold text-white">Term 3 Evaluation Overview</h4>
+              <h4 className="font-serif italic font-bold text-white">Project Overview</h4>
               <p className="text-white/50 font-sans leading-relaxed">
-                FitSync AI operates on structured relational tables (relational mapping) maintaining complete transactional links. Weight entries, profiles, workout routines, exercise divisions, sets and reps represent fully realized database tuples, satisfying Database Administration and Software Engineering constraints.
+                FitSync stores user profiles, workouts, exercises, sets, weight logs, categories, and weekly insights in related MySQL tables.
               </p>
             </div>
           </div>
         </div>)}
 
-      {/* Tab Panel 2: Category Management */}
       {activeTab === 'categories' && (<div id="categories-tab-panel" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* List of categories */}
           <div className="lg:col-span-2 bg-[#0E0E0E] rounded-sm border border-white/10 shadow-sm overflow-hidden text-[#E0E0E0]">
             <div className="p-5 border-b border-white/10 flex items-center justify-between">
               <div>
@@ -263,7 +248,6 @@ export default function AdminPortalView({ token, onUnauthorized, onCategoryChang
             </div>
           </div>
 
-          {/* Form to manage custom category */}
           <div>
             {isAddingCat ? (<form onSubmit={handleSaveCategory} className="bg-[#0E0E0E] p-5 rounded-sm border border-white/10 shadow-md space-y-4">
                 <div className="border-b border-white/10 pb-2.5 flex justify-between items-center">
@@ -284,7 +268,7 @@ export default function AdminPortalView({ token, onUnauthorized, onCategoryChang
                   <label htmlFor="cat-name" className="block text-[10px] font-mono font-semibold text-white/40 uppercase tracking-widest mb-1.5">
                     Category Name
                   </label>
-                  <input id="cat-name" type="text" required disabled={!!editingCatId} // cannot change name after creation
+                  <input id="cat-name" type="text" required disabled={!!editingCatId}
              placeholder="e.g. Swimming Laps" value={catName} onChange={(e) => setCatName(e.target.value)} className="block w-full px-3 py-2 bg-[#050505] border border-white/10 rounded-sm text-xs text-white focus:bg-black focus:border-white focus:outline-none transition-all"/>
                   {editingCatId && <span className="text-[10px] text-white/30 mt-1 block">Names are locked in database references</span>}
                 </div>
@@ -302,7 +286,7 @@ export default function AdminPortalView({ token, onUnauthorized, onCategoryChang
               </form>) : (<div className="p-5 bg-white/[0.015] rounded-sm border border-dashed border-white/10 text-center space-y-3">
                 <Layers className="h-8 w-8 text-white/25 mx-auto"/>
                 <p className="text-xs text-white/40 font-sans leading-relaxed">
-                  Need an additional workout division? Create standard administrative custom exercise categories to expand user choices.
+                  Need another workout category? Add a custom exercise category for users.
                 </p>
                 <button onClick={() => setIsAddingCat(true)} className="mx-auto py-1 px-3 bg-white text-black hover:bg-white/90 transition-all font-bold uppercase tracking-widest rounded-sm text-xs cursor-pointer block">
                   Configure New Category
@@ -312,7 +296,6 @@ export default function AdminPortalView({ token, onUnauthorized, onCategoryChang
 
         </div>)}
 
-      {/* Tab Panel 3: Users Accounts List registry */}
       {activeTab === 'users' && (<div id="users-tab-panel" className="bg-[#0E0E0E] rounded-sm border border-white/10 shadow-sm overflow-hidden text-[#E0E0E0]">
           <div className="p-5 border-b border-white/10">
             <h3 className="text-sm font-bold text-white">Active Athletes registry</h3>

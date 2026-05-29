@@ -1,9 +1,5 @@
 /**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-/**
- * Get unique formatted YYYY-MM-DD dates in traveler local timezone from date string
+ * Format dates as YYYY-MM-DD in the user's local timezone.
  */
 export function formatDateStr(dateVal) {
     if (typeof dateVal === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateVal)) {
@@ -18,7 +14,7 @@ export function formatDateStr(dateVal) {
     return `${year}-${month}-${day}`;
 }
 /**
- * Parse a YYYY-MM-DD string into a Date object initialized to local time midnight
+ * Parse a YYYY-MM-DD string into local midnight.
  */
 export function parseLocalYYYYMMDD(dateStr) {
     const parts = dateStr.split('-');
@@ -28,7 +24,7 @@ export function parseLocalYYYYMMDD(dateStr) {
     return new Date(year, month, day, 0, 0, 0, 0);
 }
 /**
- * Persist and load manual daily check-ins
+ * Persist and load manual daily check-ins.
  */
 export function getLocalCheckins(userId) {
     try {
@@ -140,21 +136,21 @@ export function calculateStreakStats(user, workouts, weightLogs) {
     const totalMinutesThisWeek = workoutsThisWeek.reduce((sum, w) => sum + w.durationTotal, 0);
     const totalCaloriesThisWeek = workoutsThisWeek.reduce((sum, w) => sum + w.caloriesTotal, 0);
     // Messages depending on current streak index
-    let streakGrowthMessage = 'Every session builds robust brick walls. Complete a workout today to light the forge! 🔥';
+    let streakGrowthMessage = 'Every session helps. Complete a workout today to start a streak.';
     if (currentStreak === 1) {
-        streakGrowthMessage = '🔥 First step taken! Log tomorrow to start building momentum.';
+        streakGrowthMessage = 'First step taken. Log tomorrow to start building momentum.';
     }
     else if (currentStreak >= 2 && currentStreak < 4) {
-        streakGrowthMessage = '⚡ You are starting to spark! Stay on target and build that streak.';
+        streakGrowthMessage = 'You are building consistency. Stay on target and keep the streak going.';
     }
     else if (currentStreak >= 4 && currentStreak < 7) {
-        streakGrowthMessage = '💪 4+ days consecutive! Consistency is becoming your standard state.';
+        streakGrowthMessage = 'Four or more days in a row. Consistency is becoming part of your routine.';
     }
     else if (currentStreak >= 7 && currentStreak < 14) {
-        streakGrowthMessage = '🏆 1 Week Milestone unlocked! You are officially in a dedicated routine state!';
+        streakGrowthMessage = 'One week milestone reached. Your routine is getting stronger.';
     }
     else if (currentStreak >= 14) {
-        streakGrowthMessage = '🌟 Elite athlete streak! You have iron discipline! Let absolutely nothing break this loop!';
+        streakGrowthMessage = 'Two weeks or more. Your habit is becoming reliable.';
     }
     return {
         currentStreak,
@@ -171,7 +167,7 @@ export function getBadges(currentStreak) {
     return [
         {
             id: 'streak_3',
-            name: 'Flame Kindler',
+            name: 'Three Day Start',
             description: 'Maintained a consecutive 3-day workout or fitness check-in streak.',
             requirement: '3-Day Streak',
             value: 3,
@@ -179,7 +175,7 @@ export function getBadges(currentStreak) {
         },
         {
             id: 'streak_7',
-            name: 'Weekly Guardian',
+            name: 'One Week Streak',
             description: 'Maintained a consecutive 7-day milestone streak of active habits.',
             requirement: '7-Day Streak',
             value: 7,
@@ -187,7 +183,7 @@ export function getBadges(currentStreak) {
         },
         {
             id: 'streak_14',
-            name: 'Iron Habit Core',
+            name: 'Two Week Habit',
             description: 'Sustained a consecutive 14-day streak without missing a checkpoint.',
             requirement: '14-Day Streak',
             value: 14,
@@ -195,8 +191,8 @@ export function getBadges(currentStreak) {
         },
         {
             id: 'streak_30',
-            name: 'Unstoppable Titan',
-            description: 'Achieved elite 30-day consecutive streak. Pure dedication and mastery.',
+            name: 'Thirty Day Streak',
+            description: 'Achieved a 30-day consecutive streak.',
             requirement: '30-Day Streak',
             value: 30,
             isUnlocked: currentStreak >= 30

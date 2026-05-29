@@ -21,7 +21,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Custom styles for animations and visual rhythms */
+/* Shared animation styles */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -40,7 +40,7 @@ body {
   background: #404040;
 }
 
-/* CSS card focus shadows */
+/* Card focus shadows */
 .card-hover-effect {
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }

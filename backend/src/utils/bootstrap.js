@@ -117,11 +117,13 @@ async function createTables() {
       current_weight DECIMAL(5,2) NOT NULL,
       summary TEXT NOT NULL,
       recommendations JSON NOT NULL,
-      goal_progress VARCHAR(255) NOT NULL,
+      goal_progress TEXT NOT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )
   `);
+
+  await pool.query("ALTER TABLE ai_insights MODIFY goal_progress TEXT NOT NULL");
 }
 
 async function seedCategories() {

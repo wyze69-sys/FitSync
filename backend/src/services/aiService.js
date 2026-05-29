@@ -52,7 +52,7 @@ const aiService = {
           .join("\n")
       : "No workouts logged this week.";
 
-    const systemPrompt = `You are a supportive fitness coach. Generate a JSON object with this exact shape:
+    const systemPrompt = `You are a supportive fitness coach. Focus on workout consistency, recovery, body-weight trend awareness, and realistic next training steps. Do not provide medical advice, meal plans, or calorie targets. Keep goalProgress under 600 characters. Generate a JSON object with this exact shape:
 {
   "summary": "A friendly weekly coaching summary.",
   "recommendations": ["tip 1", "tip 2", "tip 3"],
@@ -108,7 +108,7 @@ ${workoutsText}`;
         summary: `Hey ${user.name}! ${activeQuote} This week, you logged ${recentWorkouts.length} sessions for ${totalMinutes} active minutes and ${totalCalories} estimated calories. Your BMI is ${currentBmi} with body weight at ${currentWeight} kg.`,
         recommendations: [
           `Target at least ${recentWorkouts.length > 2 ? "4" : "3"} sessions this coming week to strengthen routine consistency.`,
-          "Support training with protein, hydration, and restorative sleep.",
+          "Use rest days, hydration, and sleep to support recovery between sessions.",
           "Keep weight check-ins consistent by measuring at similar morning hours."
         ],
         goalProgress: `You are moving in the right direction for your goal of "${user.goal || "General Health"}".`

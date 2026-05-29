@@ -1,10 +1,22 @@
 # FitSync
 
-A full-stack fitness tracking web application with AI-powered weekly insights.
+FitSync is a full-stack fitness tracking web application with AI-powered weekly insights. It uses a React + Vite client, a Node.js + Express backend, and a MySQL database.
 
-## Project Structure (MVC-Inspired Architecture)
+## Main Features
 
-```
+- Register and log in with JWT authentication
+- User profile, BMI, and progress dashboard
+- Workout logging with exercises and sets
+- Weight tracking over time
+- Daily streak tracking and achievement badges
+- Weekly AI insight generated from the backend with Gemini
+- Admin tools for user review and category management
+- Responsive UI with mobile navigation
+- Role-based access control for users and admins
+
+## Project Structure
+
+```text
 FitSync/
 ├── client/                     # React + Vite frontend
 │   ├── package.json
@@ -16,89 +28,24 @@ FitSync/
 │       ├── main.jsx
 │       ├── App.jsx
 │       ├── index.css
-│       ├── pages/              # Page-level screens
-│       │   ├── Login.jsx
-│       │   ├── Register.jsx
-│       │   ├── Dashboard.jsx
-│       │   ├── AdminDashboard.jsx
-│       │   └── Profile.jsx
-│       ├── components/         # Reusable UI components
-│       │   ├── common/
-│       │   │   ├── Navbar.jsx
-│       │   │   ├── ProtectedRoute.jsx
-│       │   │   └── RoleRoute.jsx
-│       │   ├── dashboard/
-│       │   ├── workout/
-│       │   ├── progress/
-│       │   ├── admin/
-│       │   ├── DashboardView.jsx
-│       │   ├── WorkoutView.jsx
-│       │   ├── WeightTrackerView.jsx
-│       │   ├── WeeklyInsightsView.jsx
-│       │   ├── AdminPortalView.jsx
-│       │   └── AuthScreen.jsx
-│       ├── services/           # API communication layer
-│       │   ├── api.js
-│       │   ├── authService.js
-│       │   ├── workoutService.js
-│       │   ├── progressService.js
-│       │   └── adminService.js
-│       ├── context/            # React context providers
-│       │   └── AuthContext.jsx
+│       ├── pages/
+│       ├── components/
+│       ├── services/
+│       ├── context/
 │       └── utils/
-│           └── workoutUtils.js
-│
-├── backend/                    # Express.js API server
+├── backend/                    # Express API server
 │   ├── package.json
 │   ├── server.js
 │   ├── app.js
 │   ├── .env.example
 │   └── src/
 │       ├── config/
-│       │   ├── db.js
-│       │   ├── jwt.js
-│       │   └── ai.js
-│       ├── routes/             # Route definitions
-│       │   ├── routes.js       # Route aggregator
-│       │   ├── authRoutes.js
-│       │   ├── profileRoutes.js
-│       │   ├── workoutRoutes.js
-│       │   ├── weightRoutes.js
-│       │   ├── categoryRoutes.js
-│       │   ├── aiRoutes.js
-│       │   └── adminRoutes.js
-│       ├── controllers/        # Request/Response handling
-│       │   ├── authController.js
-│       │   ├── profileController.js
-│       │   ├── workoutController.js
-│       │   ├── weightController.js
-│       │   ├── categoryController.js
-│       │   ├── aiController.js
-│       │   └── adminController.js
-│       ├── services/           # Business logic layer
-│       │   ├── authService.js
-│       │   ├── userService.js
-│       │   ├── workoutService.js
-│       │   ├── progressService.js
-│       │   ├── aiService.js
-│       │   └── adminService.js
-│       ├── repositories/       # Database query layer
-│       │   ├── userRepository.js
-│       │   ├── workoutRepository.js
-│       │   ├── weightRepository.js
-│       │   ├── insightRepository.js
-│       │   └── categoryRepository.js
-│       ├── middleware/         # Express middleware
-│       │   ├── authMiddleware.js
-│       │   ├── roleMiddleware.js
-│       │   └── errorMiddleware.js
+│       ├── routes/
+│       ├── controllers/
+│       ├── services/
+│       ├── repositories/
+│       ├── middleware/
 │       └── utils/
-│           ├── bootstrap.js
-│           ├── ids.js
-│           ├── rowMappers.js
-│           ├── generateToken.js
-│           └── calculateBMI.js
-│
 └── database/                   # SQL schema and seed files
     ├── schema.sql
     ├── seed.sql
@@ -109,57 +56,66 @@ FitSync/
 
 ## Architecture Pattern
 
-**Backend:** Routes → Controllers → Services → Repositories → Database
+Backend: Routes -> Controllers -> Services -> Repositories -> Database
 
-**Frontend:** Pages → Components → Services/API → Context/Hooks
+Frontend: Pages -> Components -> Services/API -> Context
 
 ## Tech Stack
 
-- **Frontend:** React 19, Vite, Tailwind CSS v4, Lucide Icons, Framer Motion
-- **Backend:** Express.js, mysql2/promise, JWT, bcryptjs, Helmet, CORS
-- **Database:** MySQL (DB_PORT=8889 for MAMP)
-- **AI:** Google Gemini (weekly insight generation only)
+- Frontend: React 19, Vite, Tailwind CSS, Lucide Icons, Framer Motion
+- Backend: Express.js, mysql2/promise, JWT, bcryptjs, Helmet, CORS
+- Database: MySQL
+- AI: Google Gemini for weekly insight generation
 
-## Getting Started
+## Requirements
 
-### 1. Backend Setup
+- Node.js
+- MySQL or MAMP MySQL running locally
+- Database name: `fitsync_db`
+
+The default local MySQL port is `8889`, which matches many MAMP setups. Change `DB_PORT` in `backend/.env` if your MySQL server uses another port.
+
+## Backend Setup
 
 ```bash
 cd backend
-cp .env.example .env
-# Edit .env with your database credentials and JWT secret
 npm install
+copy .env.example .env
 npm run dev
 ```
 
-### 2. Client Setup
+Update `backend/.env` with your local database password, JWT secret, and Gemini API key.
+
+## Client Setup
 
 ```bash
 cd client
 npm install
+copy .env.example .env
 npm run dev
 ```
 
-### 3. Database
+The client runs on Vite at `http://localhost:5173` and proxies `/api` requests to the backend at `http://localhost:5000`.
 
-The backend automatically creates tables and seeds demo data on first startup.
+## Database Files
 
-**Demo Accounts:**
+MySQL files are stored in `database/`:
+
+- `schema.sql` creates the tables
+- `seed.sql` adds starter exercise categories
+- `queries.sql` shows the main SQL queries used by the app
+- `privileges.sql` creates a limited database user
+- `backup-notes.md` includes simple backup and restore commands
+
+The backend also creates missing tables and starter demo records during startup.
+
+Demo accounts:
+
 - User: `user@fitsync.com` / `fitness123`
 - Admin: `admin@fitsync.com` / `admin123`
 
-## Features
+## Notes
 
-- User registration and login (JWT authentication)
-- User profile management (age, gender, height, weight, goals)
-- Workout tracking with exercises, sets, and reps
-- Weight logging with automatic BMI calculation
-- Daily streak tracking and gamified badges
-- AI-powered weekly fitness insights (Google Gemini)
-- Admin portal for user/category management
-- Responsive design with mobile bottom navigation
-- Role-based access control (user vs admin)
-
-## Environment Variables
-
-See `backend/.env.example` for all required variables.
+- Keep `backend/.env` and `client/.env` private. They are ignored by Git.
+- Gemini API calls are made only from the backend.
+- The project is JavaScript only.

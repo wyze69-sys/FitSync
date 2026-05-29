@@ -1,14 +1,9 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Trash, ChevronDown, ChevronUp, Calendar, Dumbbell, Flame, Clock, AlertCircle, History } from 'lucide-react';
 export default function WorkoutView({ workouts, onWorkoutLogged, prefilledTemplate, onClearPrefilledTemplate, triggerToast }) {
     const [categories, setCategories] = useState([]);
     const [isLoggingWorkout, setIsLoggingWorkout] = useState(false);
     const [editingWorkoutId, setEditingWorkoutId] = useState(null);
-    // Auto-fill form from starter templates
     useEffect(() => {
         if (prefilledTemplate) {
             setTitle(prefilledTemplate.title);
@@ -34,7 +29,6 @@ export default function WorkoutView({ workouts, onWorkoutLogged, prefilledTempla
             }
         }
     }, [prefilledTemplate]);
-    // Core form parameters
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [title, setTitle] = useState('');
     const [notes, setNotes] = useState('');
@@ -42,7 +36,6 @@ export default function WorkoutView({ workouts, onWorkoutLogged, prefilledTempla
     const [expandedWorkoutId, setExpandedWorkoutId] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
-    // Fetch available categories from API
     useEffect(() => {
         async function loadCategories() {
             try {
@@ -130,7 +123,6 @@ export default function WorkoutView({ workouts, onWorkoutLogged, prefilledTempla
             setLoading(false);
             return;
         }
-        // Validate that required fields are loaded
         for (let i = 0; i < formExercises.length; i++) {
             const ex = formExercises[i];
             if (!ex.exerciseName.trim()) {
@@ -173,8 +165,8 @@ export default function WorkoutView({ workouts, onWorkoutLogged, prefilledTempla
             }
             if (triggerToast) {
                 triggerToast(editingWorkoutId
-                    ? 'Workout log synchronized successfully! 🏆'
-                    : 'Unbelievable effort! Workout logged into MySQL database! 🔥', 'success');
+                    ? 'Workout log updated.'
+                    : 'Workout logged successfully.', 'success');
             }
             onWorkoutLogged();
             setIsLoggingWorkout(false);
@@ -230,7 +222,6 @@ export default function WorkoutView({ workouts, onWorkoutLogged, prefilledTempla
     }
     return (<div id="workouts-view-root" className="space-y-6 text-left font-sans text-[#E0E0E0]">
       
-      {/* Header section */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-serif italic text-white">Active Workout Tracker</h2>
@@ -247,7 +238,6 @@ export default function WorkoutView({ workouts, onWorkoutLogged, prefilledTempla
           </button>)}
       </div>
 
-      {/* Main logging Form */}
       {isLoggingWorkout && (<form onSubmit={handleSaveWorkout} className="bg-[#0E0E0E] p-6 rounded-sm border border-white/10 shadow-lg space-y-6">
           <div className="border-b border-white/10 pb-3 flex items-center justify-between">
             <h3 className="text-sm font-serif italic text-white flex items-center gap-2">
@@ -267,7 +257,6 @@ export default function WorkoutView({ workouts, onWorkoutLogged, prefilledTempla
               <span>{error}</span>
             </div>)}
 
-          {/* Form Top Level Configs */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label htmlFor="w-date-field" className="block text-[10px] font-mono font-semibold text-white/40 uppercase tracking-widest mb-1.5">
@@ -294,7 +283,6 @@ export default function WorkoutView({ workouts, onWorkoutLogged, prefilledTempla
             <input id="w-notes" type="text" placeholder="e.g. Set a personal record on Dumbbells shoulder rows! Hydrated and energized." value={notes} onChange={(e) => setNotes(e.target.value)} className="block w-full px-3.5 py-2 bg-[#050505] border border-white/10 rounded-sm text-xs text-white focus:bg-black focus:border-white focus:outline-none transition-all"/>
           </div>
 
-          {/* SubForm: Nested Exercises & Sets */}
           <div className="space-y-4">
             <div className="flex items-center justify-between border-t border-white/10 pt-5">
               <h4 className="text-xs font-bold text-white uppercase tracking-wider">Exercises list ({formExercises.length})</h4>
@@ -313,7 +301,6 @@ export default function WorkoutView({ workouts, onWorkoutLogged, prefilledTempla
                     </button>
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pr-8">
-                      {/* Exercise Category Selection */}
                       <div>
                         <label className="block text-[9px] font-mono text-white/40 uppercase mb-1">
                           Training Split Category
@@ -323,7 +310,6 @@ export default function WorkoutView({ workouts, onWorkoutLogged, prefilledTempla
                         </select>
                       </div>
 
-                      {/* Exercise Name input */}
                       <div className="md:col-span-2">
                         <label className="block text-[9px] font-mono text-white/40 uppercase mb-1">
                           Exercise / Activity Name
@@ -331,7 +317,6 @@ export default function WorkoutView({ workouts, onWorkoutLogged, prefilledTempla
                         <input type="text" required placeholder="e.g. Barbell Squats, Kettlebell Swings" value={ex.exerciseName} onChange={(e) => handleExerciseFieldChange(exIdx, 'exerciseName', e.target.value)} className="block w-full px-2.5 py-2 bg-[#050505] border border-white/10 rounded-sm text-xs text-white focus:bg-black focus:border-white focus:outline-none transition-all"/>
                       </div>
 
-                      {/* Calorie / Minute Details */}
                       <div className="grid grid-cols-2 gap-2">
                         <div>
                           <label className="block text-[9px] font-mono text-white/40 uppercase mb-1">
@@ -348,7 +333,6 @@ export default function WorkoutView({ workouts, onWorkoutLogged, prefilledTempla
                       </div>
                     </div>
 
-                    {/* Sets Details Container */}
                     <div className="border-t border-white/10 pt-3 space-y-2.5">
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] font-bold text-white/50 block">Sets and Load details</span>
@@ -381,7 +365,6 @@ export default function WorkoutView({ workouts, onWorkoutLogged, prefilledTempla
           </button>
         </form>)}
 
-      {/* Historical List */}
       {!isLoggingWorkout && (<div className="space-y-4">
           <div className="flex items-center gap-2 text-white/40">
             <History className="h-4 w-4"/>
@@ -396,7 +379,6 @@ export default function WorkoutView({ workouts, onWorkoutLogged, prefilledTempla
               {workouts.map((w) => {
                     const isExpanded = expandedWorkoutId === w.id;
                     return (<div key={w.id} className="bg-[#0E0E0E] border border-white/10 hover:border-white/15 rounded-sm shadow-md overflow-hidden transition-all duration-300">
-                    {/* Header bar click to expand */}
                     <div onClick={() => setExpandedWorkoutId(isExpanded ? null : w.id)} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-white/[0.015] transition-all">
                       <div className="space-y-1.5">
                         <div className="flex flex-wrap items-center gap-2">
@@ -430,7 +412,6 @@ export default function WorkoutView({ workouts, onWorkoutLogged, prefilledTempla
                       </div>
                     </div>
 
-                    {/* Expandable exercises block */}
                     {isExpanded && (<div className="bg-white/[0.005] border-t border-white/10 p-5 space-y-4 font-sans text-xs text-[#E0E0E0]">
                         <div className="space-y-4">
                           {w.exercises.map((ex, exIdx) => (<div key={ex.id} className="flex flex-col md:flex-row md:items-start justify-between gap-4 pb-4 last:pb-0 border-b border-white/5 last:border-b-0">
@@ -462,7 +443,6 @@ export default function WorkoutView({ workouts, onWorkoutLogged, prefilledTempla
                             </div>))}
                         </div>
 
-                        {/* Edit delete buttons */}
                         <div className="pt-3 flex justify-end gap-5 border-t border-white/10">
                           <button type="button" onClick={() => handleStartEditWorkout(w)} className="text-xs font-serif italic text-white/60 hover:text-white transition-all cursor-pointer underline decoration-white/15 underline-offset-4">
                             Edit Workout

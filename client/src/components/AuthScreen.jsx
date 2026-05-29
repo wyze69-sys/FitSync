@@ -1,7 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
 import React, { useState } from 'react';
 import { Dumbbell, Lock, Mail, User as UserIcon, Eye, EyeOff, Loader2 } from 'lucide-react';
 export default function AuthScreen({ onLoginSuccess }) {
@@ -39,7 +35,6 @@ export default function AuthScreen({ onLoginSuccess }) {
             setLoading(false);
         }
     }
-    // Quick fill logins for Term 3 graders
     function fillCredentials(type) {
         if (type === 'user') {
             setEmail('user@fitsync.com');
@@ -54,20 +49,18 @@ export default function AuthScreen({ onLoginSuccess }) {
     return (<div id="auth-screen-container" className="min-h-screen flex items-center justify-center bg-[#050505] text-[#E0E0E0] px-4 py-12 sm:px-6 lg:px-8">
       <div id="auth-box" className="max-w-md w-full space-y-8 bg-[#0E0E0E] p-8 border border-white/10 rounded-sm shadow-2xl">
         
-        {/* Brand Header */}
         <div className="text-center space-y-2">
           <div className="mx-auto h-12 w-12 rounded border border-white/15 bg-white/5 flex items-center justify-center text-white">
             <Dumbbell className="h-6 w-6"/>
           </div>
-          <h2 className="text-3xl font-serif italic tracking-tight text-white">FitSync AI</h2>
+          <h2 className="text-3xl font-serif italic tracking-tight text-white">FitSync</h2>
           <p className="text-xs text-white/40 uppercase tracking-widest leading-relaxed">
-            {isLogin ? 'Sign in to continue performance indexing' : 'Create your secure profile node'}
+            {isLogin ? 'Sign in to continue tracking' : 'Create your FitSync profile'}
           </p>
         </div>
 
-        {/* Demo Credentials Box */}
         <div id="demo-guide-box" className="p-4 rounded border border-white/5 bg-white/[0.02] space-y-2.5">
-          <div className="text-[10px] font-semibold text-white/30 font-mono uppercase tracking-[0.22em]">Course Evaluation seed users</div>
+          <div className="text-[10px] font-semibold text-white/30 font-mono uppercase tracking-[0.22em]">Demo seed users</div>
           <div className="flex flex-col sm:flex-row gap-2">
             <button type="button" onClick={() => fillCredentials('user')} className="flex-1 py-1.5 px-3 rounded-sm text-[10px] font-bold uppercase tracking-wider border border-white/10 bg-white/5 hover:bg-white/10 text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
@@ -80,7 +73,6 @@ export default function AuthScreen({ onLoginSuccess }) {
           </div>
         </div>
 
-        {/* Auth Error Alarm */}
         {error && (<div id="auth-error-banner" className="bg-red-950/45 border border-red-900/40 text-red-200 text-xs text-left p-3.5 rounded-sm font-medium flex items-start gap-2">
             <span className="font-bold underline uppercase tracking-wider font-mono text-[10px]">Error:</span>
             <span>{error}</span>
@@ -130,7 +122,7 @@ export default function AuthScreen({ onLoginSuccess }) {
             {loading ? (<>
                 <Loader2 className="h-3.5 w-3.5 animate-spin"/>
                 <span>INDEXING CORE NODE...</span>
-              </>) : (<span>{isLogin ? 'Sign In' : 'Synthesize Profile'}</span>)}
+              </>) : (<span>{isLogin ? 'Sign In' : 'Create Account'}</span>)}
           </button>
         </form>
 

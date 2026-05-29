@@ -1,7 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
 import React, { useState } from 'react';
 import { Scale, Calendar, Trash2, AlertCircle, Plus, Compass } from 'lucide-react';
 export default function WeightTrackerView({ user, weightLogs, onWeightLogged, triggerToast }) {
@@ -11,12 +7,11 @@ export default function WeightTrackerView({ user, weightLogs, onWeightLogged, tr
     const [isLogging, setIsLogging] = useState(false);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
-    // Helper to resolve BMI with dark mode styling variables
     function resolveBmiCategory(bmi) {
         if (bmi < 18.5) {
             return {
                 label: 'Underweight',
-                desc: 'Slightly below healthy metrics.',
+                desc: 'Below the standard healthy range.',
                 color: 'text-amber-400',
                 bg: 'bg-amber-950/20 border border-amber-900/30'
             };
@@ -24,7 +19,7 @@ export default function WeightTrackerView({ user, weightLogs, onWeightLogged, tr
         else if (bmi >= 18.5 && bmi < 25) {
             return {
                 label: 'Healthy Weight',
-                desc: 'Perfect metabolic index range.',
+                desc: 'Within the standard healthy range.',
                 color: 'text-emerald-400',
                 bg: 'bg-emerald-950/20 border border-emerald-900/30'
             };
@@ -32,7 +27,7 @@ export default function WeightTrackerView({ user, weightLogs, onWeightLogged, tr
         else if (bmi >= 25 && bmi < 30) {
             return {
                 label: 'Overweight',
-                desc: 'Mildly above standard benchmarks.',
+                desc: 'Above the standard healthy range.',
                 color: 'text-orange-400',
                 bg: 'bg-orange-950/20 border border-orange-900/30'
             };
@@ -40,7 +35,7 @@ export default function WeightTrackerView({ user, weightLogs, onWeightLogged, tr
         else {
             return {
                 label: 'Obese',
-                desc: 'Significant cardiovascular loads.',
+                desc: 'Well above the standard healthy range.',
                 color: 'text-red-400',
                 bg: 'bg-red-950/20 border border-red-900/30'
             };
@@ -78,7 +73,7 @@ export default function WeightTrackerView({ user, weightLogs, onWeightLogged, tr
                 throw new Error(data.error || 'Failed saving weight log.');
             }
             if (triggerToast) {
-                triggerToast(`Scale updated! Logged ${weight}kg to your athlete profile. ⚖️`, 'success');
+                triggerToast(`Logged ${weight} kg.`, 'success');
             }
             setWeight('');
             setNotes('');
@@ -117,11 +112,10 @@ export default function WeightTrackerView({ user, weightLogs, onWeightLogged, tr
     }
     return (<div id="weight-tracker-root" className="space-y-6 text-left font-sans text-[#E0E0E0]">
       
-      {/* Header element */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-serif italic text-white font-bold">Scale & Body weight tracker</h2>
-          <p className="text-xs text-white/40">Compare weight indexes dynamically, analyze BMI scores, and record progress</p>
+          <h2 className="text-xl font-serif italic text-white font-bold">Weight Tracker</h2>
+          <p className="text-xs text-white/40">Record body weight, BMI, and progress notes over time.</p>
         </div>
         {!isLogging && (<button type="button" onClick={() => {
                 setIsLogging(true);
@@ -135,10 +129,8 @@ export default function WeightTrackerView({ user, weightLogs, onWeightLogged, tr
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Left Side weight log form & values overview */}
         <div className="lg:col-span-2 space-y-6">
           
-          {/* Collapsible form log entry */}
           {isLogging && (<form onSubmit={handleLogWeight} className="bg-[#0E0E0E] p-6 rounded-sm border border-white/10 shadow-lg space-y-5">
               <div className="border-b border-white/10 pb-3 flex justify-between items-center">
                 <h3 className="text-xs font-mono font-semibold text-white uppercase tracking-widest flex items-center gap-2">
@@ -176,25 +168,24 @@ export default function WeightTrackerView({ user, weightLogs, onWeightLogged, tr
 
               <div>
                 <label htmlFor="w-notes" className="block text-[10px] font-mono font-semibold text-white/40 uppercase tracking-widest mb-1.5">
-                  Benchmarking Notes
+                  Notes
                 </label>
                 <input id="w-notes" type="text" placeholder="e.g. Woke up, tested fasted. Feeling light and active." value={notes} onChange={(e) => setNotes(e.target.value)} className="block w-full px-3.5 py-2 bg-[#050505] border border-white/10 rounded-sm text-xs text-white focus:bg-black focus:border-[#FFFFFF] focus:outline-none transition-all"/>
               </div>
 
               <button type="submit" disabled={loading} className="w-full py-2 bg-white hover:bg-white/90 text-black font-semibold text-xs tracking-widest uppercase rounded-sm transition-all cursor-pointer disabled:opacity-50">
-                {loading ? 'Logging into Database...' : 'Register Weight Entry'}
+                {loading ? 'Saving...' : 'Save Weight Entry'}
               </button>
             </form>)}
 
-          {/* Table display */}
           <div className="bg-[#0E0E0E] rounded-sm border border-white/10 shadow-md overflow-hidden">
             <div className="p-5 border-b border-white/10">
               <h3 className="text-sm font-bold text-white font-sans">Historical weight records</h3>
-              <p className="text-xs text-white/40 font-sans mt-0.5">Chronological record parameters of weight and computed BMI scores</p>
+              <p className="text-xs text-white/40 font-sans mt-0.5">Weight and BMI entries ordered by date.</p>
             </div>
 
             {weightLogs.length === 0 ? (<div className="py-16 text-center text-white/30 text-xs">
-                No individual weight readings logged yet. Record your weight to trigger reports!
+                No weight readings logged yet.
               </div>) : (<div className="overflow-x-auto">
                 <table className="w-full text-left font-sans text-xs text-[#E0E0E0]">
                   <thead className="bg-white/[0.02] border-b border-white/10 font-mono text-[9px] uppercase tracking-widest font-semibold text-white/40">
@@ -238,14 +229,12 @@ export default function WeightTrackerView({ user, weightLogs, onWeightLogged, tr
 
         </div>
 
-        {/* Right Side Healthy BMI Range Cards */}
         <div className="space-y-6">
           
-          {/* General BMI gauge layout */}
           <div className="bg-[#0E0E0E] p-5 rounded-sm border border-white/10 shadow-xs space-y-4 font-sans">
             <div className="flex items-center gap-2 pb-3 border-b border-white/10">
               <Compass className="h-5 w-5 text-white/40"/>
-              <h3 className="text-sm font-serif italic text-white font-bold">BMI Diagnostic Gauge</h3>
+              <h3 className="text-sm font-serif italic text-white font-bold">BMI Overview</h3>
             </div>
 
             {user.height && user.weight ? (<div className="space-y-4 text-xs">
@@ -278,18 +267,17 @@ export default function WeightTrackerView({ user, weightLogs, onWeightLogged, tr
                 </div>
 
                 <div className="p-3 bg-white/[0.01] rounded-sm text-[10px] text-white/40 leading-relaxed font-sans border border-white/5">
-                  <strong>Formulation:</strong> BMI ratio splits current kg relative to Height squared (m²). Standard index calculation matches WHO health definitions.
+                  <strong>Formula:</strong> BMI is calculated from body weight in kilograms divided by height in meters squared.
                 </div>
               </div>) : (<div className="p-6 text-center text-white/30 text-xs font-sans leading-relaxed">
-                  Please complete your Wellness Profile height and weight in dashboard to calculate clinical BMI diagnostic gauge trends.
+                  Please complete your height and weight in the dashboard to calculate BMI.
                 </div>)}
           </div>
 
-          {/* Quick weight reduction insights helper */}
           <div className="p-5 rounded-sm border border-white/10 bg-[#0E0E0E] text-[#E0E0E0] space-y-3 shadow-md">
-            <h4 className="text-xs font-mono font-bold uppercase tracking-widest text-[#E0E0E0]">Patience is metric</h4>
+            <h4 className="text-xs font-mono font-bold uppercase tracking-widest text-[#E0E0E0]">Tracking Tip</h4>
             <p className="text-xs leading-relaxed text-white/40 font-sans">
-              Weight oscillates on hydration, muscle glycogen splits, and meals. Prefer consistent measurements (morning fasted) once a week to monitor true lean tissue trends.
+              Weight can change with hydration, meals, and training. Try measuring at a consistent time each week.
             </p>
           </div>
 

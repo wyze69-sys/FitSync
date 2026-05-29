@@ -1,16 +1,10 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
 import React, { useState, useEffect } from 'react';
 import { Dumbbell, Scale, Flame, ChevronRight, Plus, TrendingDown, Settings, Trophy, Sparkles, Check, Droplets, Compass, Zap, Sparkle } from 'lucide-react';
 import { calculateStreakStats, getBadges, saveLocalCheckin, formatDateStr, getLocalCheckins } from '../utils/workoutUtils.js';
 export default function DashboardView({ user, workouts, weightLogs, onNavigateToWorkouts, onNavigateToWeights, onNavigateToInsights, onProfileUpdated, onSelectTemplate, triggerToast, }) {
-    // Check if profile is incomplete to show onboarding questionnaire
     const isProfileIncomplete = !user.height || !user.weight;
     const [showOnboarding, setShowOnboarding] = useState(isProfileIncomplete);
     const [onboardingStep, setOnboardingStep] = useState(1);
-    // States for onboarding model
     const [obName, setObName] = useState(user.name || '');
     const [obAge, setObAge] = useState(user.age?.toString() || '');
     const [obGender, setObGender] = useState(user.gender || 'male');
@@ -20,7 +14,6 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
     const [obGoal, setObGoal] = useState(user.goal || 'Lose weight & Tone muscle');
     const [obActivityLevel, setObActivityLevel] = useState(user.activityLevel || 'Moderately active');
     const [obWorkoutType, setObWorkoutType] = useState('Strength');
-    // Wellness profile editing states
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [name, setName] = useState(user.name);
     const [age, setAge] = useState(user.age?.toString() || '');
@@ -31,14 +24,12 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
     const [activityLevel, setActivityLevel] = useState(user.activityLevel || 'Moderately active');
     const [savingProfile, setSavingProfile] = useState(false);
     const [statusMessage, setStatusMessage] = useState(null);
-    // Derive streak stats and habit checks
     const streakStats = calculateStreakStats(user, workouts, weightLogs);
     const badgesList = getBadges(streakStats.currentStreak);
     const todayStr = formatDateStr(new Date());
     const localCheckins = getLocalCheckins(user.id);
     const isTodayCheckedIn = localCheckins.includes(todayStr);
     const [savingQuickLog, setSavingQuickLog] = useState(false);
-    // Sync profile editing fields with user updates
     useEffect(() => {
         setName(user.name);
         setAge(user.age?.toString() || '');
@@ -48,7 +39,6 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
         setGoal(user.goal || 'Lose weight & Tone muscle');
         setActivityLevel(user.activityLevel || 'Moderately active');
     }, [user]);
-    // Handle persistent badge celebration notifications without duplicates
     useEffect(() => {
         if (!user)
             return;
@@ -60,7 +50,7 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
             let triggeredAny = false;
             badgesList.forEach(badge => {
                 if (badge.isUnlocked && !notifiedIds.includes(badge.id)) {
-                    triggerToast(`Achievement Unlocked! 🏆 "${badge.name}" — ${badge.description}`, 'milestone');
+                    triggerToast(`Achievement unlocked: ${badge.name}. ${badge.description}`, 'milestone');
                     updatedIds.push(badge.id);
                     triggeredAny = true;
                 }
@@ -73,13 +63,11 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
             console.error('Error handling badge notifications:', err);
         }
     }, [streakStats.currentStreak, user, badgesList]);
-    // Handle manual onboarding submission
     async function submitOnboarding(e) {
         e.preventDefault();
         setSavingProfile(true);
         try {
             const token = localStorage.getItem('fitsync_token');
-            // Save primary fields to DB
             const resp = await fetch('/api/profile/update', {
                 method: 'POST',
                 headers: {
@@ -100,12 +88,11 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
             if (!resp.ok) {
                 throw new Error(data.error || 'Failed updating first-time onboarding variables.');
             }
-            // Save supplemental items to local storage
             localStorage.setItem(`fitsync_onboarding_target_weight_${user.id}`, obTargetWeight);
             localStorage.setItem(`fitsync_onboarding_pref_workout_${user.id}`, obWorkoutType);
             onProfileUpdated(data);
             setShowOnboarding(false);
-            triggerToast(`Welcome to FitSync AI, ${obName}! Your personalized training shard is active! 🚀`, 'success');
+            triggerToast(`Welcome to FitSync, ${obName}. Your profile is ready.`, 'success');
         }
         catch (err) {
             alert(err.message || 'Onboarding update failed.');
@@ -114,7 +101,6 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
             setSavingProfile(false);
         }
     }
-    // Handle standard wellness settings form save
     async function handleSaveProfile(e) {
         e.preventDefault();
         setSavingProfile(true);
@@ -153,13 +139,11 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
             setSavingProfile(false);
         }
     }
-    // Quick Wellness Habit check-in logic
     function triggerDailyHabitCheck(habitName) {
         const freshCheckins = saveLocalCheckin(user.id, todayStr);
-        onProfileUpdated({ ...user }); // trigger dynamic updates
+        onProfileUpdated({ ...user });
         triggerToast(`Logged ${habitName}! Daily streak maintained at ${streakStats.currentStreak + (isTodayCheckedIn ? 0 : 1)} days! 🔥`, 'streak');
     }
-    // Preset Instant Quick Workouts creator
     async function logQuickWorkout(presetName, duration, calories, activityName, categoryId, categoryName) {
         setSavingQuickLog(true);
         triggerToast(`Broadcasting instant ${presetName} block to MySQL...`, 'info');
@@ -192,9 +176,8 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
             if (!resp.ok) {
                 throw new Error(data.error || 'Failed auto-logging preset workout.');
             }
-            // Refresh data
             onProfileUpdated({ ...user });
-            triggerToast(`Awesome! Instant ${presetName} recorded! +${calories}kcal burned. Streak boosted! 🔥`, 'success');
+            triggerToast(`${presetName} recorded (+${calories} kcal).`, 'success');
         }
         catch (err) {
             triggerToast(err.message || 'Error tracking instant shortcut.', 'info');
@@ -203,7 +186,6 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
             setSavingQuickLog(false);
         }
     }
-    // Preset Workout templates definition
     const workoutTemplates = [
         {
             title: "Chest & Shoulders Push",
@@ -293,7 +275,6 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
             ]
         }
     ];
-    // Derive BMI from user data
     function calculateBmiValue(kg, cm) {
         if (!kg || !cm)
             return { value: 0, label: 'Not calculated', colorClass: 'text-white/40', barClass: 'bg-white/10' };
@@ -313,7 +294,6 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
         }
     }
     const bmi = calculateBmiValue(user.weight || 0, user.height || 0);
-    // Chart preparation
     const chartRecords = [...weightLogs]
         .slice(0, 8)
         .reverse();
@@ -340,24 +320,21 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
     }
     return (<div id="dashboard-view-root" className="space-y-8 text-left font-sans text-neutral-200 pb-16">
       
-      {/* 4-STEP ONBOARDING QUESTIONNAIRE DIALOG OVERLAY */}
       {showOnboarding && (<div id="onboarding-modal" className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto">
           <div className="bg-[#0E0E0E] max-w-lg w-full rounded-sm border border-neutral-800 p-6 md:p-8 space-y-6 shadow-2xl relative my-8">
             <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-emerald-500 to-emerald-300"></div>
             
-            {/* Header step tracker */}
             <div className="flex justify-between items-center text-xs font-mono">
-              <span className="text-emerald-400 font-bold uppercase tracking-widest">Athlete Onboarding Node</span>
+              <span className="text-emerald-400 font-bold uppercase tracking-widest">Athlete Onboarding</span>
               <span className="text-neutral-500 font-semibold">{onboardingStep} of 4</span>
             </div>
 
             <form onSubmit={submitOnboarding} className="space-y-6">
               
-              {/* STEP 1: METRICS BASICS */}
               {onboardingStep === 1 && (<div className="space-y-4">
                   <div className="space-y-2">
                     <h2 className="text-xl font-serif italic text-white font-bold">Welcome! What is your name?</h2>
-                    <p className="text-xs text-neutral-400">Let's set up your premium FitSync experience with custom stats.</p>
+                    <p className="text-xs text-neutral-400">Let's set up your FitSync profile with your basic stats.</p>
                   </div>
 
                   <div className="space-y-4 pt-2">
@@ -389,7 +366,6 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
                   </div>
                 </div>)}
 
-              {/* STEP 2: BODY PROFILE */}
               {onboardingStep === 2 && (<div className="space-y-4">
                   <div className="space-y-2">
                     <h2 className="text-xl font-serif italic text-white font-bold">What are your body metrics?</h2>
@@ -424,7 +400,6 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
                   </div>
                 </div>)}
 
-              {/* STEP 3: GOALS & MOTIVATIONS */}
               {onboardingStep === 3 && (<div className="space-y-4">
                   <div className="space-y-2">
                     <h2 className="text-xl font-serif italic text-white font-bold">Define your fitness objectives</h2>
@@ -458,12 +433,11 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
                       Back
                     </button>
                     <button type="button" onClick={() => setOnboardingStep(4)} className="px-6 py-2 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold uppercase tracking-widest rounded-sm cursor-pointer">
-                      Next: Style & Launch 🚀
+                      Next: Style
                     </button>
                   </div>
                 </div>)}
 
-              {/* STEP 4: PREFERRED SPORTS & CELEBRATION */}
               {onboardingStep === 4 && (<div className="space-y-4">
                   <div className="space-y-2">
                     <h2 className="text-xl font-serif italic text-white font-bold">One last thing, Sarah!</h2>
@@ -481,7 +455,7 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
                     </div>
 
                     <div className="p-4 rounded-sm bg-neutral-900/45 border border-neutral-800 text-[11px] text-neutral-400 leading-relaxed font-sans mt-3">
-                      🚀 <strong>Almost Ready!</strong> Click "Complete" below to boot your database shard and open your elite new dashboard.
+                      <strong>Almost ready.</strong> Click "Complete" below to save your profile and open the dashboard.
                     </div>
                   </div>
 
@@ -500,14 +474,10 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
         </div>)}
 
 
-      {/* ======================================== */}
-      {/* 1. DAILY STREAK & SYSTEM WIDGET (TOP SECTION) */}
-      {/* ======================================== */}
       <h3 className="text-[10px] font-mono tracking-[0.22em] text-neutral-500 uppercase font-bold border-b border-neutral-800/60 pb-2">Top Layer: Motivation & Shortcuts</h3>
       
       <div id="top-layout-grid" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Streak Monitor card with Micro-Glow Animation */}
         <div className="bg-[#0E0E0E] p-6 rounded-sm border border-neutral-800/80 shadow-2xl flex flex-col justify-between space-y-4 hover:border-emerald-500/20 transition-all duration-300 relative overflow-hidden group">
           <div className="absolute top-0 right-0 h-24 w-24 bg-gradient-to-br from-emerald-500/5 to-transparent rounded-full filter blur-xl group-hover:from-emerald-400/10 transition-all"></div>
           
@@ -537,7 +507,6 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
           </div>
         </div>
 
-        {/* Milestone Badge Grid with Locked/Unlocked state visuals */}
         <div className="bg-[#0E0E0E] p-6 rounded-sm border border-neutral-800/80 shadow-2xl space-y-4">
           <div className="flex justify-between items-center pb-2 border-b border-neutral-900">
             <div>
@@ -563,7 +532,6 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
           </div>
         </div>
 
-        {/* Wellness Check-in Center (Manual water/stretch click) */}
         <div className="bg-[#0E0E0E] p-6 rounded-sm border border-[#10b981]/15 shadow-2xl flex flex-col justify-between space-y-4 hover:border-[#10b981]/30 transition-all duration-300 duration-300 relative">
           <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#10b981]/30 to-emerald-500/10"></div>
           <div>
@@ -600,7 +568,6 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
 
       </div>
 
-      {/* QUICK LOGGING EXPERIENCE - Preset shortcuts to directly submit logs */}
       <div id="quick-logs-section" className="space-y-4 pt-1">
         <div className="flex items-center gap-2 text-neutral-400">
           <Zap className="h-4 w-4 text-[#10b981]"/>
@@ -652,7 +619,6 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
         </div>
       </div>
 
-      {/* STARTER WORKOUT TEMPLATES - Deep copies exercise blueprints directly into logger */}
       <div id="starter-templates-section" className="space-y-3.5">
         <h4 className="text-xs font-mono font-bold uppercase tracking-widest text-neutral-400">Starter Workout Templates (Auto-fills form list)</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -674,17 +640,12 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
       </div>
 
 
-      {/* ======================================== */}
-      {/* 2. DYNAMIC METRICS & GRAPH (MIDDLE SECTION) */}
-      {/* ======================================== */}
       <h3 className="text-[10px] font-mono tracking-[0.22em] text-neutral-500 uppercase font-bold border-b border-neutral-800/60 pb-2 pt-4">Middle Layer: Performance Charts & Benchmarks</h3>
       
       <div id="middle-layout" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Left Side: Graphs / Dynamic performance metrics */}
         <div className="lg:col-span-2 space-y-6">
           
-          {/* Weight Tracker Graph */}
           <div id="chart-card" className="bg-[#0E0E0E] p-6 rounded-sm border border-neutral-800 shadow-2xl">
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -726,7 +687,6 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
                 </div>)}
           </div>
 
-          {/* DYNAMIC PROGRESS IN INDICATOR BLOCKS BEYOND WEIGHT (Weekly Consistency, total workouts %, streaks, minutes) */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             
             <div className="p-4 bg-[#0E0E0E] rounded-sm border border-neutral-800">
@@ -765,10 +725,8 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
 
         </div>
 
-        {/* Right Side: Wellness Profile Cards & BMI Info */}
         <div className="space-y-6">
           
-          {/* Primary BMI Indicator KPI Card */}
           <div className="bg-[#0E0E0E] p-5 rounded-sm border border-neutral-800 flex flex-col justify-between space-y-4 shadow-xl">
             <div className="flex justify-between items-center">
               <h4 className="text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-widest">Body Mass Ratio (BMI)</h4>
@@ -789,7 +747,6 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
             </div>
           </div>
 
-          {/* Profile form card */}
           <div className="bg-[#0E0E0E] p-5 rounded-sm border border-neutral-800 shadow-2xl space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-neutral-900">
               <div className="flex items-center gap-2">
@@ -907,14 +864,10 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
       </div>
 
 
-      {/* ======================================== */}
-      {/* 3. RECENT ACTIVITY & COACH ADVICE (BOTTOM SECTION) */}
-      {/* ======================================== */}
       <h3 className="text-[10px] font-mono tracking-[0.22em] text-neutral-500 uppercase font-bold border-b border-neutral-800/60 pb-2 pt-4">Bottom Layer: Historical logs & AI Coach</h3>
       
       <div id="bottom-layout" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Left Side: Recent session lists */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex justify-between items-center">
             <div>
@@ -964,23 +917,22 @@ export default function DashboardView({ user, workouts, weightLogs, onNavigateTo
               </div>)}
         </div>
 
-        {/* Right Side: Coach advice and rapid analyzer call */}
         <div className="space-y-4">
           <div>
             <span className="text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-widest">Performance evaluation</span>
-            <h4 className="text-sm font-bold text-white mt-0.5 font-serif italic">AI Weekly Insight Shard</h4>
+            <h4 className="text-sm font-bold text-white mt-0.5 font-serif italic">Weekly AI Insight</h4>
           </div>
 
           <div className="p-5 rounded-sm border border-[#10b981]/10 bg-[#0E0E0E] text-[#E0E0E0] space-y-4 shadow-xl hover:border-emerald-500/20 transition-all">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4.5 w-4.5 text-emerald-400"/>
-              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#10b981]">Gemini Core Advisor</span>
+              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#10b981]">Gemini Insight</span>
             </div>
             <p className="text-xs text-neutral-400 leading-relaxed font-sans mt-1">
-              Connect calorie workloads, weekly active days, BMI ratios, and target delta metrics together. Our AI Coach review evaluates raw data to generate supportive progression suggest nodes.
+              Review weekly active days, workout volume, BMI, and weight progress together. Gemini uses your FitSync records to suggest next steps.
             </p>
             <button onClick={onNavigateToInsights} className="w-full py-2.5 bg-white hover:bg-neutral-100 text-black rounded-sm text-xs font-bold uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5">
-              Analyze Shard Performance
+              View Weekly Insight
               <ChevronRight className="h-3.5 w-3.5"/>
             </button>
           </div>
