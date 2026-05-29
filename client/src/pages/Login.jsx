@@ -9,7 +9,7 @@ export default function Login() {
   const { user, loading } = useAuth();
 
   if (!loading && user) {
-    return <Navigate to={user.role === "admin" ? "/admin" : "/dashboard"} replace />;
+    return <Navigate to={user.role === "admin" ? "/admin/dashboard" : "/dashboard"} replace />;
   }
 
   return <AuthScreen defaultMode="login" />;
