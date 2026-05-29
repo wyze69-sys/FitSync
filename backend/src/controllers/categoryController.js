@@ -1,9 +1,9 @@
-const { categoryRepository } = require("../repositories/categoryRepository");
+const { adminService } = require("../services/adminService");
 
 const categoryController = {
   async getCategories(req, res, next) {
     try {
-      const categories = await categoryRepository.getCategories();
+      const categories = await adminService.getCategories();
       res.json(categories);
     } catch (err) {
       next(err);

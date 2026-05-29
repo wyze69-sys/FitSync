@@ -1,6 +1,10 @@
 const jwt = require("jsonwebtoken");
 const { JWT_CONFIG } = require("../config/jwt");
 
+/**
+ * Middleware to authenticate JWT tokens from Authorization header.
+ * Attaches decoded user payload to req.user on success.
+ */
 function authenticateToken(req, res, next) {
   const authHeader = req.headers.authorization || "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
@@ -18,12 +22,4 @@ function authenticateToken(req, res, next) {
   }
 }
 
-function requireAdmin(req, res, next) {
-  if (!req.user || req.user.role !== "admin") {
-    res.status(403).json({ error: "Admin privileges required." });
-    return;
-  }
-  next();
-}
-
-module.exports = { authenticateToken, requireAdmin };
+module.exports = { authenticateToken };

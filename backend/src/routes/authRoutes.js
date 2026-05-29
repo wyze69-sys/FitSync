@@ -1,7 +1,7 @@
 const { Router } = require("express");
 const rateLimit = require("express-rate-limit");
 const { authController } = require("../controllers/authController");
-const { authenticateToken } = require("../middleware/auth");
+const { authenticateToken } = require("../middleware/authMiddleware");
 
 const router = Router();
 

@@ -1,6 +1,7 @@
 const { Router } = require("express");
 const { adminController } = require("../controllers/adminController");
-const { authenticateToken, requireAdmin } = require("../middleware/auth");
+const { authenticateToken } = require("../middleware/authMiddleware");
+const { requireAdmin } = require("../middleware/roleMiddleware");
 
 const router = Router();
 

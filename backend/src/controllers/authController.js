@@ -1,15 +1,4 @@
-const bcryptjs = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const { JWT_CONFIG } = require("../config/jwt");
-const { userRepository } = require("../repositories/userRepository");
-
-function signToken(user) {
-  return jwt.sign(
-    { id: user.id, email: user.email, role: user.role },
-    JWT_CONFIG.secret,
-    { expiresIn: JWT_CONFIG.expiresIn }
-  );
-}
+const { authService } = require("../services/authService");
 
 const authController = {
   async register(req, res, next) {
@@ -21,48 +10,8 @@ const authController = {
         return;
       }
 
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        res.status(400).json({ error: "Please provide a valid email address." });
-        return;
-      }
-
-      // Enforce minimum password length
-      if (password.length < 8) {
-        res.status(400).json({ error: "Password must be at least 8 characters long." });
-        return;
-      }
-
-      // Enforce name length limits
-      if (name.length > 255) {
-        res.status(400).json({ error: "Name must not exceed 255 characters." });
-        return;
-      }
-
-      const existingUser = await userRepository.getUserByEmail(email);
-      if (existingUser) {
-        res.status(400).json({ error: "Account with this email already exists." });
-        return;
-      }
-
-      const passwordHash = bcryptjs.hashSync(password, 10);
-      // Security: Always assign 'user' role on self-registration.
-      // Admin accounts must be created via database seeding or by an existing admin.
-      const assignedRole = "user";
-
-      const newUser = await userRepository.createUser({
-        email,
-        name,
-        passwordHash,
-        role: assignedRole,
-        goal: "Maintain fitness",
-        activityLevel: "Sedentary"
-      });
-
-      const token = signToken(newUser);
-      const { passwordHash: ignored, ...userSafe } = newUser;
-      res.status(201).json({ user: userSafe, token });
+      const result = await authService.register({ email, password, name });
+      res.status(201).json(result);
     } catch (err) {
       next(err);
     }
@@ -77,22 +26,8 @@ const authController = {
         return;
       }
 
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        res.status(400).json({ error: "Please provide a valid email address." });
-        return;
-      }
-
-      const user = await userRepository.getUserByEmail(email);
-      if (!user || !bcryptjs.compareSync(password, user.passwordHash)) {
-        res.status(401).json({ error: "Invalid email or password." });
-        return;
-      }
-
-      const token = signToken(user);
-      const { passwordHash: ignored, ...userSafe } = user;
-      res.json({ user: userSafe, token });
+      const result = await authService.login({ email, password });
+      res.json(result);
     } catch (err) {
       next(err);
     }
@@ -100,14 +35,8 @@ const authController = {
 
   async me(req, res, next) {
     try {
-      const user = await userRepository.getUserById(req.user.id);
-      if (!user) {
-        res.status(404).json({ error: "User not found." });
-        return;
-      }
-
-      const { passwordHash: ignored, ...userSafe } = user;
-      res.json(userSafe);
+      const user = await authService.getCurrentUser(req.user.id);
+      res.json(user);
     } catch (err) {
       next(err);
     }
