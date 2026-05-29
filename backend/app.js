@@ -2,6 +2,7 @@ const cors = require("cors");
 const express = require("express");
 const helmet = require("helmet");
 const apiRoutes = require("./src/routes/routes");
+const { errorHandler, notFoundHandler } = require("./src/middleware/errorMiddleware");
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use(cors({
 
 app.use(express.json({ limit: "100kb" }));
 
+// Health check endpoint
 app.get("/api/health", (req, res) => {
   res.json({
     status: "healthy",
@@ -35,21 +37,13 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// API routes
 app.use("/api", apiRoutes);
 
-app.use((req, res) => {
-  res.status(404).json({ error: "Route not found." });
-});
+// 404 handler for undefined routes
+app.use(notFoundHandler);
 
-app.use((err, req, res, next) => {
-  console.error(err);
-  const statusCode = err.status || 500;
-  // Only expose error messages for client errors (4xx).
-  // For server errors (5xx), return a generic message to avoid leaking internals.
-  const message = statusCode < 500
-    ? (err.message || "Request failed.")
-    : "Internal server error.";
-  res.status(statusCode).json({ error: message });
-});
+// Global error handling middleware
+app.use(errorHandler);
 
 module.exports = app;

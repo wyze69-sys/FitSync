@@ -1,10 +1,9 @@
-const { categoryRepository } = require("../repositories/categoryRepository");
-const { userRepository } = require("../repositories/userRepository");
+const { adminService } = require("../services/adminService");
 
 const adminController = {
   async getUsers(req, res, next) {
     try {
-      const users = await userRepository.getAdminUserList();
+      const users = await adminService.getUsers();
       res.json(users);
     } catch (err) {
       next(err);
@@ -14,13 +13,7 @@ const adminController = {
   async createCategory(req, res, next) {
     try {
       const { name, description } = req.body;
-
-      if (!name || !description) {
-        res.status(400).json({ error: "Category name and description are required." });
-        return;
-      }
-
-      const category = await categoryRepository.createCategory({ name, description });
+      const category = await adminService.createCategory({ name, description });
       res.status(201).json(category);
     } catch (err) {
       next(err);
@@ -31,7 +24,7 @@ const adminController = {
     try {
       const { id } = req.params;
       const { name, description } = req.body;
-      const updated = await categoryRepository.updateCategory(id, { name, description });
+      const updated = await adminService.updateCategory(id, { name, description });
       res.json(updated);
     } catch (err) {
       next(err);
@@ -41,14 +34,8 @@ const adminController = {
   async deleteCategory(req, res, next) {
     try {
       const { id } = req.params;
-      const deleted = await categoryRepository.deleteCategory(id);
-
-      if (!deleted) {
-        res.status(404).json({ error: "Category not found." });
-        return;
-      }
-
-      res.json({ success: true, message: "Category removed from metadata registry." });
+      const result = await adminService.deleteCategory(id);
+      res.json(result);
     } catch (err) {
       next(err);
     }
@@ -56,7 +43,7 @@ const adminController = {
 
   async getStats(req, res, next) {
     try {
-      const stats = await categoryRepository.getSystemStats();
+      const stats = await adminService.getStats();
       res.json(stats);
     } catch (err) {
       next(err);

@@ -1,5 +1,5 @@
 {
-  "name": "fitsync-frontend",
+  "name": "fitsync-client",
   "private": true,
   "version": "1.0.0",
   "scripts": {
