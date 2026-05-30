@@ -26,28 +26,49 @@ async function createUser(user) {
   const goal = user.goal || "Maintain fitness";
   const activityLevel = user.activityLevel || "Sedentary";
 
-  await pool.execute(
-    `INSERT INTO users (
-       id, email, name, role, password_hash, age, gender, height, weight,
-       target_weight, preferred_workout_type, goal, activity_level
-     )
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      id,
-      email,
-      user.name,
-      role,
-      user.passwordHash,
-      user.age || null,
-      user.gender || null,
-      user.height || null,
-      user.weight || null,
-      user.targetWeight || null,
-      user.preferredWorkoutType || null,
-      goal,
-      activityLevel
-    ]
-  );
+  // Create the user and initialize their streak row atomically, so a new
+  // account always has a user_streaks row (instead of relying solely on lazy
+  // creation). If either insert fails, the whole registration rolls back.
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    await connection.execute(
+      `INSERT INTO users (
+         id, email, name, role, password_hash, age, gender, height, weight,
+         target_weight, preferred_workout_type, goal, activity_level
+       )
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        id,
+        email,
+        user.name,
+        role,
+        user.passwordHash,
+        user.age || null,
+        user.gender || null,
+        user.height || null,
+        user.weight || null,
+        user.targetWeight || null,
+        user.preferredWorkoutType || null,
+        goal,
+        activityLevel
+      ]
+    );
+
+    await connection.execute(
+      `INSERT IGNORE INTO user_streaks (user_id, current_streak, longest_streak, last_active_date)
+       VALUES (?, 0, 0, NULL)`,
+      [id]
+    );
+
+    await connection.commit();
+  } catch (err) {
+    await connection.rollback();
+    throw err;
+  } finally {
+    connection.release();
+  }
 
   return getUserById(id);
 }
