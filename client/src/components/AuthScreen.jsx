@@ -31,7 +31,7 @@ export default function AuthScreen({ defaultMode = "login", onAuthSuccess }) {
       if (onAuthSuccess) {
         onAuthSuccess(account);
       } else {
-        navigate(account.role === "admin" ? "/admin" : "/dashboard", { replace: true });
+        navigate(account.role === "admin" ? "/admin" : "/", { replace: true });
       }
     } catch (err) {
       setError(err.message || "Authentication failed. Please try again.");

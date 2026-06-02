@@ -27,10 +27,10 @@ export default function DashboardInsightsCard({ latestInsight }) {
             : "Review your weekly active days, workout volume, BMI, and weight trend. Gemini turns your records into simple next steps."}
         </p>
         <Link
-          to="/insights"
+          to="/"
           className="w-full py-2.5 bg-accent text-black rounded-sm text-xs font-medium uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5"
         >
-          View Weekly Insight
+          Back Home
           <ChevronRight className="h-3.5 w-3.5" />
         </Link>
       </div>
