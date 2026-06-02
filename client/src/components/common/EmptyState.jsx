@@ -3,12 +3,12 @@
  */
 export default function EmptyState({ icon: Icon, title, description, action }) {
   return (
-    <div className="py-12 bg-neutral-900/10 rounded-sm border border-dashed border-neutral-800 flex flex-col items-center justify-center text-center p-6 space-y-3">
-      {Icon && <Icon className="h-8 w-8 text-neutral-600" aria-hidden="true" />}
+    <div className="py-12 bg-surface rounded-sm border border-dashed border-border flex flex-col items-center justify-center text-center p-6 space-y-3">
+      {Icon && <Icon className="h-8 w-8 text-muted" aria-hidden="true" />}
       <div>
-        <p className="text-sm font-semibold text-neutral-300">{title}</p>
+        <p className="text-sm font-semibold text-text">{title}</p>
         {description && (
-          <p className="text-xs text-neutral-500 max-w-xs mt-1 leading-relaxed">{description}</p>
+          <p className="text-xs text-muted max-w-xs mt-1 leading-relaxed">{description}</p>
         )}
       </div>
       {action}

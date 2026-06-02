@@ -27,11 +27,11 @@ import ErrorBanner from "./common/ErrorBanner.jsx";
 import ConfirmDialog from "./modals/ConfirmDialog.jsx";
 
 const INPUT =
-  "px-3 py-2 bg-[#050505] border border-white/10 rounded-sm text-xs text-white focus:bg-black focus:border-white focus:outline-none transition-all";
+  "px-3 py-2 bg-bg border border-border rounded-sm text-xs text-white focus:bg-black focus:border-white focus:outline-none transition-all";
 
 function StatCard({ label, value, icon: Icon, hint }) {
   return (
-    <div className="bg-[#0E0E0E] p-5 border border-white/10 rounded-sm shadow-sm">
+    <div className="bg-surface p-5 border border-border rounded-sm ">
       <span className="text-white/30 font-mono text-[9px] uppercase tracking-widest block">
         {label}
       </span>
@@ -40,7 +40,7 @@ function StatCard({ label, value, icon: Icon, hint }) {
       </strong>
       {hint && (
         <span className="text-[10px] text-white/40 mt-1.5 flex items-center gap-1">
-          <Icon className="h-3 w-3 text-emerald-400" aria-hidden="true" /> {hint}
+          <Icon className="h-3 w-3 text-accent" aria-hidden="true" /> {hint}
         </span>
       )}
     </div>
@@ -206,12 +206,12 @@ export default function AdminPortalView() {
   }
 
   return (
-    <div className="space-y-6 text-left text-[#E0E0E0]">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#0E0E0E] p-6 rounded-sm border border-white/10 shadow-lg">
+    <div className="space-y-6 text-left text-text">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-surface p-6 rounded-sm border border-border ">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-emerald-400" aria-hidden="true" />
-            <h1 className="text-base font-serif italic text-white font-bold">
+            <ShieldCheck className="h-5 w-5 text-accent" aria-hidden="true" />
+            <h1 className="text-base  text-white font-bold">
               Administration Portal
             </h1>
           </div>
@@ -223,7 +223,7 @@ export default function AdminPortalView() {
           type="button"
           onClick={loadCoreData}
           disabled={loading}
-          className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 text-xs font-mono rounded-sm border border-white/10 cursor-pointer flex items-center gap-1.5 transition-all text-white/80"
+          className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 text-xs font-mono rounded-sm border border-border cursor-pointer flex items-center gap-1.5 transition-all text-white/80"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh
         </button>
@@ -231,13 +231,13 @@ export default function AdminPortalView() {
 
       <ErrorBanner message={error} onRetry={loadCoreData} />
 
-      <div className="flex items-center gap-2.5 border-b border-white/10 pb-1 text-xs">
+      <div className="flex items-center gap-2.5 border-b border-border pb-1 text-xs">
         {TABS.map((tab) => (
           <button
             key={tab.key}
             type="button"
             onClick={() => navigate(tab.path)}
-            className={`py-2 px-4 font-serif italic font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+            className={`py-2 px-4  font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
               activeTab === tab.key
                 ? "border-white text-white"
                 : "border-transparent text-white/40 hover:text-white/70"
@@ -302,8 +302,8 @@ export default function AdminPortalView() {
                 />
               </div>
 
-              <div className="bg-[#0E0E0E] rounded-sm border border-white/10 shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-white/10">
+              <div className="bg-surface rounded-sm border border-border  overflow-hidden">
+                <div className="p-5 border-b border-border">
                   <h2 className="text-sm font-bold text-white">Category usage analytics</h2>
                   <p className="text-xs text-white/40">
                     How often each exercise category is logged across all users.
@@ -311,7 +311,7 @@ export default function AdminPortalView() {
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-white/[0.02] border-b border-white/10 font-mono text-[9px] uppercase tracking-widest font-semibold text-white/40">
+                    <thead className="bg-bg border-b border-border font-mono text-[9px] uppercase tracking-widest font-semibold text-white/40">
                       <tr>
                         <th className="py-2.5 px-5">Category</th>
                         <th className="py-2.5 px-4">Type</th>
@@ -322,18 +322,18 @@ export default function AdminPortalView() {
                     </thead>
                     <tbody className="divide-y divide-white/5 text-white/80">
                       {analytics.map((row) => (
-                        <tr key={row.id} className="hover:bg-white/[0.005] transition-all">
+                        <tr key={row.id} className="hover:bg-bg transition-all">
                           <td className="py-3 px-5 font-semibold text-white">{row.name}</td>
                           <td className="py-3 px-4">
                             <span
-                              className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${row.isCustom ? "bg-indigo-950/20 text-indigo-400 border border-indigo-900/30" : "bg-white/5 text-white/50 border border-white/5"}`}
+                              className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${row.isCustom ? "bg-indigo-950/20 text-indigo-400 border border-indigo-900/30" : "bg-white/5 text-white/50 border border-border"}`}
                             >
                               {row.isCustom ? "Custom" : "Core"}
                             </span>
                           </td>
                           <td className="py-3 px-4 font-mono text-white">{row.usageCount}</td>
                           <td className="py-3 px-4 font-mono text-white/60">{row.totalMinutes}m</td>
-                          <td className="py-3 px-5 font-mono text-emerald-400">
+                          <td className="py-3 px-5 font-mono text-accent">
                             {row.totalCalories}
                           </td>
                         </tr>
@@ -347,10 +347,10 @@ export default function AdminPortalView() {
 
           {activeTab === "categories" && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 bg-[#0E0E0E] rounded-sm border border-white/10 shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-white/10 flex items-center justify-between">
+              <div className="lg:col-span-2 bg-surface rounded-sm border border-border  overflow-hidden">
+                <div className="p-5 border-b border-border flex items-center justify-between">
                   <div>
-                    <h2 className="text-base font-serif italic text-white font-bold">
+                    <h2 className="text-base  text-white font-bold">
                       Exercise categories
                     </h2>
                     <p className="text-xs text-white/40">
@@ -367,7 +367,7 @@ export default function AdminPortalView() {
                         setCatDesc("");
                         setCatError(null);
                       }}
-                      className="px-3 py-1.5 bg-white text-black hover:bg-white/90 text-xs font-bold uppercase tracking-widest rounded-sm flex items-center gap-1 cursor-pointer transition-all"
+                      className="px-3 py-1.5 bg-accent text-black text-xs font-medium uppercase tracking-widest rounded-sm flex items-center gap-1 cursor-pointer transition-all"
                     >
                       <Plus className="h-3 w-3" /> Add
                     </button>
@@ -377,13 +377,13 @@ export default function AdminPortalView() {
                   {categories.map((category) => (
                     <div
                       key={category.id}
-                      className="p-5 flex items-start justify-between gap-4 hover:bg-white/[0.005] transition-all text-xs"
+                      className="p-5 flex items-start justify-between gap-4 hover:bg-bg transition-all text-xs"
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-white">{category.name}</span>
                           <span
-                            className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${category.isCustom ? "bg-indigo-950/20 text-indigo-400 border border-indigo-900/30" : "bg-white/5 text-white/50 border border-white/5"}`}
+                            className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${category.isCustom ? "bg-indigo-950/20 text-indigo-400 border border-indigo-900/30" : "bg-white/5 text-white/50 border border-border"}`}
                           >
                             {category.isCustom ? "Custom" : "Core"}
                           </span>
@@ -396,7 +396,7 @@ export default function AdminPortalView() {
                             type="button"
                             onClick={() => startEditCategory(category)}
                             aria-label={`Edit ${category.name}`}
-                            className="text-white/40 hover:text-emerald-400 p-1.5 transition-all cursor-pointer"
+                            className="text-white/40 hover:text-accent p-1.5 transition-all cursor-pointer"
                           >
                             <Edit2 className="h-3.5 w-3.5" />
                           </button>
@@ -419,16 +419,16 @@ export default function AdminPortalView() {
                 {isAddingCat ? (
                   <form
                     onSubmit={handleSaveCategory}
-                    className="bg-[#0E0E0E] p-5 rounded-sm border border-white/10 shadow-md space-y-4"
+                    className="bg-surface p-5 rounded-sm border border-border  space-y-4"
                   >
-                    <div className="border-b border-white/10 pb-2.5 flex justify-between items-center">
+                    <div className="border-b border-border pb-2.5 flex justify-between items-center">
                       <h3 className="text-xs font-mono font-semibold text-white uppercase tracking-widest">
                         {editingCatId ? "Edit category" : "Add category"}
                       </h3>
                       <button
                         type="button"
                         onClick={() => setIsAddingCat(false)}
-                        className="text-xs text-white/45 hover:text-white underline decoration-white/20 underline-offset-4 cursor-pointer font-serif italic"
+                        className="text-xs text-white/45 hover:text-white underline decoration-white/20 underline-offset-4 cursor-pointer "
                       >
                         Cancel
                       </button>
@@ -476,13 +476,13 @@ export default function AdminPortalView() {
                     </div>
                     <button
                       type="submit"
-                      className="w-full py-2 bg-white text-black font-bold uppercase tracking-widest text-xs rounded-sm transition-all cursor-pointer hover:bg-white/95"
+                      className="w-full py-2 bg-accent text-black font-medium uppercase tracking-widest text-xs rounded-sm transition-all cursor-pointer"
                     >
                       {editingCatId ? "Save changes" : "Create category"}
                     </button>
                   </form>
                 ) : (
-                  <div className="p-5 bg-white/[0.015] rounded-sm border border-dashed border-white/10 text-center space-y-3">
+                  <div className="p-5 bg-bg rounded-sm border border-dashed border-border text-center space-y-3">
                     <Layers className="h-8 w-8 text-white/25 mx-auto" aria-hidden="true" />
                     <p className="text-xs text-white/40 leading-relaxed">
                       Add a custom exercise category for users to log against.
@@ -490,7 +490,7 @@ export default function AdminPortalView() {
                     <button
                       type="button"
                       onClick={() => setIsAddingCat(true)}
-                      className="mx-auto py-1 px-3 bg-white text-black hover:bg-white/90 transition-all font-bold uppercase tracking-widest rounded-sm text-xs cursor-pointer block"
+                      className="mx-auto py-1 px-3 bg-accent text-black transition-all font-medium uppercase tracking-widest rounded-sm text-xs cursor-pointer block"
                     >
                       New category
                     </button>
@@ -502,7 +502,7 @@ export default function AdminPortalView() {
 
           {activeTab === "users" && (
             <div className="space-y-4">
-              <div className="bg-[#0E0E0E] border border-white/10 rounded-sm p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="bg-surface border border-border rounded-sm p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="relative">
                   <Search
                     className="absolute left-3 top-2.5 h-4 w-4 text-white/30"
@@ -539,10 +539,10 @@ export default function AdminPortalView() {
                 </select>
               </div>
 
-              <div className="bg-[#0E0E0E] rounded-sm border border-white/10 shadow-sm overflow-hidden">
+              <div className="bg-surface rounded-sm border border-border  overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-white/[0.02] border-b border-white/10 font-mono text-[9px] uppercase tracking-widest font-semibold text-white/40">
+                    <thead className="bg-bg border-b border-border font-mono text-[9px] uppercase tracking-widest font-semibold text-white/40">
                       <tr>
                         <th className="py-2.5 px-5">User</th>
                         <th className="py-2.5 px-4">Role</th>
@@ -555,7 +555,7 @@ export default function AdminPortalView() {
                       {users.map((item) => {
                         const isSelf = item.id === currentUser.id;
                         return (
-                          <tr key={item.id} className="hover:bg-white/[0.005] transition-all">
+                          <tr key={item.id} className="hover:bg-bg transition-all">
                             <td className="py-3.5 px-5">
                               <div className="font-semibold text-white">{item.name}</div>
                               <div className="font-mono text-white/40 text-[11px]">
@@ -564,14 +564,14 @@ export default function AdminPortalView() {
                             </td>
                             <td className="py-3 px-4">
                               <span
-                                className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${item.role === "admin" ? "bg-blue-950/30 text-blue-300 border border-blue-900/40" : "bg-white/5 text-white/60 border border-white/10"}`}
+                                className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${item.role === "admin" ? "bg-blue-950/30 text-blue-300 border border-blue-900/40" : "bg-white/5 text-white/60 border border-border"}`}
                               >
                                 {item.role}
                               </span>
                             </td>
                             <td className="py-3 px-4">
                               <span
-                                className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${item.isActive ? "bg-emerald-950/20 text-emerald-400 border border-emerald-900/30" : "bg-rose-950/20 text-rose-400 border border-rose-900/30"}`}
+                                className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${item.isActive ? "bg-accent/10 text-accent border border-accent/30" : "bg-rose-950/20 text-rose-400 border border-rose-900/30"}`}
                               >
                                 {item.isActive ? "Active" : "Inactive"}
                               </span>
@@ -606,7 +606,7 @@ export default function AdminPortalView() {
                                       onClick={() => toggleStatus(item)}
                                       aria-label="Toggle status"
                                       title={item.isActive ? "Deactivate" : "Activate"}
-                                      className={`p-1.5 transition-all cursor-pointer ${item.isActive ? "text-white/40 hover:text-rose-400" : "text-white/40 hover:text-emerald-400"}`}
+                                      className={`p-1.5 transition-all cursor-pointer ${item.isActive ? "text-white/40 hover:text-rose-400" : "text-white/40 hover:text-accent"}`}
                                     >
                                       {item.isActive ? (
                                         <UserX className="h-3.5 w-3.5" />
@@ -639,18 +639,18 @@ export default function AdminPortalView() {
 
       {detail && (
         <div
-          className="fixed inset-0 bg-black/80 z-[70] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 bg-black/80 z-[70] flex items-center justify-center p-4  animate-fade-in"
           role="dialog"
           aria-modal="true"
           onClick={() => setDetail(null)}
         >
           <div
-            className="bg-[#0E0E0E] w-full max-w-lg rounded-sm border border-white/10 p-6 space-y-5 shadow-2xl animate-slide-up"
+            className="bg-surface w-full max-w-lg rounded-sm border border-border p-6 space-y-5  animate-slide-up"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between border-b border-white/10 pb-3">
+            <div className="flex items-start justify-between border-b border-border pb-3">
               <div>
-                <h2 className="text-base font-serif italic text-white font-bold">
+                <h2 className="text-base  text-white font-bold">
                   {detail.user.name}
                 </h2>
                 <p className="text-xs text-white/40 font-mono">{detail.user.email}</p>
@@ -659,7 +659,7 @@ export default function AdminPortalView() {
                 type="button"
                 onClick={() => setDetail(null)}
                 aria-label="Close"
-                className="h-7 w-7 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 hover:text-white"
+                className="h-7 w-7 rounded-sm bg-bg border border-border flex items-center justify-center text-muted hover:text-text"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -683,7 +683,7 @@ export default function AdminPortalView() {
                   {detail.recentWorkouts.map((workout) => (
                     <div
                       key={workout.id}
-                      className="flex items-center justify-between text-xs bg-white/[0.02] border border-white/5 rounded-sm px-3 py-2"
+                      className="flex items-center justify-between text-xs bg-bg border border-border rounded-sm px-3 py-2"
                     >
                       <span className="text-white/80">{workout.title}</span>
                       <span className="font-mono text-white/40">
@@ -712,7 +712,7 @@ export default function AdminPortalView() {
 
 function Metric({ label, value }) {
   return (
-    <div className="bg-white/[0.02] border border-white/5 rounded-sm p-3">
+    <div className="bg-bg border border-border rounded-sm p-3">
       <div className="text-sm font-black text-white capitalize">{value}</div>
       <div className="text-[8px] font-mono uppercase tracking-wider text-white/40 mt-0.5">
         {label}

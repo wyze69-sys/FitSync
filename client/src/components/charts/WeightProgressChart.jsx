@@ -38,7 +38,7 @@ export default function WeightProgressChart({ weightLogs = [], targetWeight, max
   const targetY = targetWeight ? yFor(targetWeight) : null;
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full overflow-x-auto bg-surface">
       <div className="min-w-[400px]">
         <svg
           viewBox={`0 0 ${width} ${height}`}
@@ -53,8 +53,9 @@ export default function WeightProgressChart({ weightLogs = [], targetWeight, max
               y1={y}
               x2={width - paddingX}
               y2={y}
-              stroke="rgba(255,255,255,0.04)"
+              stroke="#2A2E37"
               strokeWidth="1"
+              opacity="0.8"
             />
           ))}
 
@@ -65,16 +66,16 @@ export default function WeightProgressChart({ weightLogs = [], targetWeight, max
                 y1={targetY}
                 x2={width - paddingX}
                 y2={targetY}
-                stroke="#34d399"
+                stroke="#C7FF41"
                 strokeWidth="1.5"
                 strokeDasharray="5 4"
-                opacity="0.7"
+                opacity="0.85"
               />
               <text
                 x={width - paddingX}
                 y={targetY - 5}
                 textAnchor="end"
-                className="font-mono text-[9px] fill-emerald-400"
+                className="font-mono text-[9px] fill-accent"
               >
                 Target {targetWeight}kg
               </text>
@@ -83,7 +84,7 @@ export default function WeightProgressChart({ weightLogs = [], targetWeight, max
 
           <polyline
             fill="none"
-            stroke="#10b981"
+            stroke="#C7FF41"
             strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -99,12 +100,12 @@ export default function WeightProgressChart({ weightLogs = [], targetWeight, max
             });
             return (
               <g key={record.id || index}>
-                <circle cx={x} cy={y} r="5" fill="#0E0E0E" stroke="#10b981" strokeWidth="2" />
+                <circle cx={x} cy={y} r="5" fill="#181A20" stroke="#C7FF41" strokeWidth="2" />
                 <text
                   x={x}
                   y={y - 12}
                   textAnchor="middle"
-                  className="font-mono text-[9px] font-bold fill-white"
+                  className="font-mono text-[9px] font-bold fill-text"
                 >
                   {record.weight}kg
                 </text>
@@ -112,7 +113,7 @@ export default function WeightProgressChart({ weightLogs = [], targetWeight, max
                   x={x}
                   y={height - 5}
                   textAnchor="middle"
-                  className="font-mono text-[9px] fill-neutral-500"
+                  className="font-mono text-[9px] fill-muted"
                 >
                   {label}
                 </text>
