@@ -224,7 +224,7 @@ export default function Workouts() {
               <History className="h-4 w-4" aria-hidden="true" />
               <h2 className="text-xs font-semibold uppercase tracking-widest font-mono">
                 History{" "}
-                {result.total > 0 && <span className="text-muted">({result.total})</span>}
+                {result.total > 0 && <span className="text-muted font-mono tabular-nums">({result.total})</span>}
               </h2>
             </div>
             <select
@@ -279,7 +279,7 @@ export default function Workouts() {
                         index % 2 === 0 ? "bg-surface" : "bg-bg/55"
                       } ${isExpanded ? "text-text" : ""}`}
                     >
-                      <td className="p-3 font-mono text-muted">{workout.date}</td>
+                      <td className="p-3 font-mono tabular-nums text-muted">{workout.date}</td>
                       <td className="p-3">
                         <button
                           type="button"
@@ -396,7 +396,7 @@ export default function Workouts() {
                   >
                     Previous
                   </button>
-                  <span className="text-muted">
+                  <span className="text-muted font-mono tabular-nums">
                     Page {result.page} of {result.totalPages}
                   </span>
                   <button

@@ -219,7 +219,7 @@ export default function Progress() {
                           key={log.id}
                           className={`border-b border-border last:border-b-0 ${index % 2 === 0 ? "bg-surface" : "bg-bg/55"}`}
                         >
-                          <td className="p-3 font-mono text-text font-semibold">
+                          <td className="p-3 font-mono tabular-nums text-text font-semibold">
                             {log.date}
                           </td>
                           <td className="p-3">

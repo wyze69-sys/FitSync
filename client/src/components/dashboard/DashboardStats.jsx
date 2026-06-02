@@ -5,9 +5,7 @@ function StatTile({ label, value, hint, accent = false }) {
   return (
     <div className="p-3 bg-surface rounded-sm border border-border">
       <span
-        className={`text-[9px] font-mono uppercase tracking-widest font-bold ${
-          accent ? "text-accent" : "text-muted"
-        }`}
+        className="text-[9px] font-mono uppercase tracking-widest font-bold text-muted"
       >
         {label}
       </span>
@@ -95,10 +93,10 @@ export default function DashboardStats({ gamification, workoutTotal, user, weigh
 
         <div className="bg-surface p-3 rounded-sm border border-border space-y-3">
           <div className="flex justify-between items-center">
-            <h3 className="text-[9px] font-mono font-bold text-accent uppercase tracking-widest">
+            <h3 className="text-[9px] font-mono font-bold text-text uppercase tracking-widest">
               Target Weight
             </h3>
-            <Target className="h-4.5 w-4.5 text-accent" aria-hidden="true" />
+            <Target className="h-4.5 w-4.5 text-text" aria-hidden="true" />
           </div>
           {targetProgress ? (
             <div>

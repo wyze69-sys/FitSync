@@ -78,7 +78,7 @@ export default function DashboardProfileSummary({ user, onProfileUpdated, onToas
             setIsEditing((value) => !value);
             setError(null);
           }}
-          className="text-xs text-muted hover:text-accent transition-all cursor-pointer underline decoration-border underline-offset-4"
+          className="text-xs text-muted hover:text-text transition-all cursor-pointer underline decoration-border underline-offset-4"
         >
           {isEditing ? "Cancel" : "Edit"}
         </button>

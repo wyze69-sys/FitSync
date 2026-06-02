@@ -116,7 +116,7 @@ export default function Dashboard() {
             </div>
             <Link
               to="/workouts"
-              className="text-xs font-medium text-muted hover:text-accent flex items-center gap-1 transition-all"
+              className="text-xs font-medium text-muted hover:text-text flex items-center gap-1 transition-all"
             >
               View all
               <ChevronRight className="h-3.5 w-3.5" />
@@ -132,7 +132,7 @@ export default function Dashboard() {
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded-sm bg-bg border border-border text-muted text-[9px] font-mono uppercase font-bold tracking-widest">
+                      <span className="px-2 py-0.5 rounded-sm bg-bg border border-border text-muted text-[9px] font-mono tabular-nums uppercase font-bold tracking-widest">
                         {workout.date}
                       </span>
                       <h4 className="text-sm font-semibold text-text">
@@ -156,7 +156,7 @@ export default function Dashboard() {
                       <div className="text-muted uppercase text-[9px] font-bold tracking-wider">
                         Calories
                       </div>
-                      <div className="font-mono tabular-nums font-semibold text-accent mt-0.5">
+                      <div className="font-mono tabular-nums font-semibold text-text mt-0.5">
                         {workout.caloriesTotal} kcal
                       </div>
                     </div>
