@@ -6,10 +6,9 @@ import AdminLayout from "./components/layout/AdminLayout.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
-import Workouts from "./pages/Workouts.jsx";
+import Log from "./pages/Log.jsx";
 import Progress from "./pages/Progress.jsx";
-import Insights from "./pages/Insights.jsx";
-import Profile from "./pages/Profile.jsx";
+import You from "./pages/You.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
@@ -26,11 +25,10 @@ export default function App() {
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/workouts" element={<Workouts />} />
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/log" element={<Log />} />
           <Route path="/progress" element={<Progress />} />
-          <Route path="/insights" element={<Insights />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/you" element={<You />} />
         </Route>
 
         <Route element={<AdminRoute />}>
@@ -43,7 +41,6 @@ export default function App() {
       </Route>
 
       <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

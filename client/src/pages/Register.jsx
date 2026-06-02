@@ -9,7 +9,7 @@ export default function Register() {
   const { user, loading } = useAuth();
 
   if (!loading && user) {
-    return <Navigate to={user.role === "admin" ? "/admin/dashboard" : "/dashboard"} replace />;
+    return <Navigate to={user.role === "admin" ? "/admin/dashboard" : "/"} replace />;
   }
 
   return <AuthScreen defaultMode="register" />;

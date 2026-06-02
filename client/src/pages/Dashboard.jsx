@@ -1,187 +1,172 @@
-import { useOutletContext, useNavigate, Link } from "react-router-dom";
-import { Dumbbell, ChevronRight } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useLocation, useOutletContext } from "react-router-dom";
+import { CalendarDays, Dumbbell, Layers, Sparkles } from "lucide-react";
+import workoutService from "../services/workoutService.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import DashboardHeader from "../components/dashboard/DashboardHeader.jsx";
-import DashboardStreakCard from "../components/dashboard/DashboardStreakCard.jsx";
-import DashboardBadges from "../components/dashboard/DashboardBadges.jsx";
-import DashboardQuickActions from "../components/dashboard/DashboardQuickActions.jsx";
-import DashboardWorkoutTemplates from "../components/dashboard/DashboardWorkoutTemplates.jsx";
-import DashboardStats from "../components/dashboard/DashboardStats.jsx";
-import DashboardCharts from "../components/dashboard/DashboardCharts.jsx";
-import DashboardInsightsCard from "../components/dashboard/DashboardInsightsCard.jsx";
-import DashboardProfileSummary from "../components/dashboard/DashboardProfileSummary.jsx";
+import MotivationCard from "../components/dashboard/MotivationCard.jsx";
+import QuickLogButtons from "../components/dashboard/QuickLogButtons.jsx";
 import OnboardingModal from "../components/modals/OnboardingModal.jsx";
 import Spinner from "../components/common/Spinner.jsx";
 import ErrorBanner from "../components/common/ErrorBanner.jsx";
-import EmptyState from "../components/common/EmptyState.jsx";
-import { todayStr } from "../utils/workoutUtils.js";
 
-/**
- * User dashboard overview. Composes small, focused dashboard components and
- * reads shared data + actions from the AppLayout via Outlet context.
- */
+function getCurrentWeekRange() {
+  const today = new Date();
+  const day = today.getDay();
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + diffToMonday);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  const toDateInput = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const dateNum = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${dateNum}`;
+  };
+
+  return { monday: toDateInput(monday), sunday: toDateInput(sunday) };
+}
+
+function countSets(workouts = []) {
+  return workouts.reduce(
+    (total, workout) =>
+      total +
+      (workout.exercises || []).reduce(
+        (exerciseTotal, exercise) => exerciseTotal + (exercise.sets?.length || 0),
+        0
+      ),
+    0
+  );
+}
+
+function CoachTip({ insight }) {
+  return (
+    <div className="bg-surface border border-border rounded-sm p-5 space-y-3">
+      <div className="flex items-center justify-between">
+        <div>
+          <span className="text-[10px] font-mono font-bold text-muted uppercase tracking-widest">
+            Coach tip
+          </span>
+          <h2 className="text-sm font-semibold text-text mt-0.5">Weekly AI insight</h2>
+        </div>
+        <Sparkles className="h-5 w-5 text-accent" aria-hidden="true" />
+      </div>
+      <p className="text-xs text-muted leading-relaxed">
+        {insight?.summary || "No tip yet — log your first workout."}
+      </p>
+    </div>
+  );
+}
+
+function WeekSummary({ loading, error, workouts }) {
+  const totalSets = useMemo(() => countSets(workouts), [workouts]);
+
+  return (
+    <div className="bg-surface border border-border rounded-sm p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <span className="text-[10px] font-mono font-bold text-muted uppercase tracking-widest">
+            This week
+          </span>
+          <h2 className="text-sm font-semibold text-text mt-0.5">Week Summary</h2>
+        </div>
+        <CalendarDays className="h-5 w-5 text-accent" aria-hidden="true" />
+      </div>
+      {error && <p className="text-xs text-red-300">{error}</p>}
+      {loading ? (
+        <div className="text-xs text-muted">Loading this week...</div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          <div className="p-4 rounded-sm bg-bg border border-border">
+            <Dumbbell className="h-4 w-4 text-accent mb-3" aria-hidden="true" />
+            <div className="text-3xl font-mono tabular-nums text-text font-semibold">
+              {workouts.length}
+            </div>
+            <div className="text-[10px] font-mono uppercase tracking-widest text-muted mt-1">
+              Workouts
+            </div>
+          </div>
+          <div className="p-4 rounded-sm bg-bg border border-border">
+            <Layers className="h-4 w-4 text-accent mb-3" aria-hidden="true" />
+            <div className="text-3xl font-mono tabular-nums text-text font-semibold">
+              {totalSets}
+            </div>
+            <div className="text-[10px] font-mono uppercase tracking-widest text-muted mt-1">
+              Total sets
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Home page: beginner-friendly motivation, quick logging, coaching, and week volume. */
 export default function Dashboard() {
-  const {
-    user,
-    workouts,
-    workoutTotal,
-    weightLogs,
-    gamification,
-    insights,
-    loading,
-    error,
-    refreshAll,
-    logQuickWorkout,
-    recordCheckin,
-    push
-  } = useOutletContext();
+  const { user, gamification, insights, loading, error, refreshAll, recordCheckin } =
+    useOutletContext();
   const { updateUser } = useAuth();
-  const navigate = useNavigate();
+  const location = useLocation();
+  const [weekSummary, setWeekSummary] = useState({ workouts: [], loading: true, error: null });
 
   const profileIncomplete = !user.height || !user.weight;
-  const checkedInToday = gamification?.lastActiveDate === todayStr();
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadWeek() {
+      setWeekSummary((current) => ({ ...current, loading: true, error: null }));
+      try {
+        const { monday, sunday } = getCurrentWeekRange();
+        const result = await workoutService.getWorkouts({ from: monday, to: sunday, limit: 50 });
+        if (active) {
+          setWeekSummary({ workouts: result.items || [], loading: false, error: null });
+        }
+      } catch (err) {
+        if (active) {
+          setWeekSummary({
+            workouts: [],
+            loading: false,
+            error: err.message || "Could not load this week's workouts."
+          });
+        }
+      }
+    }
+
+    if (location.pathname === "/") {
+      loadWeek();
+    }
+    return () => {
+      active = false;
+    };
+  }, [location.pathname]);
 
   function handleProfileUpdated(updatedUser) {
     updateUser(updatedUser);
     refreshAll();
   }
 
-  function handleSelectTemplate(template) {
-    push(`Loaded the "${template.title}" template into the workout form.`, "info");
-    navigate("/workouts", { state: { template } });
-  }
-
   if (loading && !gamification) {
-    return <Spinner label="Loading your dashboard..." className="py-24" />;
+    return <Spinner label="Loading your home..." className="py-24" />;
   }
 
   return (
-    <div className="space-y-8 text-left text-text pb-16">
+    <div className="space-y-6 text-left text-text pb-16">
       {profileIncomplete && <OnboardingModal user={user} onComplete={handleProfileUpdated} />}
-
       <DashboardHeader user={user} />
       <ErrorBanner message={error} onRetry={refreshAll} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <DashboardStreakCard gamification={gamification} />
-        <DashboardBadges badges={gamification?.badges || []} />
-        <div className="lg:hidden">
-          <DashboardQuickActions
-            onQuickLog={logQuickWorkout}
-            onCheckin={recordCheckin}
-            checkedInToday={checkedInToday}
-            busy={loading}
-          />
-        </div>
-      </div>
-
-      <div className="hidden lg:block">
-        <DashboardQuickActions
-          onQuickLog={logQuickWorkout}
-          onCheckin={recordCheckin}
-          checkedInToday={checkedInToday}
-          busy={loading}
-        />
-      </div>
-
-      <DashboardWorkoutTemplates onSelectTemplate={handleSelectTemplate} />
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          <DashboardCharts weightLogs={weightLogs} targetWeight={user.targetWeight} />
-          <DashboardStats
-            gamification={gamification}
-            workoutTotal={workoutTotal}
-            user={user}
-            weightLogs={weightLogs}
-          />
+          <MotivationCard gamification={gamification} onCheckin={recordCheckin} busy={loading} />
+          <QuickLogButtons />
         </div>
-        <DashboardProfileSummary
-          user={user}
-          onProfileUpdated={handleProfileUpdated}
-          onToast={push}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <span className="text-[10px] font-mono font-bold text-muted uppercase tracking-widest">
-                Recorded workouts
-              </span>
-              <h3 className="text-sm font-semibold text-text mt-0.5">
-                Recent Sessions
-              </h3>
-            </div>
-            <Link
-              to="/workouts"
-              className="text-xs font-medium text-muted hover:text-text flex items-center gap-1 transition-all"
-            >
-              View all
-              <ChevronRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-
-          {workouts.length > 0 ? (
-            <div className="border border-border bg-surface rounded-sm overflow-hidden">
-              {workouts.slice(0, 3).map((workout) => (
-                <div
-                  key={workout.id}
-                  className="p-3 border-b border-border last:border-b-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 odd:bg-surface even:bg-bg/45"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded-sm bg-bg border border-border text-muted text-[9px] font-mono tabular-nums uppercase font-bold tracking-widest">
-                        {workout.date}
-                      </span>
-                      <h4 className="text-sm font-semibold text-text">
-                        {workout.title}
-                      </h4>
-                    </div>
-                    <p className="text-xs text-muted leading-relaxed">
-                      {workout.exercises.map((exercise) => exercise.exerciseName).join(", ")}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-6 text-xs font-mono shrink-0">
-                    <div className="text-left">
-                      <div className="text-muted uppercase text-[9px] font-bold tracking-wider">
-                        Duration
-                      </div>
-                      <div className="font-mono tabular-nums font-semibold text-text mt-0.5">
-                        {workout.durationTotal}m
-                      </div>
-                    </div>
-                    <div className="text-left border-l border-border pl-6">
-                      <div className="text-muted uppercase text-[9px] font-bold tracking-wider">
-                        Calories
-                      </div>
-                      <div className="font-mono tabular-nums font-semibold text-text mt-0.5">
-                        {workout.caloriesTotal} kcal
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState
-              icon={Dumbbell}
-              title="No workouts logged yet"
-              description="Record your walks, runs, lifts, or wellness actions to start building trends."
-              action={
-                <Link
-                  to="/workouts"
-                  className="px-5 py-1.5 bg-accent text-black border border-accent transition-all text-[10px] font-medium uppercase tracking-widest rounded-sm"
-                >
-                  Log first workout
-                </Link>
-              }
-            />
-          )}
+        <div className="space-y-6">
+          <CoachTip insight={insights?.[0]} />
+          <WeekSummary {...weekSummary} />
         </div>
-
-        <DashboardInsightsCard latestInsight={insights?.[0]} />
       </div>
     </div>
   );

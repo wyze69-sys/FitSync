@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import {
   Dumbbell,
   Scale,
-  Sparkles,
+  Home,
   LayoutDashboard,
   Users,
   Layers,
@@ -16,11 +16,10 @@ import {
 import { useAuth } from "../../context/AuthContext.jsx";
 
 const USER_LINKS = [
-  { to: "/dashboard", label: "Overview", icon: LayoutDashboard },
-  { to: "/workouts", label: "Workouts", icon: Dumbbell },
+  { to: "/", label: "Home", icon: Home, end: true },
+  { to: "/log", label: "Log", icon: Dumbbell },
   { to: "/progress", label: "Progress", icon: Scale },
-  { to: "/insights", label: "AI Insights", icon: Sparkles },
-  { to: "/profile", label: "Profile", icon: UserCog }
+  { to: "/you", label: "You", icon: UserCog }
 ];
 
 const ADMIN_LINKS = [
@@ -68,8 +67,8 @@ export default function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center space-x-6 text-xs uppercase tracking-widest font-sans">
-            {links.map(({ to, label, icon: Icon }) => (
-              <NavLink key={to} to={to} className={desktopClass}>
+            {links.map(({ to, label, icon: Icon, end }) => (
+              <NavLink key={to} to={to} end={end} className={desktopClass}>
                 <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                 {label}
               </NavLink>
@@ -110,10 +109,11 @@ export default function Navbar() {
 
       {isMobileMenuOpen && (
         <div className="md:hidden bg-bg border-t border-border px-4 py-3 space-y-1 font-sans text-xs">
-          {links.map(({ to, label, icon: Icon }) => (
+          {links.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
+              end={end}
               onClick={() => setIsMobileMenuOpen(false)}
               className={mobileClass}
             >

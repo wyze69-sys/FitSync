@@ -11,11 +11,11 @@ export default function Login() {
 
   function handleAuthSuccess(authenticatedUser) {
     const account = authenticatedUser || user;
-    navigate(account?.role === "admin" ? "/admin" : "/dashboard", { replace: true });
+    navigate(account?.role === "admin" ? "/admin" : "/", { replace: true });
   }
 
   if (!loading && user) {
-    return <Navigate to={user.role === "admin" ? "/admin" : "/dashboard"} replace />;
+    return <Navigate to={user.role === "admin" ? "/admin" : "/"} replace />;
   }
 
   return <AuthScreen defaultMode="login" onAuthSuccess={handleAuthSuccess} />;
