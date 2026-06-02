@@ -6,47 +6,47 @@ import { Trophy, Sparkle } from "lucide-react";
  */
 export default function DashboardBadges({ badges = [] }) {
   return (
-    <div className="bg-[#0E0E0E] p-6 rounded-sm border border-neutral-800/80 shadow-2xl space-y-4">
-      <div className="flex justify-between items-center pb-2 border-b border-neutral-900">
+    <div className="bg-surface p-3 rounded-sm border border-border space-y-3">
+      <div className="flex justify-between items-center pb-2 border-b border-border">
         <div>
-          <span className="text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-widest">
+          <span className="text-[10px] font-mono font-bold text-muted uppercase tracking-widest">
             Gamified Milestones
           </span>
-          <h3 className="text-sm font-bold text-white mt-0.5">Achievements</h3>
+          <h3 className="text-sm font-semibold text-text mt-0.5">Achievements</h3>
         </div>
-        <Trophy className="h-5 w-5 text-amber-400" aria-hidden="true" />
+        <Trophy className="h-5 w-5 text-accent" aria-hidden="true" />
       </div>
 
-      <div className="grid grid-cols-2 gap-3.5 pt-1.5">
+      <div className="grid grid-cols-2 gap-2">
         {badges.map((badge) => (
           <div
             key={badge.code}
-            className={`p-3 rounded-sm border flex flex-col justify-between space-y-2 transition-all duration-300 hover:scale-[1.02] ${
+            className={`p-3 rounded-sm border flex flex-col justify-between space-y-2 transition-all ${
               badge.isUnlocked
-                ? "border-amber-400/20 bg-amber-950/5 text-amber-200 shadow-md"
-                : "border-neutral-900 bg-neutral-950/20 text-neutral-500"
+                ? "border-accent/40 bg-accent/5 text-text"
+                : "border-border bg-bg/30 text-muted"
             }`}
           >
             <div className="flex justify-between items-start">
               <span
-                className={`text-[8px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded-full font-bold ${
+                className={`text-[8px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded-sm font-bold border ${
                   badge.isUnlocked
-                    ? "bg-amber-400/10 text-amber-400 border border-amber-400/20"
-                    : "bg-neutral-900 text-neutral-500"
+                    ? "bg-accent/10 text-accent border-accent/30"
+                    : "bg-bg text-muted border-border"
                 }`}
               >
                 {badge.requirement}
               </span>
               <Sparkle
-                className={`h-3 w-3 ${badge.isUnlocked ? "text-amber-400" : "text-neutral-800"}`}
+                className={`h-3 w-3 ${badge.isUnlocked ? "text-accent" : "text-border"}`}
                 aria-hidden="true"
               />
             </div>
             <div>
-              <h4 className="text-[11px] font-bold text-white leading-tight font-serif italic">
+              <h4 className="text-[11px] font-semibold text-text leading-tight">
                 {badge.name}
               </h4>
-              <p className="text-[9px] text-neutral-400 line-clamp-2 leading-normal">
+              <p className="text-[9px] text-muted line-clamp-2 leading-normal">
                 {badge.description}
               </p>
             </div>

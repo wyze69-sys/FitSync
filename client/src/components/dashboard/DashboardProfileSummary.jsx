@@ -5,9 +5,9 @@ import { GENDERS, GOALS, ACTIVITY_LEVELS, WORKOUT_TYPES } from "../../utils/cons
 import ErrorBanner from "../common/ErrorBanner.jsx";
 
 const LABEL =
-  "block text-[9px] font-mono font-semibold text-neutral-400 uppercase tracking-widest mb-1";
+  "block text-[9px] font-mono font-semibold text-muted uppercase tracking-widest mb-1";
 const INPUT =
-  "block w-full px-3 py-2 text-xs bg-black border border-neutral-800 focus:border-neutral-500 rounded-sm text-white focus:outline-none";
+  "block w-full px-3 py-2 text-xs bg-bg border border-border focus:border-accent rounded-sm text-text focus:outline-none";
 
 /**
  * Athlete profile card with an inline view/edit toggle. Persists target weight
@@ -64,11 +64,11 @@ export default function DashboardProfileSummary({ user, onProfileUpdated, onToas
   }
 
   return (
-    <div className="bg-[#0E0E0E] p-5 rounded-sm border border-neutral-800 shadow-2xl space-y-4">
-      <div className="flex items-center justify-between pb-3 border-b border-neutral-900">
+    <div className="bg-surface p-4 rounded-sm border border-border space-y-4">
+      <div className="flex items-center justify-between pb-3 border-b border-border">
         <div className="flex items-center gap-2">
-          <Settings className="h-4 w-4 text-neutral-500" aria-hidden="true" />
-          <h3 className="text-xs font-mono font-semibold text-white uppercase tracking-widest">
+          <Settings className="h-4 w-4 text-muted" aria-hidden="true" />
+          <h3 className="text-xs font-mono font-semibold text-text uppercase tracking-widest">
             Athlete Profile
           </h3>
         </div>
@@ -78,7 +78,7 @@ export default function DashboardProfileSummary({ user, onProfileUpdated, onToas
             setIsEditing((value) => !value);
             setError(null);
           }}
-          className="text-xs text-neutral-400 hover:text-white transition-all font-serif italic cursor-pointer underline decoration-neutral-800 underline-offset-4"
+          className="text-xs text-muted hover:text-accent transition-all cursor-pointer underline decoration-border underline-offset-4"
         >
           {isEditing ? "Cancel" : "Edit"}
         </button>
@@ -87,20 +87,21 @@ export default function DashboardProfileSummary({ user, onProfileUpdated, onToas
       <ErrorBanner message={error} />
 
       {!isEditing ? (
-        <div className="space-y-3 pt-1 text-xs text-neutral-300">
+        <div className="space-y-3 pt-1 text-xs text-text">
           <div className="grid grid-cols-2 gap-3">
             <Field label="Name" value={user.name} />
             <Field label="Gender" value={user.gender || "Not set"} capitalize />
           </div>
           <div className="grid grid-cols-3 gap-2">
-            <Field label="Age" value={`${user.age || "--"} yrs`} center />
-            <Field label="Height" value={`${user.height || "--"} cm`} center />
-            <Field label="Weight" value={`${user.weight || "--"} kg`} center />
+            <Field label="Age" value={`${user.age || "--"} yrs`} center numeric />
+            <Field label="Height" value={`${user.height || "--"} cm`} center numeric />
+            <Field label="Weight" value={`${user.weight || "--"} kg`} center numeric />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Field
               label="Target Weight"
               value={user.targetWeight ? `${user.targetWeight} kg` : "Not set"}
+              numeric={Boolean(user.targetWeight)}
             />
             <Field label="Preferred Style" value={user.preferredWorkoutType || "Not set"} />
           </div>
@@ -252,7 +253,7 @@ export default function DashboardProfileSummary({ user, onProfileUpdated, onToas
           <button
             type="submit"
             disabled={saving}
-            className="w-full py-2 bg-white text-black font-semibold text-xs rounded-sm uppercase tracking-widest transition-all cursor-pointer disabled:opacity-50 hover:bg-neutral-200"
+            className="w-full py-2 bg-accent text-black font-medium text-xs rounded-sm uppercase tracking-widest transition-all cursor-pointer disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>
@@ -262,13 +263,19 @@ export default function DashboardProfileSummary({ user, onProfileUpdated, onToas
   );
 }
 
-function Field({ label, value, center, block, capitalize }) {
+function Field({ label, value, center, block, capitalize, numeric }) {
   return (
     <div
-      className={`bg-neutral-950/40 border border-neutral-900 p-2.5 rounded-sm ${center ? "text-center" : ""} ${block ? "col-span-full" : ""}`}
+      className={`bg-bg border border-border p-2.5 rounded-sm ${center ? "text-center" : ""} ${block ? "col-span-full" : ""}`}
     >
-      <div className="text-[8px] font-mono uppercase tracking-wider text-neutral-500">{label}</div>
-      <div className={`font-bold text-white mt-1 ${capitalize ? "capitalize" : ""}`}>{value}</div>
+      <div className="text-[8px] font-mono uppercase tracking-wider text-muted">{label}</div>
+      <div
+        className={`font-semibold text-text mt-1 ${capitalize ? "capitalize" : ""} ${
+          numeric ? "font-mono tabular-nums" : ""
+        }`}
+      >
+        {value}
+      </div>
     </div>
   );
 }

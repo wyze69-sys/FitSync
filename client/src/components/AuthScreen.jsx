@@ -43,28 +43,28 @@ export default function AuthScreen({ defaultMode = "login" }) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#050505] text-[#E0E0E0] px-4 py-12 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-[#0E0E0E] p-8 border border-white/10 rounded-sm shadow-2xl">
+    <div className="min-h-screen flex items-center justify-center bg-bg text-text px-4 py-12 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-surface p-8 border border-border rounded-sm">
         <div className="text-center space-y-2">
-          <div className="mx-auto h-12 w-12 rounded border border-white/15 bg-white/5 flex items-center justify-center text-white">
+          <div className="mx-auto h-12 w-12 rounded-sm border border-border bg-bg flex items-center justify-center text-accent">
             <Dumbbell className="h-6 w-6" aria-hidden="true" />
           </div>
-          <h1 className="text-3xl font-serif italic tracking-tight text-white">FitSync</h1>
-          <p className="text-xs text-white/40 uppercase tracking-widest leading-relaxed">
+          <h1 className="text-3xl font-semibold tracking-tight text-text">FitSync</h1>
+          <p className="text-xs text-muted uppercase tracking-widest leading-relaxed">
             {isLogin ? "Sign in to continue tracking" : "Create your FitSync profile"}
           </p>
         </div>
 
-        <div className="p-4 rounded border border-white/5 bg-white/[0.02] space-y-2.5">
-          <div className="text-[10px] font-semibold text-white/30 font-mono uppercase tracking-[0.22em]">
+        <div className="p-4 rounded-sm border border-border bg-bg space-y-2.5">
+          <div className="text-[10px] font-semibold text-muted font-mono uppercase tracking-[0.22em]">
             Demo account
           </div>
           <button
             type="button"
             onClick={fillCredentials}
-            className="w-full py-1.5 px-3 rounded-sm text-[10px] font-bold uppercase tracking-wider border border-white/10 bg-white/5 hover:bg-white/10 text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            className="w-full py-1.5 px-3 rounded-sm text-[10px] font-medium uppercase tracking-wider border border-border bg-transparent hover:border-accent text-text transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <span className="h-1.5 w-1.5 rounded-sm bg-accent" />
             Use demo account
           </button>
         </div>
@@ -84,12 +84,12 @@ export default function AuthScreen({ defaultMode = "login" }) {
             <div>
               <label
                 htmlFor="name-input"
-                className="block text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-1.5 font-mono"
+                className="block text-[10px] font-semibold text-muted uppercase tracking-widest mb-1.5 font-mono"
               >
                 Full Name
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white/30">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
                   <UserIcon className="h-4 w-4" aria-hidden="true" />
                 </div>
                 <input
@@ -100,7 +100,7 @@ export default function AuthScreen({ defaultMode = "login" }) {
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   placeholder="Sarah Coleman"
-                  className="block w-full pl-9 pr-4 py-2 bg-[#080808] border border-white/10 rounded-sm focus:bg-black focus:border-white text-sm placeholder-white/20 text-white transition-all font-sans focus:outline-none"
+                  className="block w-full pl-9 pr-4 py-2 bg-bg border border-border rounded-sm focus:border-accent text-sm placeholder-muted/60 text-text transition-all font-sans focus:outline-none"
                 />
               </div>
             </div>
@@ -109,12 +109,12 @@ export default function AuthScreen({ defaultMode = "login" }) {
           <div>
             <label
               htmlFor="email-input"
-              className="block text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-1.5 font-mono"
+              className="block text-[10px] font-semibold text-muted uppercase tracking-widest mb-1.5 font-mono"
             >
               Email Address
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white/30">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
                 <Mail className="h-4 w-4" aria-hidden="true" />
               </div>
               <input
@@ -125,7 +125,7 @@ export default function AuthScreen({ defaultMode = "login" }) {
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="user@fitsync.com"
-                className="block w-full pl-9 pr-4 py-2 bg-[#080808] border border-white/10 rounded-sm focus:bg-black focus:border-white text-sm placeholder-white/20 text-white transition-all font-sans focus:outline-none"
+                className="block w-full pl-9 pr-4 py-2 bg-bg border border-border rounded-sm focus:border-accent text-sm placeholder-muted/60 text-text transition-all font-sans focus:outline-none"
               />
             </div>
           </div>
@@ -133,12 +133,12 @@ export default function AuthScreen({ defaultMode = "login" }) {
           <div>
             <label
               htmlFor="password-input"
-              className="block text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-1.5 font-mono"
+              className="block text-[10px] font-semibold text-muted uppercase tracking-widest mb-1.5 font-mono"
             >
               Password
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white/30">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
                 <Lock className="h-4 w-4" aria-hidden="true" />
               </div>
               <input
@@ -149,13 +149,13 @@ export default function AuthScreen({ defaultMode = "login" }) {
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="At least 8 characters"
-                className="block w-full pl-9 pr-10 py-2 bg-[#080808] border border-white/10 rounded-sm focus:bg-black focus:border-white text-sm placeholder-white/20 text-white transition-all font-sans focus:outline-none"
+                className="block w-full pl-9 pr-10 py-2 bg-bg border border-border rounded-sm focus:border-accent text-sm placeholder-muted/60 text-text transition-all font-sans focus:outline-none"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((show) => !show)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-white/30 hover:text-white transition-colors cursor-pointer"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted hover:text-text transition-colors cursor-pointer"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -165,7 +165,7 @@ export default function AuthScreen({ defaultMode = "login" }) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 px-4 bg-white text-black rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-white/90 active:scale-[0.99] flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-70 disabled:pointer-events-none"
+            className="w-full py-2.5 px-4 bg-accent text-black rounded-sm text-xs font-medium uppercase tracking-widest active:scale-[0.99] flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-70 disabled:pointer-events-none"
           >
             {loading ? (
               <>
@@ -185,7 +185,7 @@ export default function AuthScreen({ defaultMode = "login" }) {
               setIsLogin((value) => !value);
               setError(null);
             }}
-            className="text-xs font-semibold text-white/50 hover:text-white transition-all underline underline-offset-4 cursor-pointer"
+            className="text-xs font-semibold text-muted hover:text-text transition-all underline underline-offset-4 cursor-pointer"
           >
             {isLogin ? "Don't have an account? Sign up" : "Already have an account? Log in"}
           </button>

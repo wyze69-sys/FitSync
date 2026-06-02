@@ -8,9 +8,9 @@ export default function Spinner({ label = "Loading...", className = "" }) {
       role="status"
       aria-live="polite"
     >
-      <span className="h-6 w-6 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+      <span className="h-6 w-6 border-2 border-accent border-t-transparent rounded-sm animate-spin" />
       {label && (
-        <span className="text-xs font-mono text-white/50 uppercase tracking-widest">{label}</span>
+        <span className="text-xs font-mono text-muted uppercase tracking-widest">{label}</span>
       )}
     </div>
   );

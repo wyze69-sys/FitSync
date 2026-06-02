@@ -19,7 +19,7 @@ export default function ErrorBanner({ message, onRetry, className = "" }) {
         <button
           type="button"
           onClick={onRetry}
-          className="flex items-center gap-1 text-red-100 hover:text-white underline underline-offset-2 cursor-pointer shrink-0"
+          className="flex items-center gap-1 text-red-100 hover:text-text underline underline-offset-2 cursor-pointer shrink-0"
         >
           <RefreshCw className="h-3.5 w-3.5" />
           Retry

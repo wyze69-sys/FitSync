@@ -1,15 +1,21 @@
 import { Scale, Target } from "lucide-react";
 import { calculateBMI, resolveBmiCategory } from "../../utils/metrics.js";
 
-function StatTile({ label, value, hint, accent = "text-neutral-400" }) {
+function StatTile({ label, value, hint, accent = false }) {
   return (
-    <div className="p-4 bg-[#0E0E0E] rounded-sm border border-neutral-800">
-      <span className={`text-[9px] font-mono uppercase tracking-widest font-bold ${accent}`}>
+    <div className="p-3 bg-surface rounded-sm border border-border">
+      <span
+        className={`text-[9px] font-mono uppercase tracking-widest font-bold ${
+          accent ? "text-accent" : "text-muted"
+        }`}
+      >
         {label}
       </span>
-      <div className="text-2xl font-serif italic font-black text-white mt-1">{value}</div>
+      <div className={`text-2xl font-mono tabular-nums font-semibold mt-1 ${accent ? "text-accent" : "text-text"}`}>
+        {value}
+      </div>
       {hint && (
-        <p className="text-[9px] text-neutral-500 uppercase tracking-widest mt-1.5 font-mono font-bold">
+        <p className="text-[9px] text-muted uppercase tracking-widest mt-1.5 font-mono font-semibold">
           {hint}
         </p>
       )}
@@ -49,42 +55,37 @@ export default function DashboardStats({ gamification, workoutTotal, user, weigh
         <StatTile
           label="Week consistency"
           value={`${weeklyConsistency}%`}
-          accent="text-emerald-400"
+          accent
           hint="Active days / 7"
         />
         <StatTile label="Total Workouts" value={workoutTotal ?? 0} hint="Recorded sessions" />
         <StatTile label="Minutes" value={`${minutesThisWeek}m`} hint="Trained this week" />
-        <StatTile
-          label="Calories"
-          value={caloriesThisWeek}
-          accent="text-emerald-400"
-          hint="Burned this week"
-        />
+        <StatTile label="Calories" value={caloriesThisWeek} hint="Burned this week" />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-[#0E0E0E] p-5 rounded-sm border border-neutral-800 space-y-4 shadow-xl">
+        <div className="bg-surface p-3 rounded-sm border border-border space-y-3">
           <div className="flex justify-between items-center">
-            <h3 className="text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-widest">
+            <h3 className="text-[9px] font-mono font-bold text-muted uppercase tracking-widest">
               Body Mass Index
             </h3>
-            <Scale className="h-4.5 w-4.5 text-neutral-400" aria-hidden="true" />
+            <Scale className="h-4.5 w-4.5 text-muted" aria-hidden="true" />
           </div>
           <div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-serif font-bold text-white">
+              <span className="text-3xl font-mono tabular-nums font-semibold text-text">
                 {hasBmi ? bmiValue : "--"}
               </span>
               <span
-                className={`text-[10px] font-bold font-mono uppercase tracking-wide px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 ${bmi.colorClass}`}
+                className={`text-[10px] font-semibold font-mono uppercase tracking-wide px-2 py-0.5 rounded-sm bg-bg border border-border ${bmi.colorClass}`}
               >
                 {hasBmi ? bmi.label : "Incomplete"}
               </span>
             </div>
             {hasBmi && (
-              <div className="mt-3 h-1 w-full bg-neutral-950 rounded-full overflow-hidden">
+              <div className="mt-3 h-1 w-full bg-bg rounded-sm overflow-hidden">
                 <div
-                  className={`h-full ${bmi.barClass} rounded-full`}
+                  className={`h-full ${bmi.barClass} rounded-sm`}
                   style={{ width: `${Math.min(100, (bmiValue / 40) * 100)}%` }}
                 />
               </div>
@@ -92,32 +93,32 @@ export default function DashboardStats({ gamification, workoutTotal, user, weigh
           </div>
         </div>
 
-        <div className="bg-[#0E0E0E] p-5 rounded-sm border border-neutral-800 space-y-4 shadow-xl">
+        <div className="bg-surface p-3 rounded-sm border border-border space-y-3">
           <div className="flex justify-between items-center">
-            <h3 className="text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-widest">
+            <h3 className="text-[9px] font-mono font-bold text-accent uppercase tracking-widest">
               Target Weight
             </h3>
-            <Target className="h-4.5 w-4.5 text-emerald-400" aria-hidden="true" />
+            <Target className="h-4.5 w-4.5 text-accent" aria-hidden="true" />
           </div>
           {targetProgress ? (
             <div>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-serif font-bold text-white">
+                <span className="text-3xl font-mono tabular-nums font-semibold text-accent">
                   {targetProgress.percent}%
                 </span>
-                <span className="text-[11px] text-neutral-400 font-mono">
+                <span className="text-[11px] text-muted font-mono tabular-nums">
                   {targetProgress.remaining} kg to {targetWeight} kg
                 </span>
               </div>
-              <div className="mt-3 h-1 w-full bg-neutral-950 rounded-full overflow-hidden">
+              <div className="mt-3 h-1 w-full bg-bg rounded-sm overflow-hidden">
                 <div
-                  className="h-full bg-emerald-500 rounded-full"
+                  className="h-full bg-accent rounded-sm"
                   style={{ width: `${targetProgress.percent}%` }}
                 />
               </div>
             </div>
           ) : (
-            <p className="text-xs text-neutral-500 leading-relaxed">
+            <p className="text-xs text-muted leading-relaxed">
               Set a target weight in your profile to track progress toward your goal.
             </p>
           )}

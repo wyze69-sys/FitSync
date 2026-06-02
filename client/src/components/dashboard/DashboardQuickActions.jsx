@@ -8,19 +8,19 @@ import { QUICK_PRESETS } from "../../utils/constants.js";
 export default function DashboardQuickActions({ onQuickLog, onCheckin, checkedInToday, busy }) {
   return (
     <div className="space-y-6">
-      <div className="bg-[#0E0E0E] p-6 rounded-sm border border-emerald-500/15 shadow-2xl space-y-4">
+      <div className="bg-surface p-4 rounded-sm border border-border space-y-4">
         <div className="flex justify-between items-center">
           <div>
-            <span className="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-widest">
+            <span className="text-[10px] font-mono font-bold text-accent uppercase tracking-widest">
               Active Check-in
             </span>
-            <h3 className="text-sm font-bold text-white mt-0.5 font-serif italic">
+            <h3 className="text-sm font-semibold text-text mt-0.5">
               Wellness Checklist
             </h3>
           </div>
-          <Compass className="h-4.5 w-4.5 text-emerald-400" aria-hidden="true" />
+          <Compass className="h-4.5 w-4.5 text-accent" aria-hidden="true" />
         </div>
-        <p className="text-xs text-neutral-400 leading-relaxed">
+        <p className="text-xs text-muted leading-relaxed">
           No workout today? Keep your streak alive by logging a daily wellness action.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -29,8 +29,8 @@ export default function DashboardQuickActions({ onQuickLog, onCheckin, checkedIn
             onClick={() => onCheckin("Hydration check-in")}
             className={`p-2.5 rounded-sm border text-xs font-semibold uppercase tracking-wider transition-all flex items-center justify-between cursor-pointer ${
               checkedInToday
-                ? "bg-emerald-500/5 border-emerald-500/25 text-neutral-300"
-                : "bg-black border-neutral-800 hover:bg-neutral-900 text-white"
+                ? "bg-accent/5 border-accent/30 text-text"
+                : "bg-bg border-border hover:border-accent text-text"
             }`}
           >
             <span className="flex items-center gap-2">
@@ -38,7 +38,7 @@ export default function DashboardQuickActions({ onQuickLog, onCheckin, checkedIn
               Hydration (3L+)
             </span>
             {checkedInToday ? (
-              <Check className="h-4 w-4 text-emerald-400" />
+              <Check className="h-4 w-4 text-accent" />
             ) : (
               <Plus className="h-3.5 w-3.5" />
             )}
@@ -48,8 +48,8 @@ export default function DashboardQuickActions({ onQuickLog, onCheckin, checkedIn
             onClick={() => onCheckin("Stretch & recovery check-in")}
             className={`p-2.5 rounded-sm border text-xs font-semibold uppercase tracking-wider transition-all flex items-center justify-between cursor-pointer ${
               checkedInToday
-                ? "bg-emerald-500/5 border-emerald-500/25 text-neutral-300"
-                : "bg-black border-neutral-800 hover:bg-neutral-900 text-white"
+                ? "bg-accent/5 border-accent/30 text-text"
+                : "bg-bg border-border hover:border-accent text-text"
             }`}
           >
             <span className="flex items-center gap-2">
@@ -57,7 +57,7 @@ export default function DashboardQuickActions({ onQuickLog, onCheckin, checkedIn
               Stretch & recovery
             </span>
             {checkedInToday ? (
-              <Check className="h-4 w-4 text-emerald-400" />
+              <Check className="h-4 w-4 text-accent" />
             ) : (
               <Plus className="h-3.5 w-3.5" />
             )}
@@ -66,29 +66,29 @@ export default function DashboardQuickActions({ onQuickLog, onCheckin, checkedIn
       </div>
 
       <div className="space-y-3.5">
-        <div className="flex items-center gap-2 text-neutral-400">
-          <Zap className="h-4 w-4 text-emerald-400" aria-hidden="true" />
+        <div className="flex items-center gap-2 text-muted">
+          <Zap className="h-4 w-4 text-accent" aria-hidden="true" />
           <h3 className="text-xs font-mono font-bold uppercase tracking-widest">
             Quick workout logs
           </h3>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {QUICK_PRESETS.map((preset) => (
             <button
               key={preset.key}
               type="button"
               disabled={busy}
               onClick={() => onQuickLog(preset)}
-              className="p-4 rounded-sm bg-[#0E0E0E] border border-neutral-800 text-left hover:border-emerald-500/30 transition-all cursor-pointer group hover:bg-[#121212] flex flex-col justify-between h-28 disabled:opacity-50"
+              className="p-3 rounded-sm bg-surface border border-border text-left hover:border-accent transition-all cursor-pointer group flex flex-col justify-between h-24 disabled:opacity-50"
             >
-              <span className="text-[10px] font-mono text-neutral-500 font-bold group-hover:text-emerald-400 uppercase tracking-widest">
+              <span className="text-[10px] font-mono text-muted font-bold group-hover:text-accent uppercase tracking-widest">
                 {preset.tag}
               </span>
               <div>
-                <h4 className="text-xs font-extrabold text-white uppercase tracking-wide">
+                <h4 className="text-xs font-semibold text-text uppercase tracking-wide">
                   {preset.label}
                 </h4>
-                <p className="text-[11px] text-neutral-400 mt-1 font-semibold">
+                <p className="text-[11px] text-muted mt-1 font-mono tabular-nums">
                   {preset.duration}m • {preset.calories} kcal
                 </p>
               </div>
