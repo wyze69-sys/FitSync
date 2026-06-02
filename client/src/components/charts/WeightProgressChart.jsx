@@ -42,7 +42,7 @@ export default function WeightProgressChart({ weightLogs = [], targetWeight, max
       <div className="min-w-[400px]">
         <svg
           viewBox={`0 0 ${width} ${height}`}
-          className="w-full h-auto overflow-visible select-none"
+          className="w-full h-auto overflow-visible select-none group"
           role="img"
           aria-label="Body weight trend over recent entries"
         >
@@ -75,7 +75,7 @@ export default function WeightProgressChart({ weightLogs = [], targetWeight, max
                 x={width - paddingX}
                 y={targetY - 5}
                 textAnchor="end"
-                className="font-mono text-[9px] fill-accent"
+                className="font-mono tabular-nums text-[9px] fill-accent"
               >
                 Target {targetWeight}kg
               </text>
@@ -85,7 +85,7 @@ export default function WeightProgressChart({ weightLogs = [], targetWeight, max
           <polyline
             fill="none"
             stroke="#C7FF41"
-            strokeWidth="2.5"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
             points={points}
@@ -100,12 +100,20 @@ export default function WeightProgressChart({ weightLogs = [], targetWeight, max
             });
             return (
               <g key={record.id || index}>
-                <circle cx={x} cy={y} r="5" fill="#181A20" stroke="#C7FF41" strokeWidth="2" />
+                <circle
+                  cx={x}
+                  cy={y}
+                  r="5"
+                  fill="#181A20"
+                  stroke="#C7FF41"
+                  strokeWidth="2"
+                  className="opacity-0 transition-opacity group-hover:opacity-100"
+                />
                 <text
                   x={x}
                   y={y - 12}
                   textAnchor="middle"
-                  className="font-mono text-[9px] font-bold fill-text"
+                  className="font-mono tabular-nums text-[9px] font-bold fill-text"
                 >
                   {record.weight}kg
                 </text>
@@ -113,7 +121,7 @@ export default function WeightProgressChart({ weightLogs = [], targetWeight, max
                   x={x}
                   y={height - 5}
                   textAnchor="middle"
-                  className="font-mono text-[9px] fill-muted"
+                  className="font-mono tabular-nums text-[9px] fill-muted"
                 >
                   {label}
                 </text>

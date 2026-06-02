@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import AuthScreen from "../components/AuthScreen.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 
@@ -7,10 +7,16 @@ import { useAuth } from "../context/AuthContext.jsx";
  */
 export default function Login() {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
 
-  if (!loading && user) {
-    return <Navigate to={user.role === "admin" ? "/admin/dashboard" : "/dashboard"} replace />;
+  function handleAuthSuccess(authenticatedUser) {
+    const account = authenticatedUser || user;
+    navigate(account?.role === "admin" ? "/admin" : "/dashboard", { replace: true });
   }
 
-  return <AuthScreen defaultMode="login" />;
+  if (!loading && user) {
+    return <Navigate to={user.role === "admin" ? "/admin" : "/dashboard"} replace />;
+  }
+
+  return <AuthScreen defaultMode="login" onAuthSuccess={handleAuthSuccess} />;
 }

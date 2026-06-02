@@ -8,7 +8,7 @@ import { useAuth } from "../context/AuthContext.jsx";
  * Uses the auth context (which calls the centralized service layer) and routes
  * the user to the correct home after success.
  */
-export default function AuthScreen({ defaultMode = "login" }) {
+export default function AuthScreen({ defaultMode = "login", onAuthSuccess }) {
   const { login, register } = useAuth();
   const navigate = useNavigate();
 
@@ -28,7 +28,11 @@ export default function AuthScreen({ defaultMode = "login" }) {
       const account = isLogin
         ? await login(email, password)
         : await register(email, password, name);
-      navigate(account.role === "admin" ? "/admin/dashboard" : "/dashboard", { replace: true });
+      if (onAuthSuccess) {
+        onAuthSuccess(account);
+      } else {
+        navigate(account.role === "admin" ? "/admin" : "/dashboard", { replace: true });
+      }
     } catch (err) {
       setError(err.message || "Authentication failed. Please try again.");
     } finally {
@@ -109,9 +113,9 @@ export default function AuthScreen({ defaultMode = "login" }) {
           <div>
             <label
               htmlFor="email-input"
-              className="block text-[10px] font-semibold text-muted uppercase tracking-widest mb-1.5 font-mono"
+              className="block text-[10px] font-semibold text-muted tracking-widest mb-1.5 font-mono"
             >
-              Email Address
+              Email
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
@@ -133,7 +137,7 @@ export default function AuthScreen({ defaultMode = "login" }) {
           <div>
             <label
               htmlFor="password-input"
-              className="block text-[10px] font-semibold text-muted uppercase tracking-widest mb-1.5 font-mono"
+              className="block text-[10px] font-semibold text-muted tracking-widest mb-1.5 font-mono"
             >
               Password
             </label>
@@ -170,10 +174,14 @@ export default function AuthScreen({ defaultMode = "login" }) {
             {loading ? (
               <>
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                <span>{isLogin ? "Signing in..." : "Creating account..."}</span>
+                <span className={isLogin ? "normal-case" : "uppercase"}>
+                  {isLogin ? "Signing in..." : "Creating account..."}
+                </span>
               </>
             ) : (
-              <span>{isLogin ? "Sign In" : "Create Account"}</span>
+              <span className={isLogin ? "normal-case" : "uppercase"}>
+                {isLogin ? "Sign in" : "Create Account"}
+              </span>
             )}
           </button>
         </form>

@@ -5,7 +5,6 @@ import AppLayout from "./components/layout/AppLayout.jsx";
 import AdminLayout from "./components/layout/AdminLayout.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
-import AdminLogin from "./pages/AdminLogin.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Workouts from "./pages/Workouts.jsx";
 import Progress from "./pages/Progress.jsx";
@@ -24,7 +23,6 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/admin/login" element={<AdminLogin />} />
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>

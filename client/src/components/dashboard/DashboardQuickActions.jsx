@@ -11,14 +11,14 @@ export default function DashboardQuickActions({ onQuickLog, onCheckin, checkedIn
       <div className="bg-surface p-4 rounded-sm border border-border space-y-4">
         <div className="flex justify-between items-center">
           <div>
-            <span className="text-[10px] font-mono font-bold text-accent uppercase tracking-widest">
+            <span className="text-[10px] font-mono font-bold text-text uppercase tracking-widest">
               Active Check-in
             </span>
             <h3 className="text-sm font-semibold text-text mt-0.5">
               Wellness Checklist
             </h3>
           </div>
-          <Compass className="h-4.5 w-4.5 text-accent" aria-hidden="true" />
+          <Compass className="h-4.5 w-4.5 text-text" aria-hidden="true" />
         </div>
         <p className="text-xs text-muted leading-relaxed">
           No workout today? Keep your streak alive by logging a daily wellness action.
@@ -38,7 +38,7 @@ export default function DashboardQuickActions({ onQuickLog, onCheckin, checkedIn
               Hydration (3L+)
             </span>
             {checkedInToday ? (
-              <Check className="h-4 w-4 text-accent" />
+              <Check className="h-4 w-4 text-text" />
             ) : (
               <Plus className="h-3.5 w-3.5" />
             )}
@@ -57,7 +57,7 @@ export default function DashboardQuickActions({ onQuickLog, onCheckin, checkedIn
               Stretch & recovery
             </span>
             {checkedInToday ? (
-              <Check className="h-4 w-4 text-accent" />
+              <Check className="h-4 w-4 text-text" />
             ) : (
               <Plus className="h-3.5 w-3.5" />
             )}
@@ -67,7 +67,7 @@ export default function DashboardQuickActions({ onQuickLog, onCheckin, checkedIn
 
       <div className="space-y-3.5">
         <div className="flex items-center gap-2 text-muted">
-          <Zap className="h-4 w-4 text-accent" aria-hidden="true" />
+          <Zap className="h-4 w-4 text-text" aria-hidden="true" />
           <h3 className="text-xs font-mono font-bold uppercase tracking-widest">
             Quick workout logs
           </h3>
@@ -81,7 +81,7 @@ export default function DashboardQuickActions({ onQuickLog, onCheckin, checkedIn
               onClick={() => onQuickLog(preset)}
               className="p-3 rounded-sm bg-surface border border-border text-left hover:border-accent transition-all cursor-pointer group flex flex-col justify-between h-24 disabled:opacity-50"
             >
-              <span className="text-[10px] font-mono text-muted font-bold group-hover:text-accent uppercase tracking-widest">
+              <span className="text-[10px] font-mono text-muted font-bold group-hover:text-text uppercase tracking-widest">
                 {preset.tag}
               </span>
               <div>
