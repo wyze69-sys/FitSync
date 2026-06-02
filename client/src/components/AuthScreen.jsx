@@ -8,7 +8,7 @@ import { useAuth } from "../context/AuthContext.jsx";
  * Uses the auth context (which calls the centralized service layer) and routes
  * the user to the correct home after success.
  */
-export default function AuthScreen({ defaultMode = "login" }) {
+export default function AuthScreen({ defaultMode = "login", onAuthSuccess }) {
   const { login, register } = useAuth();
   const navigate = useNavigate();
 
@@ -28,7 +28,11 @@ export default function AuthScreen({ defaultMode = "login" }) {
       const account = isLogin
         ? await login(email, password)
         : await register(email, password, name);
-      navigate(account.role === "admin" ? "/admin/dashboard" : "/dashboard", { replace: true });
+      if (onAuthSuccess) {
+        onAuthSuccess(account);
+      } else {
+        navigate(account.role === "admin" ? "/admin" : "/dashboard", { replace: true });
+      }
     } catch (err) {
       setError(err.message || "Authentication failed. Please try again.");
     } finally {

@@ -40,9 +40,8 @@ export default function Navbar() {
   const links = user.role === "admin" ? ADMIN_LINKS : USER_LINKS;
 
   function handleLogout() {
-    const target = user.role === "admin" ? "/admin/login" : "/login";
     logout();
-    navigate(target, { replace: true });
+    navigate("/login", { replace: true });
   }
 
   const desktopClass = ({ isActive }) =>
