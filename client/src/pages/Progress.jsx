@@ -9,7 +9,7 @@ import { calculateBMI, resolveBmiCategory } from "../utils/metrics.js";
 import { todayStr } from "../utils/workoutUtils.js";
 
 const INPUT =
-  "block w-full px-3 py-2 bg-[#050505] border border-white/10 rounded-sm text-xs text-white focus:bg-black focus:border-white focus:outline-none transition-all";
+  "block w-full px-3 py-2 bg-bg border border-border rounded-sm text-xs text-text focus:border-accent focus:outline-none transition-all";
 
 export default function Progress() {
   const { user, weightLogs, refreshAll, push } = useOutletContext();
@@ -61,11 +61,11 @@ export default function Progress() {
   }
 
   return (
-    <div className="space-y-6 text-left text-[#E0E0E0]">
+    <div className="space-y-6 text-left text-text">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-serif italic text-white font-bold">Progress &amp; Weight</h1>
-          <p className="text-xs text-white/40">
+          <h1 className="text-xl font-semibold tracking-tight text-text">Progress &amp; Weight</h1>
+          <p className="text-xs text-muted">
             Record body weight and BMI, and track progress toward your target.
           </p>
         </div>
@@ -77,18 +77,18 @@ export default function Progress() {
               setDate(todayStr());
               setError(null);
             }}
-            className="flex items-center gap-1.5 px-4 py-2 bg-white text-black rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-white/90 transition-all cursor-pointer shadow-xl"
+            className="flex items-center gap-1.5 px-4 py-2 bg-accent text-black rounded-sm text-xs font-medium uppercase tracking-widest transition-all cursor-pointer"
           >
             <Plus className="h-4 w-4" /> Add weight entry
           </button>
         )}
       </div>
 
-      <div className="bg-[#0E0E0E] p-6 rounded-sm border border-white/10 shadow-2xl">
+      <div className="bg-surface p-4 rounded-sm border border-border">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-base font-serif italic font-bold text-white">Weight Trend</h2>
+          <h2 className="text-sm font-semibold text-text">Weight Trend</h2>
           {user.targetWeight && (
-            <span className="text-xs text-emerald-400 font-mono flex items-center gap-1.5">
+            <span className="text-xs text-accent font-mono tabular-nums flex items-center gap-1.5">
               <Target className="h-3.5 w-3.5" /> Target {user.targetWeight} kg
             </span>
           )}
@@ -105,16 +105,16 @@ export default function Progress() {
           {isLogging && (
             <form
               onSubmit={handleLog}
-              className="bg-[#0E0E0E] p-6 rounded-sm border border-white/10 shadow-lg space-y-5"
+              className="bg-surface p-4 rounded-sm border border-border space-y-5"
             >
-              <div className="border-b border-white/10 pb-3 flex justify-between items-center">
-                <h3 className="text-xs font-mono font-semibold text-white uppercase tracking-widest flex items-center gap-2">
-                  <Scale className="h-4.5 w-4.5 text-emerald-400" /> Record body weight
+              <div className="border-b border-border pb-3 flex justify-between items-center">
+                <h3 className="text-xs font-mono font-semibold text-text uppercase tracking-widest flex items-center gap-2">
+                  <Scale className="h-4.5 w-4.5 text-accent" /> Record body weight
                 </h3>
                 <button
                   type="button"
                   onClick={() => setIsLogging(false)}
-                  className="text-xs text-white/40 hover:text-white underline decoration-white/20 underline-offset-4 font-serif italic cursor-pointer transition-all"
+                  className="text-xs text-muted hover:text-accent underline decoration-border underline-offset-4 cursor-pointer transition-all"
                 >
                   Discard
                 </button>
@@ -126,29 +126,29 @@ export default function Progress() {
                 <div>
                   <label
                     htmlFor="weight-date"
-                    className="block text-[10px] font-mono font-semibold text-white/40 uppercase tracking-widest mb-1.5"
+                    className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5"
                   >
                     Log date
                   </label>
                   <div className="relative">
                     <Calendar
-                      className="absolute left-3 top-2.5 h-4 w-4 text-white/30"
+                      className="absolute left-3 top-2.5 h-4 w-4 text-muted"
                       aria-hidden="true"
                     />
                     <input
                       id="weight-date"
                       type="date"
                       required
-                      value={date}
-                      onChange={(e) => setDate(e.target.value)}
-                      className={`${INPUT} pl-9`}
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className={`${INPUT} pl-9 font-mono tabular-nums`}
                     />
                   </div>
                 </div>
                 <div>
                   <label
                     htmlFor="weight-value"
-                    className="block text-[10px] font-mono font-semibold text-white/40 uppercase tracking-widest mb-1.5"
+                    className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5"
                   >
                     Weight (kg)
                   </label>
@@ -160,14 +160,14 @@ export default function Progress() {
                     placeholder="e.g. 68.3"
                     value={weight}
                     onChange={(e) => setWeight(e.target.value)}
-                    className={INPUT}
+                    className={`${INPUT} font-mono tabular-nums`}
                   />
                 </div>
               </div>
               <div>
                 <label
                   htmlFor="weight-notes"
-                  className="block text-[10px] font-mono font-semibold text-white/40 uppercase tracking-widest mb-1.5"
+                  className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5"
                 >
                   Notes (optional)
                 </label>
@@ -183,26 +183,26 @@ export default function Progress() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-2 bg-white hover:bg-white/90 text-black font-semibold text-xs tracking-widest uppercase rounded-sm transition-all cursor-pointer disabled:opacity-50"
+                className="w-full py-2 bg-accent text-black font-medium text-xs tracking-widest uppercase rounded-sm transition-all cursor-pointer disabled:opacity-50"
               >
                 {submitting ? "Saving..." : "Save weight entry"}
               </button>
             </form>
           )}
 
-          <div className="bg-[#0E0E0E] rounded-sm border border-white/10 shadow-md overflow-hidden">
-            <div className="p-5 border-b border-white/10">
-              <h3 className="text-sm font-bold text-white">Weight history</h3>
-              <p className="text-xs text-white/40 mt-0.5">Entries ordered by most recent date.</p>
+          <div className="bg-surface rounded-sm border border-border overflow-hidden">
+            <div className="p-4 border-b border-border">
+              <h3 className="text-sm font-semibold text-text">Weight history</h3>
+              <p className="text-xs text-muted mt-0.5">Entries ordered by most recent date.</p>
             </div>
             {weightLogs.length === 0 ? (
-              <div className="py-16 text-center text-white/30 text-xs">
+              <div className="py-16 text-center text-muted text-xs">
                 No weight entries logged yet.
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-[#E0E0E0]">
-                  <thead className="bg-white/[0.02] border-b border-white/10 font-mono text-[9px] uppercase tracking-widest font-semibold text-white/40">
+                <table className="w-full text-left text-xs text-text">
+                  <thead className="bg-bg border-b border-border font-mono text-[9px] uppercase tracking-widest font-semibold text-muted">
                     <tr>
                       <th className="py-3 px-5">Date</th>
                       <th className="py-2.5 px-3">Weight</th>
@@ -211,21 +211,24 @@ export default function Progress() {
                       <th className="py-2.5 px-5 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5 text-white/80">
-                    {weightLogs.map((log) => {
+                  <tbody className="text-text">
+                    {weightLogs.map((log, index) => {
                       const meta = resolveBmiCategory(log.bmi);
                       return (
-                        <tr key={log.id} className="hover:bg-white/[0.01] transition-all">
-                          <td className="py-3.5 px-5 font-mono text-white font-semibold">
+                        <tr
+                          key={log.id}
+                          className={`border-b border-border last:border-b-0 ${index % 2 === 0 ? "bg-surface" : "bg-bg/55"}`}
+                        >
+                          <td className="p-3 font-mono text-text font-semibold">
                             {log.date}
                           </td>
-                          <td className="py-3 px-3">
-                            <span className="text-sm font-extrabold text-white">{log.weight}</span>
-                            <span className="text-white/30 text-[10px] ml-0.5">kg</span>
+                          <td className="p-3">
+                            <span className="text-sm font-mono tabular-nums font-semibold text-text">{log.weight}</span>
+                            <span className="text-muted text-[10px] ml-0.5">kg</span>
                           </td>
-                          <td className="py-3 px-3">
+                          <td className="p-3">
                             <div className="flex items-center gap-2">
-                              <span className="font-mono font-bold text-white">{log.bmi}</span>
+                              <span className="font-mono tabular-nums font-bold text-text">{log.bmi}</span>
                               <span
                                 className={`px-2 py-0.5 rounded-sm text-[9px] font-semibold ${meta.badgeClass}`}
                               >
@@ -233,15 +236,15 @@ export default function Progress() {
                               </span>
                             </div>
                           </td>
-                          <td className="py-3 px-3 text-white/50 hidden md:table-cell max-w-xs truncate">
+                          <td className="p-3 text-muted hidden md:table-cell max-w-xs truncate">
                             {log.notes || "--"}
                           </td>
-                          <td className="py-3 px-5 text-right">
+                          <td className="p-3 text-right">
                             <button
                               type="button"
                               onClick={() => setPendingDelete(log.id)}
                               aria-label={`Delete weight entry from ${log.date}`}
-                              className="text-white/40 hover:text-red-400 p-1.5 transition-all"
+                              className="text-muted hover:text-red-400 p-1.5 transition-all"
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -257,17 +260,17 @@ export default function Progress() {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-[#0E0E0E] p-5 rounded-sm border border-white/10 space-y-4">
-            <div className="flex items-center gap-2 pb-3 border-b border-white/10">
-              <Compass className="h-5 w-5 text-white/40" aria-hidden="true" />
-              <h3 className="text-sm font-serif italic text-white font-bold">BMI Overview</h3>
+          <div className="bg-surface p-4 rounded-sm border border-border space-y-4">
+            <div className="flex items-center gap-2 pb-3 border-b border-border">
+              <Compass className="h-5 w-5 text-muted" aria-hidden="true" />
+              <h3 className="text-sm font-semibold text-text">BMI Overview</h3>
             </div>
             {hasBmi ? (
               <div className="space-y-4 text-xs">
-                <div className="text-center p-5 rounded-sm bg-white/[0.015] border border-white/5 space-y-1">
-                  <div className="text-2xl font-black font-mono text-white">{currentBmi}</div>
+                <div className="text-center p-4 rounded-sm bg-bg border border-border space-y-1">
+                  <div className="text-2xl font-semibold font-mono tabular-nums text-text">{currentBmi}</div>
                   <div className={`font-bold ${bmiMeta.colorClass}`}>{bmiMeta.label}</div>
-                  <p className="text-[11px] text-white/40">{bmiMeta.description}</p>
+                  <p className="text-[11px] text-muted">{bmiMeta.description}</p>
                 </div>
                 <div className="space-y-2 text-[11px]">
                   <Range label="Underweight" range="< 18.5" />
@@ -275,21 +278,21 @@ export default function Progress() {
                   <Range label="Overweight" range="25.0 - 29.9" />
                   <Range label="Obese" range="≥ 30.0" />
                 </div>
-                <div className="p-3 bg-white/[0.01] rounded-sm text-[10px] text-white/40 leading-relaxed border border-white/5">
+                <div className="p-3 bg-bg rounded-sm text-[10px] text-muted leading-relaxed border border-border">
                   <strong>Formula:</strong> BMI = weight (kg) ÷ height (m)². Display only; not
                   medical advice.
                 </div>
               </div>
             ) : (
-              <p className="p-2 text-center text-white/30 text-xs leading-relaxed">
+              <p className="p-2 text-center text-muted text-xs leading-relaxed">
                 Add your height and weight in your profile to calculate BMI.
               </p>
             )}
           </div>
 
-          <div className="p-5 rounded-sm border border-white/10 bg-[#0E0E0E] space-y-3 shadow-md">
+          <div className="p-4 rounded-sm border border-border bg-surface space-y-3">
             <h4 className="text-xs font-mono font-bold uppercase tracking-widest">Tracking tip</h4>
-            <p className="text-xs leading-relaxed text-white/40">
+            <p className="text-xs leading-relaxed text-muted">
               Weight shifts with hydration, meals, and training. Measure at a consistent time each
               week for the clearest trend.
             </p>
@@ -311,13 +314,13 @@ export default function Progress() {
 
 function Range({ label, range, highlight }) {
   return (
-    <div className="flex justify-between items-center text-white/50 border-b border-white/5 pb-1.5 last:border-b-0">
-      <span className={highlight ? "text-emerald-400 font-semibold flex items-center gap-1" : ""}>
-        {highlight && <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full" />}
+    <div className="flex justify-between items-center text-muted border-b border-border pb-1.5 last:border-b-0">
+      <span className={highlight ? "text-accent font-semibold flex items-center gap-1" : ""}>
+        {highlight && <span className="h-1.5 w-1.5 bg-accent rounded-sm" />}
         {label}
       </span>
       <span
-        className={`font-mono ${highlight ? "text-emerald-400/80 font-semibold" : "text-white/40"}`}
+        className={`font-mono tabular-nums ${highlight ? "text-accent font-semibold" : "text-muted"}`}
       >
         {range}
       </span>

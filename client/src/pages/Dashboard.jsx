@@ -56,7 +56,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-8 text-left text-neutral-200 pb-16">
+    <div className="space-y-8 text-left text-text pb-16">
       {profileIncomplete && <OnboardingModal user={user} onComplete={handleProfileUpdated} />}
 
       <DashboardHeader user={user} />
@@ -107,16 +107,16 @@ export default function Dashboard() {
         <div className="lg:col-span-2 space-y-4">
           <div className="flex justify-between items-center">
             <div>
-              <span className="text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-widest">
+              <span className="text-[10px] font-mono font-bold text-muted uppercase tracking-widest">
                 Recorded workouts
               </span>
-              <h3 className="text-sm font-bold text-white mt-0.5 font-serif italic">
+              <h3 className="text-sm font-semibold text-text mt-0.5">
                 Recent Sessions
               </h3>
             </div>
             <Link
               to="/workouts"
-              className="text-xs font-semibold text-neutral-400 hover:text-white flex items-center gap-1 font-serif italic transition-all"
+              className="text-xs font-medium text-muted hover:text-accent flex items-center gap-1 transition-all"
             >
               View all
               <ChevronRight className="h-3.5 w-3.5" />
@@ -124,39 +124,39 @@ export default function Dashboard() {
           </div>
 
           {workouts.length > 0 ? (
-            <div className="space-y-4">
+            <div className="border border-border bg-surface rounded-sm overflow-hidden">
               {workouts.slice(0, 3).map((workout) => (
                 <div
                   key={workout.id}
-                  className="p-4 rounded-sm border border-neutral-800 bg-[#0E0E0E] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all hover:bg-neutral-900/60"
+                  className="p-3 border-b border-border last:border-b-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 odd:bg-surface even:bg-bg/45"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded bg-neutral-950 border border-neutral-800 text-neutral-400 text-[9px] font-mono uppercase font-bold tracking-widest">
+                      <span className="px-2 py-0.5 rounded-sm bg-bg border border-border text-muted text-[9px] font-mono uppercase font-bold tracking-widest">
                         {workout.date}
                       </span>
-                      <h4 className="text-sm font-semibold text-white font-serif italic">
+                      <h4 className="text-sm font-semibold text-text">
                         {workout.title}
                       </h4>
                     </div>
-                    <p className="text-xs text-neutral-400 leading-relaxed">
+                    <p className="text-xs text-muted leading-relaxed">
                       {workout.exercises.map((exercise) => exercise.exerciseName).join(", ")}
                     </p>
                   </div>
                   <div className="flex items-center gap-6 text-xs font-mono shrink-0">
                     <div className="text-left">
-                      <div className="text-neutral-500 uppercase text-[9px] font-bold tracking-wider">
+                      <div className="text-muted uppercase text-[9px] font-bold tracking-wider">
                         Duration
                       </div>
-                      <div className="font-semibold text-white mt-0.5">
+                      <div className="font-mono tabular-nums font-semibold text-text mt-0.5">
                         {workout.durationTotal}m
                       </div>
                     </div>
-                    <div className="text-left border-l border-neutral-800 pl-6">
-                      <div className="text-neutral-500 uppercase text-[9px] font-bold tracking-wider">
+                    <div className="text-left border-l border-border pl-6">
+                      <div className="text-muted uppercase text-[9px] font-bold tracking-wider">
                         Calories
                       </div>
-                      <div className="font-extrabold text-emerald-400 mt-0.5">
+                      <div className="font-mono tabular-nums font-semibold text-accent mt-0.5">
                         {workout.caloriesTotal} kcal
                       </div>
                     </div>
@@ -172,7 +172,7 @@ export default function Dashboard() {
               action={
                 <Link
                   to="/workouts"
-                  className="px-5 py-1.5 bg-neutral-900 hover:bg-white hover:text-black border border-neutral-800 transition-all text-[10px] font-bold uppercase tracking-widest rounded-sm text-white"
+                  className="px-5 py-1.5 bg-accent text-black border border-accent transition-all text-[10px] font-medium uppercase tracking-widest rounded-sm"
                 >
                   Log first workout
                 </Link>

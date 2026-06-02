@@ -145,7 +145,7 @@ export default function AppLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0A0A0A] to-[#050505] text-[#E0E0E0] flex flex-col font-sans relative pb-20 md:pb-8">
+    <div className="min-h-screen bg-bg text-text flex flex-col font-sans relative pb-20 md:pb-8">
       <Navbar />
 
       <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
@@ -153,14 +153,14 @@ export default function AppLayout() {
       </main>
 
       {/* Mobile bottom navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0E0E0E] border-t border-neutral-800 px-2 py-2.5 flex items-center justify-around z-40 shadow-2xl">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-border px-2 py-2.5 flex items-center justify-around z-40">
         {MOBILE_LINKS.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex flex-col items-center gap-1.5 py-1 px-3 rounded transition-all select-none ${
-                isActive ? "text-white" : "text-neutral-500"
+              `flex flex-col items-center gap-1.5 py-1 px-3 rounded-sm transition-all select-none ${
+                isActive ? "text-accent" : "text-muted"
               }`
             }
           >
@@ -175,27 +175,27 @@ export default function AppLayout() {
         type="button"
         onClick={() => setIsFabOpen(true)}
         aria-label="Open quick actions"
-        className="md:hidden fixed bottom-20 right-6 h-12 w-12 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black flex items-center justify-center shadow-2xl z-40 transition-all hover:scale-110 active:scale-95 border border-emerald-300/30"
+        className="md:hidden fixed bottom-20 right-6 h-12 w-12 rounded-sm bg-accent text-black flex items-center justify-center z-40 transition-all active:scale-95 border border-accent"
       >
         <Plus className="h-6 w-6 stroke-[3]" />
       </button>
 
       {isFabOpen && (
         <div
-          className="fixed inset-0 bg-black/85 z-50 flex items-end justify-center animate-fade-in backdrop-blur-xs"
+          className="fixed inset-0 bg-black/85 z-50 flex items-end justify-center animate-fade-in"
           role="dialog"
           aria-modal="true"
           aria-label="Quick actions"
           onClick={() => setIsFabOpen(false)}
         >
           <div
-            className="bg-[#0E0E0E] w-full rounded-t-lg border-t border-neutral-800 p-6 space-y-5 shadow-2xl max-w-md animate-slide-up"
+            className="bg-surface w-full rounded-sm border border-border p-6 space-y-5 max-w-md animate-slide-up"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex justify-between items-center pb-2 border-b border-neutral-900">
+            <div className="flex justify-between items-center pb-2 border-b border-border">
               <div className="flex items-center gap-1.5">
-                <Zap className="h-4.5 w-4.5 text-emerald-400" />
-                <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-white">
+                <Zap className="h-4.5 w-4.5 text-accent" />
+                <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-text">
                   Quick Actions
                 </h2>
               </div>
@@ -203,7 +203,7 @@ export default function AppLayout() {
                 type="button"
                 onClick={() => setIsFabOpen(false)}
                 aria-label="Close quick actions"
-                className="h-7 w-7 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 hover:text-white"
+                className="h-7 w-7 rounded-sm bg-bg border border-border flex items-center justify-center text-muted hover:text-text"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -211,14 +211,14 @@ export default function AppLayout() {
 
             <div className="space-y-4 text-xs font-sans text-left">
               <div className="space-y-2">
-                <span className="text-[9px] uppercase tracking-wider font-mono font-bold text-neutral-500">
+                <span className="text-[9px] uppercase tracking-wider font-mono font-bold text-muted">
                   Daily wellness
                 </span>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => recordCheckin("Hydration check-in")}
-                    className="p-2.5 rounded-sm bg-neutral-950 border border-neutral-800 text-left hover:border-emerald-500/30 text-neutral-300 font-semibold flex items-center gap-2"
+                    className="p-2.5 rounded-sm bg-bg border border-border text-left hover:border-accent text-text font-medium flex items-center gap-2"
                   >
                     <Droplets className="h-4 w-4 text-sky-400" />
                     Hydration (3L+)
@@ -226,7 +226,7 @@ export default function AppLayout() {
                   <button
                     type="button"
                     onClick={() => recordCheckin("Stretch & recovery check-in")}
-                    className="p-2.5 rounded-sm bg-neutral-950 border border-neutral-800 text-left hover:border-emerald-500/30 text-neutral-300 font-semibold flex items-center gap-2"
+                    className="p-2.5 rounded-sm bg-bg border border-border text-left hover:border-accent text-text font-medium flex items-center gap-2"
                   >
                     <Zap className="h-4 w-4 text-amber-400" />
                     Stretch routine
@@ -234,7 +234,7 @@ export default function AppLayout() {
                 </div>
               </div>
               <div className="space-y-2">
-                <span className="text-[9px] uppercase tracking-wider font-mono font-bold text-neutral-500">
+                <span className="text-[9px] uppercase tracking-wider font-mono font-bold text-muted">
                   Fast workout logs
                 </span>
                 <div className="space-y-2">
@@ -243,10 +243,10 @@ export default function AppLayout() {
                       key={preset.key}
                       type="button"
                       onClick={() => logQuickWorkout(preset)}
-                      className="w-full p-2.5 rounded-sm bg-neutral-950 border border-neutral-800 flex justify-between items-center text-neutral-300 text-left font-semibold hover:border-emerald-500/30"
+                      className="w-full p-2.5 rounded-sm bg-bg border border-border flex justify-between items-center text-text text-left font-medium hover:border-accent"
                     >
                       <span>{preset.label}</span>
-                      <span className="text-[10px] font-mono font-normal text-emerald-400">
+                      <span className="text-[10px] font-mono font-normal text-accent">
                         {preset.calories} kcal
                       </span>
                     </button>
@@ -258,7 +258,7 @@ export default function AppLayout() {
         </div>
       )}
 
-      <footer className="bg-[#050505] border-t border-white/5 py-8 mt-12 text-center text-white/30 text-[10px] font-mono tracking-wide">
+      <footer className="bg-bg border-t border-border py-8 mt-12 text-center text-muted text-[10px] font-mono tracking-wide">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>FitSync &mdash; Fitness tracking</div>
           <div>&copy; 2026 FitSync</div>

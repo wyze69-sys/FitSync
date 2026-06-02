@@ -10,16 +10,16 @@ export default function NotFound() {
   const homePath = user ? (user.role === "admin" ? "/admin/dashboard" : "/dashboard") : "/login";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#050505] text-[#E0E0E0] px-4 text-center">
+    <div className="min-h-screen flex items-center justify-center bg-bg text-text px-4 text-center">
       <div className="space-y-4 max-w-sm">
-        <Compass className="h-10 w-10 text-emerald-400 mx-auto" aria-hidden="true" />
-        <h1 className="text-4xl font-serif italic font-bold text-white">404</h1>
-        <p className="text-sm text-white/50 leading-relaxed">
+        <Compass className="h-10 w-10 text-accent mx-auto" aria-hidden="true" />
+        <h1 className="text-4xl font-mono font-semibold text-text">404</h1>
+        <p className="text-sm text-muted leading-relaxed">
           We couldn&apos;t find that page. It may have moved or never existed.
         </p>
         <Link
           to={homePath}
-          className="inline-block px-5 py-2 bg-white text-black rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-neutral-200 transition-all"
+          className="inline-block px-5 py-2 bg-accent text-black rounded-sm text-xs font-medium uppercase tracking-widest transition-all"
         >
           Back to safety
         </Link>

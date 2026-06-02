@@ -17,9 +17,9 @@ export function resolveBmiCategory(bmi) {
     return {
       label: "Not calculated",
       description: "Add your height and weight to calculate BMI.",
-      colorClass: "text-white/40",
-      barClass: "bg-white/10",
-      badgeClass: "bg-white/5 text-white/50 border border-white/10"
+      colorClass: "text-muted",
+      barClass: "bg-border",
+      badgeClass: "bg-bg text-muted border border-border"
     };
   }
   if (bmi < 18.5) {
@@ -35,9 +35,9 @@ export function resolveBmiCategory(bmi) {
     return {
       label: "Healthy Weight",
       description: "Within the standard healthy range.",
-      colorClass: "text-emerald-400",
-      barClass: "bg-emerald-400",
-      badgeClass: "bg-emerald-950/20 text-emerald-400 border border-emerald-900/30"
+      colorClass: "text-accent",
+      barClass: "bg-accent",
+      badgeClass: "bg-accent/10 text-accent border border-accent/30"
     };
   }
   if (bmi < 30) {

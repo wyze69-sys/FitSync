@@ -6,8 +6,8 @@ const ToastContext = createContext(null);
 const TOAST_META = {
   streak: { label: "Streak", border: "rgba(245, 158, 11, 0.4)" },
   milestone: { label: "Badge unlocked", border: "rgba(234, 179, 8, 0.4)" },
-  info: { label: "Notice", border: "rgba(255, 255, 255, 0.2)" },
-  success: { label: "Success", border: "rgba(16, 185, 129, 0.4)" }
+  info: { label: "Notice", border: "#2A2E37" },
+  success: { label: "Success", border: "#C7FF41" }
 };
 
 function ToastIcon({ type }) {
@@ -27,13 +27,13 @@ function ToastIcon({ type }) {
   }
   if (type === "info") {
     return (
-      <span className="h-9 w-9 bg-white/5 text-neutral-400 rounded-sm flex items-center justify-center border border-white/10">
+      <span className="h-9 w-9 bg-bg text-muted rounded-sm flex items-center justify-center border border-border">
         <Zap className="h-4 w-4" />
       </span>
     );
   }
   return (
-    <span className="h-9 w-9 bg-emerald-950/20 text-emerald-400 rounded-sm flex items-center justify-center border border-emerald-900/40">
+    <span className="h-9 w-9 bg-accent/10 text-accent rounded-sm flex items-center justify-center border border-accent/30">
       <Check className="h-5 w-5 stroke-[3]" />
     </span>
   );
@@ -77,15 +77,15 @@ export function ToastProvider({ children }) {
           <div
             key={toast.id}
             role="status"
-            className="animate-slide-in flex items-center gap-3.5 px-4 py-3.5 rounded-sm shadow-2xl border bg-[#0E0E0E] max-w-sm"
+            className="animate-slide-in flex items-center gap-3.5 px-4 py-3.5 rounded-sm border bg-surface max-w-sm"
             style={{ borderColor: (TOAST_META[toast.type] || TOAST_META.success).border }}
           >
             <ToastIcon type={toast.type} />
             <div>
-              <h4 className="text-[10px] uppercase font-mono tracking-widest text-white/50 font-semibold">
+              <h4 className="text-[10px] uppercase font-mono tracking-widest text-muted font-semibold">
                 {(TOAST_META[toast.type] || TOAST_META.success).label}
               </h4>
-              <p className="text-xs text-white font-sans font-medium mt-0.5 leading-tight">
+              <p className="text-xs text-text font-sans font-medium mt-0.5 leading-tight">
                 {toast.message}
               </p>
             </div>
@@ -93,7 +93,7 @@ export function ToastProvider({ children }) {
               type="button"
               onClick={() => dismiss(toast.id)}
               aria-label="Dismiss notification"
-              className="ml-1 text-white/30 hover:text-white transition-colors cursor-pointer text-xs"
+              className="ml-1 text-muted hover:text-text transition-colors cursor-pointer text-xs"
             >
               ✕
             </button>

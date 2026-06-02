@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { Fragment, useState, useEffect, useCallback } from "react";
 import { useOutletContext, useLocation, useNavigate } from "react-router-dom";
 import {
   Plus,
@@ -26,7 +26,7 @@ const SORT_OPTIONS = [
 ];
 
 const INPUT =
-  "px-3 py-2 bg-[#050505] border border-white/10 rounded-sm text-xs text-white focus:bg-black focus:border-white focus:outline-none transition-all";
+  "px-3 py-2 bg-bg border border-border rounded-sm text-xs text-text focus:border-accent focus:outline-none transition-all";
 
 export default function Workouts() {
   const { categories, refreshAll, push } = useOutletContext();
@@ -134,11 +134,11 @@ export default function Workouts() {
   const formInitial = editing || templateInitial;
 
   return (
-    <div className="space-y-6 text-left text-[#E0E0E0]">
+    <div className="space-y-6 text-left text-text">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-serif italic text-white">Workout Tracker</h1>
-          <p className="text-xs text-white/40">
+          <h1 className="text-xl font-semibold tracking-tight text-text">Workout Tracker</h1>
+          <p className="text-xs text-muted">
             Log sessions, exercises, sets and reps, then filter your history.
           </p>
         </div>
@@ -150,7 +150,7 @@ export default function Workouts() {
               setTemplateInitial(null);
               setShowForm(true);
             }}
-            className="flex items-center gap-1.5 px-4 py-2 bg-white text-black rounded-sm text-xs font-bold uppercase tracking-widest cursor-pointer hover:bg-white/90 transition-all shadow-xl"
+            className="flex items-center gap-1.5 px-4 py-2 bg-accent text-black rounded-sm text-xs font-medium uppercase tracking-widest cursor-pointer transition-all"
           >
             <Plus className="h-4 w-4" /> Log session
           </button>
@@ -175,10 +175,10 @@ export default function Workouts() {
       {!showForm && (
         <>
           {/* Filters */}
-          <div className="bg-[#0E0E0E] border border-white/10 rounded-sm p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          <div className="bg-surface border border-border rounded-sm p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             <div className="relative lg:col-span-2">
               <Search
-                className="absolute left-3 top-2.5 h-4 w-4 text-white/30"
+                className="absolute left-3 top-2.5 h-4 w-4 text-muted"
                 aria-hidden="true"
               />
               <input
@@ -220,11 +220,11 @@ export default function Workouts() {
           </div>
 
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-white/40">
+            <div className="flex items-center gap-2 text-muted">
               <History className="h-4 w-4" aria-hidden="true" />
               <h2 className="text-xs font-semibold uppercase tracking-widest font-mono">
                 History{" "}
-                {result.total > 0 && <span className="text-white/30">({result.total})</span>}
+                {result.total > 0 && <span className="text-muted">({result.total})</span>}
               </h2>
             </div>
             <select
@@ -257,131 +257,134 @@ export default function Workouts() {
             />
           ) : (
             <div className="space-y-4">
-              {result.items.map((workout) => {
-                const isExpanded = expandedId === workout.id;
-                return (
-                  <div
-                    key={workout.id}
-                    className="bg-[#0E0E0E] border border-white/10 hover:border-white/15 rounded-sm shadow-md overflow-hidden transition-all"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setExpandedId(isExpanded ? null : workout.id)}
-                      aria-expanded={isExpanded}
-                      className="w-full text-left p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-white/[0.015] transition-all"
+              <div className="overflow-x-auto rounded-sm border border-border bg-surface">
+                <table className="w-full min-w-[760px] text-left text-xs text-text">
+                  <thead className="border-b border-border bg-bg font-mono text-[9px] uppercase tracking-widest text-muted">
+                    <tr>
+                      <th className="p-3 font-semibold">Date</th>
+                      <th className="p-3 font-semibold">Session</th>
+                      <th className="p-3 font-semibold text-right">Duration</th>
+                      <th className="p-3 font-semibold text-right">Calories</th>
+                      <th className="p-3 font-semibold text-right">Exercises</th>
+                      <th className="p-3 font-semibold text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.items.map((workout, index) => {
+                      const isExpanded = expandedId === workout.id;
+                      return (
+                        <Fragment key={workout.id}>
+                    <tr
+                      className={`border-b border-border transition-all ${
+                        index % 2 === 0 ? "bg-surface" : "bg-bg/55"
+                      } ${isExpanded ? "text-text" : ""}`}
                     >
-                      <div className="space-y-1.5">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="px-2 py-0.5 rounded bg-white/5 border border-white/5 text-white/60 text-[9px] font-mono font-bold uppercase tracking-widest">
-                            {workout.date}
-                          </span>
-                          <h3 className="text-sm font-bold text-white">{workout.title}</h3>
-                        </div>
-                        {workout.notes && (
-                          <p className="text-xs text-white/40 leading-relaxed line-clamp-1">
-                            {workout.notes}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between sm:justify-end gap-6">
-                        <div className="flex items-center gap-6 text-xs font-mono">
-                          <div className="text-right">
-                            <span className="text-white/30 block text-[8px] uppercase tracking-wider">
-                              Duration
-                            </span>
-                            <span className="font-semibold text-white">
-                              {workout.durationTotal}m
-                            </span>
-                          </div>
-                          <div className="text-right border-l border-white/10 pl-6">
-                            <span className="text-white/30 block text-[8px] uppercase tracking-wider">
-                              Calories
-                            </span>
-                            <span className="font-semibold text-emerald-400">
-                              {workout.caloriesTotal}
-                            </span>
-                          </div>
-                          <div className="text-right border-l border-white/10 pl-6">
-                            <span className="text-white/30 block text-[8px] uppercase tracking-wider">
-                              Exercises
-                            </span>
-                            <span className="font-semibold text-white">
-                              {workout.exercises.length}
-                            </span>
-                          </div>
-                        </div>
-                        <span className="text-white/40">
+                      <td className="p-3 font-mono text-muted">{workout.date}</td>
+                      <td className="p-3">
+                        <button
+                          type="button"
+                          onClick={() => setExpandedId(isExpanded ? null : workout.id)}
+                          aria-expanded={isExpanded}
+                          className="flex items-center gap-2 text-left text-text hover:text-accent transition-all"
+                        >
                           {isExpanded ? (
-                            <ChevronUp className="h-4 w-4" />
+                            <ChevronUp className="h-4 w-4 text-accent" />
                           ) : (
-                            <ChevronDown className="h-4 w-4" />
+                            <ChevronDown className="h-4 w-4 text-muted" />
                           )}
-                        </span>
-                      </div>
-                    </button>
-
-                    {isExpanded && (
-                      <div className="bg-white/[0.005] border-t border-white/10 p-5 space-y-4 text-xs text-[#E0E0E0]">
-                        {workout.exercises.map((exercise) => (
-                          <div
-                            key={exercise.id}
-                            className="flex flex-col md:flex-row md:items-start justify-between gap-4 pb-4 last:pb-0 border-b border-white/5 last:border-b-0"
-                          >
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="px-1.5 py-0.5 rounded bg-white/5 border border-white/5 text-white/50 font-mono text-[9px] uppercase tracking-wider">
-                                  {exercise.categoryName}
-                                </span>
-                                <span className="font-bold text-white">
-                                  {exercise.exerciseName}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-3 text-[11px] text-white/40">
-                                <span className="flex items-center gap-1">
-                                  <Clock className="h-3 w-3 text-white/30" />
-                                  {exercise.duration} mins
-                                </span>
-                                <span className="text-white/10">•</span>
-                                <span className="flex items-center gap-1">
-                                  <Flame className="h-3.5 w-3.5 text-emerald-500" />
-                                  {exercise.caloriesBurned} kcal
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex flex-wrap gap-2 items-center">
-                              {exercise.sets.map((set, sIdx) => (
-                                <span
-                                  key={sIdx}
-                                  className="px-2.5 py-1 rounded bg-white/5 border border-white/10 font-mono text-[10px] text-white/80"
-                                >
-                                  Set {sIdx + 1}: <strong className="text-white">{set.reps}</strong>{" "}
-                                  × <strong className="text-white">{set.weight}</strong> kg
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                        <div className="pt-3 flex justify-end gap-5 border-t border-white/10">
+                          <span>
+                            <span className="block font-semibold">{workout.title}</span>
+                            {workout.notes && (
+                              <span className="block text-[11px] text-muted line-clamp-1">
+                                {workout.notes}
+                              </span>
+                            )}
+                          </span>
+                        </button>
+                      </td>
+                      <td className="p-3 text-right font-mono tabular-nums text-text">
+                        {workout.durationTotal}m
+                      </td>
+                      <td className="p-3 text-right font-mono tabular-nums text-accent">
+                        {workout.caloriesTotal}
+                      </td>
+                      <td className="p-3 text-right font-mono tabular-nums text-text">
+                        {workout.exercises.length}
+                      </td>
+                      <td className="p-3">
+                        <div className="flex justify-end gap-2">
                           <button
                             type="button"
                             onClick={() => startEdit(workout)}
-                            className="text-xs font-serif italic text-white/60 hover:text-white transition-all cursor-pointer underline decoration-white/15 underline-offset-4"
+                            className="px-2 py-1 rounded-sm border border-border text-muted hover:text-text hover:border-accent transition-all cursor-pointer"
                           >
                             Edit
                           </button>
                           <button
                             type="button"
                             onClick={() => setPendingDelete(workout.id)}
-                            className="text-xs font-serif italic text-red-400 hover:text-red-300 transition-all cursor-pointer underline decoration-red-900/40 underline-offset-4"
+                            className="px-2 py-1 rounded-sm border border-border text-muted hover:text-red-300 hover:border-red-900/50 transition-all cursor-pointer"
                           >
                             Delete
                           </button>
                         </div>
-                      </div>
+                      </td>
+                    </tr>
+
+                    {isExpanded && (
+                      <tr className="bg-bg border-b border-border">
+                        <td colSpan={6} className="p-3">
+                          <div className="space-y-3 text-xs text-text">
+                            {workout.exercises.map((exercise) => (
+                              <div
+                                key={exercise.id}
+                                className="flex flex-col md:flex-row md:items-start justify-between gap-3 pb-3 last:pb-0 border-b border-border last:border-b-0"
+                              >
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="px-1.5 py-0.5 rounded-sm bg-surface border border-border text-muted font-mono text-[9px] uppercase tracking-wider">
+                                      {exercise.categoryName}
+                                    </span>
+                                    <span className="font-semibold text-text">
+                                      {exercise.exerciseName}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-3 text-[11px] text-muted">
+                                    <span className="flex items-center gap-1 font-mono tabular-nums">
+                                      <Clock className="h-3 w-3 text-muted" />
+                                      {exercise.duration} mins
+                                    </span>
+                                    <span className="text-border">|</span>
+                                    <span className="flex items-center gap-1 font-mono tabular-nums">
+                                      <Flame className="h-3.5 w-3.5 text-accent" />
+                                      {exercise.caloriesBurned} kcal
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex flex-wrap gap-2 items-center">
+                                  {exercise.sets.map((set, sIdx) => (
+                                    <span
+                                      key={sIdx}
+                                      className="px-2.5 py-1 rounded-sm bg-surface border border-border font-mono tabular-nums text-[10px] text-muted"
+                                    >
+                                      Set {sIdx + 1}:{" "}
+                                      <strong className="text-text">{set.reps}</strong> x{" "}
+                                      <strong className="text-text">{set.weight}</strong> kg
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
                     )}
-                  </div>
-                );
-              })}
+                        </Fragment>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
 
               {result.totalPages > 1 && (
                 <div className="flex items-center justify-center gap-3 pt-2 text-xs font-mono">
@@ -389,18 +392,18 @@ export default function Workouts() {
                     type="button"
                     disabled={filters.page <= 1}
                     onClick={() => setFilter("page", filters.page - 1)}
-                    className="px-3 py-1.5 rounded-sm border border-white/10 text-white/70 hover:bg-white/5 disabled:opacity-40 cursor-pointer"
+                    className="px-3 py-1.5 rounded-sm border border-border text-muted hover:text-text hover:border-accent disabled:opacity-40 cursor-pointer"
                   >
                     Previous
                   </button>
-                  <span className="text-white/40">
+                  <span className="text-muted">
                     Page {result.page} of {result.totalPages}
                   </span>
                   <button
                     type="button"
                     disabled={filters.page >= result.totalPages}
                     onClick={() => setFilter("page", filters.page + 1)}
-                    className="px-3 py-1.5 rounded-sm border border-white/10 text-white/70 hover:bg-white/5 disabled:opacity-40 cursor-pointer"
+                    className="px-3 py-1.5 rounded-sm border border-border text-muted hover:text-text hover:border-accent disabled:opacity-40 cursor-pointer"
                   >
                     Next
                   </button>

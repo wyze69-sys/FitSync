@@ -19,21 +19,21 @@ export default function Profile() {
   return (
     <div className="space-y-6 text-left max-w-2xl mx-auto">
       <div className="flex items-center gap-2">
-        <UserCog className="h-5 w-5 text-emerald-400" aria-hidden="true" />
-        <h1 className="text-xl font-serif italic text-white font-bold">Profile Settings</h1>
+        <UserCog className="h-5 w-5 text-accent" aria-hidden="true" />
+        <h1 className="text-xl font-semibold tracking-tight text-text">Profile Settings</h1>
       </div>
-      <p className="text-xs text-white/40">
+      <p className="text-xs text-muted">
         Update your details, goal, target weight, and preferred training style. These help
         personalise your dashboard and weekly AI insight.
       </p>
 
       <DashboardProfileSummary user={user} onProfileUpdated={handleProfileUpdated} onToast={push} />
 
-      <div className="bg-[#0E0E0E] p-5 rounded-sm border border-white/10 text-xs text-white/50 space-y-1">
-        <div className="font-mono uppercase tracking-widest text-[10px] text-white/40">Account</div>
-        <div className="text-white/70">{user.email}</div>
+      <div className="bg-surface p-5 rounded-sm border border-border text-xs text-muted space-y-1">
+        <div className="font-mono uppercase tracking-widest text-[10px] text-muted">Account</div>
+        <div className="text-text">{user.email}</div>
         {user.createdAt && (
-          <div className="text-[11px] text-white/30">
+          <div className="text-[11px] text-muted">
             Member since{" "}
             {new Date(user.createdAt).toLocaleDateString("en-US", {
               month: "long",

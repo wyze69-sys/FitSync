@@ -4,9 +4,9 @@ import { GENDERS, GOALS, ACTIVITY_LEVELS, WORKOUT_TYPES } from "../../utils/cons
 import ErrorBanner from "../common/ErrorBanner.jsx";
 
 const LABEL =
-  "block text-[10px] uppercase tracking-wider text-neutral-400 font-mono mb-1.5 font-bold";
+  "block text-[10px] uppercase tracking-wider text-muted font-mono mb-1.5 font-bold";
 const INPUT =
-  "block w-full px-3 py-2.5 bg-black border border-neutral-800 focus:border-neutral-500 rounded-sm text-sm text-white focus:outline-none";
+  "block w-full px-3 py-2.5 bg-bg border border-border focus:border-accent rounded-sm text-sm text-text focus:outline-none";
 
 /**
  * Four-step onboarding shown when a profile is missing height/weight.
@@ -61,19 +61,17 @@ export default function OnboardingModal({ user, onComplete }) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto"
+      className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="onboarding-title"
     >
-      <div className="bg-[#0E0E0E] max-w-lg w-full rounded-sm border border-neutral-800 p-6 md:p-8 space-y-6 shadow-2xl relative my-8">
-        <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-emerald-500 to-emerald-300" />
-
+      <div className="bg-surface max-w-lg w-full rounded-sm border border-border p-6 md:p-8 space-y-6 relative my-8">
         <div className="flex justify-between items-center text-xs font-mono">
-          <span className="text-emerald-400 font-bold uppercase tracking-widest">
+          <span className="text-accent font-bold uppercase tracking-widest">
             Welcome to FitSync
           </span>
-          <span className="text-neutral-500 font-semibold">Step {step} of 4</span>
+          <span className="text-muted font-semibold">Step {step} of 4</span>
         </div>
 
         <ErrorBanner message={error} />
@@ -84,11 +82,11 @@ export default function OnboardingModal({ user, onComplete }) {
               <div className="space-y-2">
                 <h2
                   id="onboarding-title"
-                  className="text-xl font-serif italic text-white font-bold"
+                  className="text-xl text-text font-semibold"
                 >
                   What should we call you?
                 </h2>
-                <p className="text-xs text-neutral-400">
+                <p className="text-xs text-muted">
                   Let&apos;s set up your profile with a few basics.
                 </p>
               </div>
@@ -138,12 +136,12 @@ export default function OnboardingModal({ user, onComplete }) {
                   />
                 </div>
               </div>
-              <div className="flex justify-end pt-4 border-t border-neutral-900">
+              <div className="flex justify-end pt-4 border-t border-border">
                 <button
                   type="button"
                   disabled={!form.name.trim() || !form.age}
                   onClick={() => setStep(2)}
-                  className="px-6 py-2 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold uppercase tracking-widest rounded-sm cursor-pointer disabled:opacity-40"
+                  className="px-6 py-2 bg-accent text-black text-xs font-medium uppercase tracking-widest rounded-sm cursor-pointer disabled:opacity-40"
                 >
                   Next: Body metrics
                 </button>
@@ -154,10 +152,10 @@ export default function OnboardingModal({ user, onComplete }) {
           {step === 2 && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <h2 className="text-xl font-serif italic text-white font-bold">
+                <h2 className="text-xl text-text font-semibold">
                   Your body metrics
                 </h2>
-                <p className="text-xs text-neutral-400">
+                <p className="text-xs text-muted">
                   Used to calculate your BMI and track progress.
                 </p>
               </div>
@@ -204,11 +202,11 @@ export default function OnboardingModal({ user, onComplete }) {
                   placeholder="e.g. 64.0"
                 />
               </div>
-              <div className="flex justify-between pt-4 border-t border-neutral-900">
+              <div className="flex justify-between pt-4 border-t border-border">
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="px-4 py-2 text-neutral-400 hover:text-white text-xs font-bold uppercase tracking-wider cursor-pointer"
+                  className="px-4 py-2 text-muted hover:text-text text-xs font-medium uppercase tracking-wider cursor-pointer border border-border rounded-sm"
                 >
                   Back
                 </button>
@@ -216,7 +214,7 @@ export default function OnboardingModal({ user, onComplete }) {
                   type="button"
                   disabled={!form.height || !form.weight}
                   onClick={() => setStep(3)}
-                  className="px-6 py-2 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold uppercase tracking-widest rounded-sm cursor-pointer disabled:opacity-40"
+                  className="px-6 py-2 bg-accent text-black text-xs font-medium uppercase tracking-widest rounded-sm cursor-pointer disabled:opacity-40"
                 >
                   Next: Goals
                 </button>
@@ -227,10 +225,10 @@ export default function OnboardingModal({ user, onComplete }) {
           {step === 3 && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <h2 className="text-xl font-serif italic text-white font-bold">
+                <h2 className="text-xl text-text font-semibold">
                   Your fitness objectives
                 </h2>
-                <p className="text-xs text-neutral-400">These help guide your weekly AI insight.</p>
+                <p className="text-xs text-muted">These help guide your weekly AI insight.</p>
               </div>
               <div>
                 <label htmlFor="ob-goal" className={LABEL}>
@@ -266,18 +264,18 @@ export default function OnboardingModal({ user, onComplete }) {
                   ))}
                 </select>
               </div>
-              <div className="flex justify-between pt-4 border-t border-neutral-900">
+              <div className="flex justify-between pt-4 border-t border-border">
                 <button
                   type="button"
                   onClick={() => setStep(2)}
-                  className="px-4 py-2 text-neutral-400 hover:text-white text-xs font-bold uppercase tracking-wider cursor-pointer"
+                  className="px-4 py-2 text-muted hover:text-text text-xs font-medium uppercase tracking-wider cursor-pointer border border-border rounded-sm"
                 >
                   Back
                 </button>
                 <button
                   type="button"
                   onClick={() => setStep(4)}
-                  className="px-6 py-2 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold uppercase tracking-widest rounded-sm cursor-pointer"
+                  className="px-6 py-2 bg-accent text-black text-xs font-medium uppercase tracking-widest rounded-sm cursor-pointer"
                 >
                   Next: Style
                 </button>
@@ -288,10 +286,10 @@ export default function OnboardingModal({ user, onComplete }) {
           {step === 4 && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <h2 className="text-xl font-serif italic text-white font-bold">
+                <h2 className="text-xl text-text font-semibold">
                   One last thing, {firstName}
                 </h2>
-                <p className="text-xs text-neutral-400">Which style of training do you prefer?</p>
+                <p className="text-xs text-muted">Which style of training do you prefer?</p>
               </div>
               <div className="grid grid-cols-2 gap-2 pt-1">
                 {WORKOUT_TYPES.map((type) => (
@@ -299,32 +297,32 @@ export default function OnboardingModal({ user, onComplete }) {
                     key={type}
                     type="button"
                     onClick={() => setField("preferredWorkoutType", type)}
-                    className={`p-3 text-xs font-bold rounded-sm border uppercase tracking-wider transition-all text-center ${
+                    className={`p-3 text-xs font-semibold rounded-sm border uppercase tracking-wider transition-all text-center ${
                       form.preferredWorkoutType === type
-                        ? "border-emerald-400 bg-emerald-950/10 text-emerald-400 shadow-lg"
-                        : "border-neutral-800 bg-black hover:bg-neutral-900 text-neutral-400"
+                        ? "border-accent bg-accent/10 text-accent"
+                        : "border-border bg-bg text-muted hover:text-text"
                     }`}
                   >
                     {type}
                   </button>
                 ))}
               </div>
-              <div className="p-4 rounded-sm bg-neutral-900/45 border border-neutral-800 text-[11px] text-neutral-400 leading-relaxed mt-3">
+              <div className="p-4 rounded-sm bg-bg border border-border text-[11px] text-muted leading-relaxed mt-3">
                 <strong>Almost ready.</strong> Click Complete to save your profile and open the
                 dashboard.
               </div>
-              <div className="flex justify-between pt-4 border-t border-neutral-900">
+              <div className="flex justify-between pt-4 border-t border-border">
                 <button
                   type="button"
                   onClick={() => setStep(3)}
-                  className="px-4 py-2 text-neutral-400 hover:text-white text-xs font-bold uppercase tracking-wider cursor-pointer"
+                  className="px-4 py-2 text-muted hover:text-text text-xs font-medium uppercase tracking-wider cursor-pointer border border-border rounded-sm"
                 >
                   Back
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-6 py-2 bg-white text-black text-xs font-bold uppercase tracking-widest rounded-sm cursor-pointer hover:bg-neutral-200 transition-all disabled:opacity-50"
+                  className="px-6 py-2 bg-accent text-black text-xs font-medium uppercase tracking-widest rounded-sm cursor-pointer transition-all disabled:opacity-50"
                 >
                   {saving ? "Saving..." : "Complete & Launch"}
                 </button>
