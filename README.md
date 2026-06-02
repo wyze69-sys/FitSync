@@ -1,156 +1,204 @@
 # FitSync
 
-FitSync is a full-stack fitness tracking web application with AI-powered weekly
-insights. It uses a React + Vite client, a Node.js + Express backend, and a
-MySQL database. The project is JavaScript only.
+FitSync is a full-stack fitness tracking app for logging workouts, monitoring weight progress, and turning training data into simple weekly insights.
 
-## Main Features
+## Features
 
-- Register and log in with JWT authentication (bcrypt password hashing)
-- Real client-side routing with protected user and admin areas
-- Profile management (height, weight, target weight, goal, preferred style)
-- Workout logging with exercises and sets, plus filtering, sorting, and pagination
-- Weight tracking with BMI and a weight-trend chart (custom SVG)
-- Target-weight progress visualization
-- Streaks, daily wellness check-ins, and achievement badges persisted in MySQL
-- Weekly AI insight generated on the backend with the Google Gemini API
-- Admin tools: platform stats, category management + usage analytics, and user
-  management (search, filter, role change, activate/deactivate, user detail)
-- Responsive UI with desktop and mobile navigation and quick-action shortcuts
-
-## Project Structure
-
-```text
-FitSync/
-├── client/                     # React + Vite frontend
-│   ├── package.json
-│   ├── vite.config.js
-│   ├── index.html
-│   ├── tailwind.config.js
-│   ├── postcss.config.js
-│   └── src/
-│       ├── main.jsx            # BrowserRouter + Auth/Toast providers
-│       ├── App.jsx             # Route definitions
-│       ├── index.css
-│       ├── pages/              # Login, Register, Dashboard, Workouts,
-│       │                       # Progress, Insights, Profile, AdminDashboard, NotFound
-│       ├── components/
-│       │   ├── common/         # Navbar, ProtectedRoute, AdminRoute, Spinner,
-│       │   │                   # ErrorBanner, EmptyState
-│       │   ├── layout/         # AppLayout (user shell), AdminLayout
-│       │   ├── dashboard/      # Focused dashboard cards
-│       │   ├── charts/         # WeightProgressChart (SVG)
-│       │   ├── workout/        # WorkoutForm
-│       │   └── modals/         # OnboardingModal, ConfirmDialog
-│       ├── services/           # apiClient + per-domain service modules
-│       ├── context/            # AuthContext, ToastContext
-│       └── utils/              # constants, metrics, date helpers
-├── backend/                    # Express API server
-│   ├── package.json
-│   ├── server.js
-│   ├── app.js
-│   ├── .env.example
-│   └── src/
-│       ├── config/             # db, jwt, ai
-│       ├── routes/             # one router per resource
-│       ├── controllers/        # thin request/response handlers
-│       ├── services/           # business logic
-│       ├── repositories/       # parameterized SQL data access
-│       ├── middleware/         # auth, role, validation, error handling
-│       ├── validation/         # request schemas
-│       └── utils/              # bootstrap, ids, BMI, token, streak, mappers
-└── database/                   # SQL schema, seed, queries, privileges, migrations
-    ├── schema.sql
-    ├── seed.sql
-    ├── queries.sql
-    ├── privileges.sql
-    ├── backup-notes.md
-    └── migrations/
-```
-
-## Architecture Pattern
-
-- Backend: Routes → Controllers → Services → Repositories → MySQL
-- Frontend: Pages → Components → Services (apiClient) → Context
-
-Request validation is centralized in `backend/src/middleware/validate.js` using
-schemas in `backend/src/validation/schemas.js`. The frontend never calls `fetch`
-or reads the token directly; everything goes through `client/src/services`.
+- Single login with role-based routing for users and admins
+- Dashboard with streaks, weekly consistency, BMI, target-weight progress, badges, and recent workouts
+- Workout logging with exercises, sets, reps, weight, duration, calories, search, filters, sorting, and pagination
+- Progress tracking with body-weight history, BMI overview, and a custom SVG trend chart
+- Daily wellness check-ins and achievement badges backed by MySQL
+- AI weekly insight generation through Google Gemini on the backend
+- Admin portal for platform stats, user management, category management, and usage analytics
+- Responsive React UI with Tailwind CSS and Lucide icons
 
 ## Tech Stack
 
-- Frontend: React 19, Vite, React Router, Tailwind CSS, Lucide icons
-- Charts: lightweight custom SVG (no charting dependency)
-- Backend: Express.js, mysql2/promise, JWT, bcryptjs, Helmet, CORS, express-rate-limit
-- Database: MySQL
-- AI: Google Gemini (weekly insight generation only, backend-side)
+- Frontend: React 19, Vite, React Router, Tailwind CSS, Lucide
+- Backend: Node.js, Express, JWT auth, bcryptjs, Helmet, CORS, express-rate-limit
+- Database: MySQL with `mysql2/promise`
+- AI: Google Gemini API via `@google/genai`
+- Tests: Node's built-in test runner for backend tests
 
 ## Requirements
 
 - Node.js 18+
-- MySQL or MAMP MySQL running locally
-- Database name: `fitsync_db`
+- npm
+- MySQL or MAMP MySQL
+- A Google Gemini API key if you want AI insights
 
-The default local MySQL port is `8889`, which matches many MAMP setups. Change
-`DB_PORT` in `backend/.env` if your MySQL server uses another port.
+The default local database config targets MAMP-style MySQL on port `8889`. Change `DB_PORT` in `backend/.env` if your MySQL server uses a different port.
 
-## Backend Setup
+## Quick Start
+
+Clone the repo:
+
+```bash
+git clone https://github.com/wyze69-sys/FitSync.git
+cd FitSync
+```
+
+Install backend dependencies:
 
 ```bash
 cd backend
 npm install
 cp .env.example .env
+```
+
+Install frontend dependencies:
+
+```bash
+cd ../client
+npm install
+cp .env.example .env
+```
+
+On Windows PowerShell, use `Copy-Item .env.example .env` instead of `cp .env.example .env`.
+
+## Configuration
+
+Edit `backend/.env`:
+
+```env
+PORT=5000
+DB_HOST=localhost
+DB_PORT=8889
+DB_USER=root
+DB_PASSWORD=your_database_password
+DB_NAME=fitsync_db
+JWT_SECRET=your_strong_jwt_secret_minimum_32_characters
+GEMINI_API_KEY=your_gemini_api_key
+CORS_ORIGIN=http://localhost:5173,http://127.0.0.1:5173
+```
+
+Edit `client/.env` if your backend is not running on port `5000`:
+
+```env
+VITE_API_PROXY_TARGET=http://localhost:5000
+```
+
+The backend creates missing tables, applies idempotent schema updates, and seeds local demo data on startup.
+
+## Run Locally
+
+Start the backend:
+
+```bash
+cd backend
 npm run dev
 ```
 
-Update `backend/.env` with your local database password, a strong JWT secret
-(32+ characters), and your Gemini API key. On startup the backend creates any
-missing tables, applies idempotent schema upgrades, and seeds demo data.
-
-## Client Setup
+Start the client in another terminal:
 
 ```bash
 cd client
-npm install
-cp .env.example .env
 npm run dev
 ```
 
-The client runs on Vite at `http://localhost:5173` and proxies `/api` requests
-to the backend at `http://localhost:5000`.
+Open the app at:
 
-## Database Files
+```text
+http://localhost:5173
+```
 
-SQL files live in `database/`:
+The API runs at:
 
-- `schema.sql` — full schema (tables, indexes, constraints, gamification tables)
-- `seed.sql` — starter exercise categories and the achievement catalog
-- `queries.sql` — reference of the main queries used by the repositories
-- `privileges.sql` — least-privilege application database user
-- `backup-notes.md` — backup and restore commands
-- `migrations/` — ordered, forward migrations from the original schema
+```text
+http://localhost:5000
+```
 
-Demo accounts (seeded for local evaluation):
+## Demo Accounts
 
-- User: `user@fitsync.com` / `fitness123`
-- Admin: `admin@fitsync.com` / `admin123`
+Seeded local accounts:
+
+| Role | Email | Password |
+| --- | --- | --- |
+| User | `user@fitsync.com` | `fitness123` |
+| Admin | `admin@fitsync.com` | `admin123` |
+
+These are for local development only. Change or remove seeded credentials before deploying a public instance.
+
+## Scripts
+
+Backend:
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start Express with nodemon |
+| `npm start` | Start Express with Node |
+| `npm test` | Run backend tests |
+
+Client:
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start Vite dev server |
+| `npm run build` | Build production assets |
+| `npm run preview` | Preview the production build |
+
+## Project Structure
+
+```text
+backend/        # Express API, services, repositories, validation, tests
+client/         # React + Vite frontend
+database/       # Schema, seed data, reference queries, migrations
+docs/           # Extra project notes
+```
+
+Key frontend folders:
+
+```text
+client/src/pages/          # Route-level screens
+client/src/components/     # Shared UI and feature components
+client/src/services/       # API client and domain services
+client/src/context/        # Auth and toast providers
+client/src/utils/          # Metrics, dates, constants
+```
+
+Key backend folders:
+
+```text
+backend/src/routes/        # API route definitions
+backend/src/controllers/   # Request/response handlers
+backend/src/services/      # Business logic
+backend/src/repositories/  # Parameterized SQL access
+backend/src/middleware/    # Auth, roles, validation, errors
+backend/src/utils/         # Bootstrap, IDs, metrics, tokens
+```
 
 ## API Overview
 
-- `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`
-- `POST /api/profile/update`
-- `GET /api/workouts` (filters: `category, search, from, to, sort, page, limit`),
-  `POST /api/workouts`, `PUT /api/workouts/:id`, `DELETE /api/workouts/:id`
-- `GET /api/weights`, `POST /api/weights`, `DELETE /api/weights/:id`
-- `GET /api/categories`
-- `GET /api/gamification/summary`, `POST /api/gamification/checkin`
-- `GET /api/ai/insights`, `POST /api/ai/generate-weekly-insight`
-- Admin: `GET /api/admin/stats`, `GET /api/admin/users`, `GET /api/admin/users/:id`,
-  `PUT /api/admin/users/:id/role`, `PUT /api/admin/users/:id/status`,
-  `GET /api/admin/categories/analytics`, `POST|PUT|DELETE /api/admin/categories`
+| Area | Endpoints |
+| --- | --- |
+| Auth | `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me` |
+| Profile | `POST /api/profile/update` |
+| Workouts | `GET /api/workouts`, `POST /api/workouts`, `PUT /api/workouts/:id`, `DELETE /api/workouts/:id` |
+| Weights | `GET /api/weights`, `POST /api/weights`, `DELETE /api/weights/:id` |
+| Categories | `GET /api/categories` |
+| Gamification | `GET /api/gamification/summary`, `POST /api/gamification/checkin` |
+| AI Insights | `GET /api/ai/insights`, `POST /api/ai/generate-weekly-insight` |
+| Admin | `GET /api/admin/stats`, `GET /api/admin/users`, `GET /api/admin/users/:id`, category admin routes |
 
-## Notes
+Workout list filters include `category`, `search`, `from`, `to`, `sort`, `page`, and `limit`.
 
-- Keep `backend/.env` and `client/.env` private. They are ignored by Git.
-- Gemini API calls are made only from the backend.
-- The project is JavaScript only (`.js` / `.jsx`).
+## Security Notes
+
+- Do not commit real `.env` files.
+- Rotate any API key or password that was ever committed before making the repo public.
+- Gemini requests are made from the backend only, so the browser never receives the API key.
+- The app uses JWT auth, bcrypt password hashing, Helmet headers, CORS allow-listing, and rate limiting.
+- Demo credentials are convenient locally but should not be used in production.
+
+## Contributing
+
+1. Fork the repo.
+2. Create a feature branch: `git checkout -b feat/your-change`.
+3. Run the relevant build/tests.
+4. Commit with a clear message.
+5. Open a pull request.
+
+## License
+
+No license file is currently included. Add one before publishing this as reusable open source software.
