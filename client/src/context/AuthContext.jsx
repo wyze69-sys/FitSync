@@ -4,6 +4,10 @@ import { tokenStore } from "../services/apiClient.js";
 
 const AuthContext = createContext(null);
 
+function isValidUser(value) {
+  return Boolean(value && typeof value === "object" && value.id && value.email);
+}
+
 /**
  * AuthProvider holds the authenticated user/session and exposes auth actions.
  * Token persistence is delegated to the central apiClient token store, so no
@@ -18,11 +22,17 @@ export function AuthProvider({ children }) {
 
     async function restoreSession() {
       if (!tokenStore.get()) {
-        setLoading(false);
+        if (active) {
+          setUser(null);
+          setLoading(false);
+        }
         return;
       }
       try {
         const userData = await authService.getMe();
+        if (!isValidUser(userData)) {
+          throw new Error("Invalid session payload.");
+        }
         if (active) setUser(userData);
       } catch (err) {
         tokenStore.clear();
@@ -40,6 +50,9 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password) => {
     const { user: loggedInUser, token } = await authService.login(email, password);
+    if (!token || !isValidUser(loggedInUser)) {
+      throw new Error("Invalid login response.");
+    }
     tokenStore.set(token);
     setUser(loggedInUser);
     return loggedInUser;
@@ -47,6 +60,9 @@ export function AuthProvider({ children }) {
 
   const register = useCallback(async (email, password, name) => {
     const { user: newUser, token } = await authService.register(email, password, name);
+    if (!token || !isValidUser(newUser)) {
+      throw new Error("Invalid registration response.");
+    }
     tokenStore.set(token);
     setUser(newUser);
     return newUser;

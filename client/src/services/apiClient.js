@@ -14,16 +14,28 @@
 
 const API_BASE = "/api";
 const TOKEN_KEY = "fitsync_token";
+const LEGACY_TOKEN_KEY = "token";
 
 const tokenStore = {
   get() {
-    return localStorage.getItem(TOKEN_KEY);
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token) return token;
+
+    const legacyToken = localStorage.getItem(LEGACY_TOKEN_KEY);
+    if (legacyToken) {
+      localStorage.setItem(TOKEN_KEY, legacyToken);
+      return legacyToken;
+    }
+
+    return null;
   },
   set(token) {
     localStorage.setItem(TOKEN_KEY, token);
+    localStorage.removeItem(LEGACY_TOKEN_KEY);
   },
   clear() {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(LEGACY_TOKEN_KEY);
   }
 };
 

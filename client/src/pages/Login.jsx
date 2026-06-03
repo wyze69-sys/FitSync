@@ -1,21 +1,16 @@
-import { Navigate, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import AuthScreen from "../components/AuthScreen.jsx";
-import { useAuth } from "../context/AuthContext.jsx";
 
 /**
- * Login page. Redirects already-authenticated users to their home.
+ * Login page. PublicRoute redirects already-authenticated users away.
  */
 export default function Login() {
-  const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   function handleAuthSuccess(authenticatedUser) {
-    const account = authenticatedUser || user;
-    navigate(account?.role === "admin" ? "/admin" : "/", { replace: true });
-  }
-
-  if (!loading && user) {
-    return <Navigate to={user.role === "admin" ? "/admin" : "/"} replace />;
+    const fallback = authenticatedUser?.role === "admin" ? "/admin/dashboard" : "/";
+    navigate(location.state?.from || fallback, { replace: true });
   }
 
   return <AuthScreen defaultMode="login" onAuthSuccess={handleAuthSuccess} />;

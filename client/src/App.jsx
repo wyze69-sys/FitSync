@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/common/ProtectedRoute.jsx";
+import PublicRoute from "./components/common/PublicRoute.jsx";
 import AdminRoute from "./components/common/AdminRoute.jsx";
 import AppLayout from "./components/layout/AppLayout.jsx";
 import AdminLayout from "./components/layout/AdminLayout.jsx";
@@ -20,8 +21,10 @@ import NotFound from "./pages/NotFound.jsx";
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+      <Route element={<PublicRoute />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+      </Route>
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
@@ -36,11 +39,11 @@ export default function App() {
             {/* Single mounted view; the :section param drives which panel shows
                 (dashboard | users | categories | statistics) without remounting. */}
             <Route path="/admin/:section" element={<AdminDashboard />} />
+            <Route path="/admin/*" element={<Navigate to="/admin/dashboard" replace />} />
           </Route>
         </Route>
+        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
       </Route>
-
-      <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
