@@ -44,9 +44,8 @@ SELECT * FROM weight_logs WHERE user_id = ? ORDER BY date DESC, created_at DESC;
 -- AI insight history
 SELECT * FROM ai_insights WHERE user_id = ? ORDER BY created_at DESC;
 
--- Gamification: combined activity dates (workouts + weight logs + check-ins)
+-- Gamification: combined activity dates (workouts + check-ins)
 SELECT date FROM workouts WHERE user_id = ?
-UNION SELECT date FROM weight_logs WHERE user_id = ?
 UNION SELECT date FROM daily_checkins WHERE user_id = ?;
 
 -- Gamification: record a daily check-in (one per user per day)
