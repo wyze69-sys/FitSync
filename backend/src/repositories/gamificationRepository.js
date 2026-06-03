@@ -9,16 +9,17 @@ function formatDate(value) {
 
 /**
  * Returns the sorted list of unique "active" dates for a user, combining
- * logged workouts, weight entries, and manual wellness check-ins.
+ * logged workouts and manual wellness check-ins.
+ *
+ * Weight entries are intentionally excluded: profile edits can auto-create
+ * weight logs, and those should not inflate the user's activity streak.
  */
 async function getActivityDates(userId) {
   const [rows] = await pool.execute(
     `SELECT date FROM workouts WHERE user_id = ?
      UNION
-     SELECT date FROM weight_logs WHERE user_id = ?
-     UNION
      SELECT date FROM daily_checkins WHERE user_id = ?`,
-    [userId, userId, userId]
+    [userId, userId]
   );
   return rows
     .map((row) => formatDate(row.date))
