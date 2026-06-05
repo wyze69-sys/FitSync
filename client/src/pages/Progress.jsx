@@ -12,7 +12,7 @@ function getLatestWeight(weightLogs = []) {
 function TargetProgress({ latestWeight, targetWeight }) {
   if (!latestWeight || !targetWeight) {
     return (
-      <div className="p-4 rounded-sm border border-border bg-surface text-xs text-muted">
+      <div className="p-4 rounded-2xl border border-border bg-surface shadow-lg shadow-black/10 text-xs text-muted">
         Add current weight and target weight in You to see target progress.
       </div>
     );
@@ -24,7 +24,7 @@ function TargetProgress({ latestWeight, targetWeight }) {
   const direction = latestWeight > targetWeight ? "to go" : latestWeight < targetWeight ? "below target" : "at target";
 
   return (
-    <div className="p-5 rounded-sm border border-border bg-surface space-y-4">
+    <div className="p-5 rounded-2xl border border-border bg-surface shadow-lg shadow-black/10 space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <span className="text-[10px] font-mono font-bold text-muted uppercase tracking-widest">
@@ -39,7 +39,7 @@ function TargetProgress({ latestWeight, targetWeight }) {
           <span className="text-muted">Current {latestWeight} kg</span>
           <span className="text-accent">Target {targetWeight} kg</span>
         </div>
-        <div className="h-3 rounded-sm bg-bg border border-border overflow-hidden">
+        <div className="h-3 rounded-2xl bg-bg border border-border overflow-hidden">
           <div className="h-full bg-accent" style={{ width: `${progress}%` }} />
         </div>
         <p className="text-xs text-muted">
@@ -53,7 +53,7 @@ function TargetProgress({ latestWeight, targetWeight }) {
 function BmiCard({ height, latestWeight }) {
   if (!height) {
     return (
-      <div className="p-5 rounded-sm border border-border bg-surface space-y-2">
+      <div className="p-5 rounded-2xl border border-border bg-surface shadow-lg shadow-black/10 space-y-2">
         <span className="text-[10px] font-mono font-bold text-muted uppercase tracking-widest">BMI</span>
         <p className="text-xs text-muted">Add height in You to see BMI</p>
       </div>
@@ -62,7 +62,7 @@ function BmiCard({ height, latestWeight }) {
 
   if (!latestWeight) {
     return (
-      <div className="p-5 rounded-sm border border-border bg-surface space-y-2">
+      <div className="p-5 rounded-2xl border border-border bg-surface shadow-lg shadow-black/10 space-y-2">
         <span className="text-[10px] font-mono font-bold text-muted uppercase tracking-widest">BMI</span>
         <p className="text-xs text-muted">Log your first weight to calculate BMI.</p>
       </div>
@@ -73,7 +73,7 @@ function BmiCard({ height, latestWeight }) {
   const bmiMeta = resolveBmiCategory(bmi);
 
   return (
-    <div className="p-5 rounded-sm border border-border bg-surface space-y-4">
+    <div className="p-5 rounded-2xl border border-border bg-surface shadow-lg shadow-black/10 space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <span className="text-[10px] font-mono font-bold text-muted uppercase tracking-widest">BMI</span>
@@ -85,7 +85,7 @@ function BmiCard({ height, latestWeight }) {
         <span className={`text-5xl font-mono tabular-nums font-semibold ${bmiMeta.colorClass}`}>{bmi}</span>
         <span className="text-xs text-muted mb-1">using latest weight</span>
       </div>
-      <div className={`inline-flex px-2.5 py-1 rounded-sm text-[10px] font-mono uppercase tracking-widest ${bmiMeta.badgeClass}`}>
+      <div className={`inline-flex px-2.5 py-1 rounded-2xl text-[10px] font-mono uppercase tracking-widest ${bmiMeta.badgeClass}`}>
         {bmiMeta.label}
       </div>
       <p className="text-xs text-muted leading-relaxed">{bmiMeta.description}</p>
@@ -115,7 +115,7 @@ export default function Progress() {
         />
       )}
 
-      <div className="bg-surface p-5 rounded-sm border border-border">
+      <div className="bg-surface p-5 rounded-2xl border border-border">
         <div className="flex items-center justify-between mb-5">
           <div>
             <span className="text-[10px] font-mono font-bold text-muted uppercase tracking-widest">

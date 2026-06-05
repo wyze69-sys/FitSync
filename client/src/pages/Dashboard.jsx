@@ -1,133 +1,137 @@
 import { useMemo } from "react";
 import { Link, useOutletContext } from "react-router-dom";
-import { Dumbbell } from "lucide-react";
+import { CalendarDays, Dumbbell, Flame, Timer, Zap } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
+import PageHeader from "../components/common/PageHeader.jsx";
+import StatCard from "../components/common/StatCard.jsx";
 import EmptyState from "../components/common/EmptyState.jsx";
-import LevelProgress from "../components/dashboard/LevelProgress.jsx";
-import RecentTable from "../components/dashboard/RecentTable.jsx";
-import StatCard from "../components/dashboard/StatCard.jsx";
+import LoadingSpinner from "../components/common/LoadingSpinner.jsx";
+import StreakCard from "../components/gamification/StreakCard.jsx";
+import XPProgressBar from "../components/gamification/XPProgressBar.jsx";
+import AchievementBadge from "../components/gamification/AchievementBadge.jsx";
 
-const RECENT_LIMIT = 8;
-
-/**
- * Returns a numeric field with a safe fallback.
- * @param {number|undefined} value Possible number.
- * @returns {number}
- */
-function numberOrZero(value) {
+function n(value) {
   return Number(value || 0);
 }
 
-/**
- * Builds dashboard stat cards from real API data.
- * @param {object} data Outlet context data.
- * @returns {Array<object>}
- */
-function buildStats(data) {
-  const totalXp = numberOrZero(data.gamification?.totalXp ?? data.gamification?.total_xp);
-  return [
-    { label: "Workouts", value: data.workoutTotal || 0, trend: "All logged sessions" },
-    { label: "Minutes", value: `${numberOrZero(data.gamification?.totalMinutesThisWeek)}m`, trend: "This week" },
-    { label: "Calories", value: numberOrZero(data.gamification?.totalCaloriesThisWeek), trend: "This week" },
-    { label: "Total XP", value: totalXp, trend: "Lifetime progress" }
-  ];
+function getTimeOfDay() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
 }
 
-/**
- * Loading skeleton for the dashboard grid.
- * @returns {JSX.Element}
- */
-function DashboardSkeleton() {
-  return (
-    <div className="space-y-6" aria-label="Loading dashboard">
-      <div className="h-8 w-48 animate-pulse rounded-lg bg-zinc-200 dark:bg-zinc-800" />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {["one", "two", "three", "four"].map((item) => (
-          <div key={item} className="h-28 animate-pulse rounded-lg bg-zinc-200 dark:bg-zinc-800" />
-        ))}
-      </div>
-      <div className="h-24 animate-pulse rounded-lg bg-zinc-200 dark:bg-zinc-800" />
-    </div>
-  );
+function formatWorkout(workout) {
+  return {
+    id: workout.id,
+    title: workout.title || workout.exercises?.[0]?.exerciseName || "Workout",
+    date: workout.date ? new Date(workout.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Today",
+    calories: n(workout.calories ?? workout.caloriesTotal),
+    xp: n(workout.xp ?? workout.xp_earned),
+    minutes: n(workout.durationTotal ?? workout.duration_min)
+  };
 }
 
-/**
- * Dashboard page showing production workout and XP data.
- * @returns {JSX.Element}
- */
 export default function Dashboard() {
   const { user: authUser } = useAuth();
   const context = useOutletContext();
-  const stats = useMemo(() => buildStats(context), [context]);
-  const recentWorkouts = useMemo(() => context.workouts.slice(0, RECENT_LIMIT), [context.workouts]);
-  const totalXp = numberOrZero(context.gamification?.totalXp ?? context.gamification?.total_xp);
-  const nextLevelXp = numberOrZero(context.gamification?.nextLevelXp ?? context.gamification?.next_level_xp);
-  const level = numberOrZero(context.gamification?.level || 1);
-  const streak = numberOrZero(context.gamification?.currentStreak);
+  const gamification = context.gamification || {};
+  const recentWorkouts = useMemo(() => context.workouts.slice(0, 3).map(formatWorkout), [context.workouts]);
+  const badges = useMemo(() => (gamification.badges || []).filter((badge) => badge.isUnlocked).slice(0, 3), [gamification.badges]);
+  const userName = authUser?.name || context.user?.name || "there";
+  const totalXp = n(gamification.totalXp ?? gamification.total_xp);
+  const nextLevelXp = n(gamification.nextLevelXp ?? gamification.next_level_xp);
+  const currentStreak = n(gamification.currentStreak);
+  const longestStreak = n(gamification.longestStreak);
 
-  if (context.loading) return <DashboardSkeleton />;
+  if (context.loading) return <LoadingSpinner label="Loading dashboard" />;
 
-  if (context.error) {
-    return (
-      <main className="space-y-6 bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
-        <ErrorPanel message={context.error} onRetry={context.refreshAll} />
-      </main>
-    );
-  }
+  if (context.error) return <ErrorPanel message={context.error} onRetry={context.refreshAll} />;
 
   return (
-    <main className="space-y-6 bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
-      <nav className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between" aria-label="Dashboard summary">
-        <div>
-          <h1 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">Dashboard</h1>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-500">Welcome back, {authUser?.name || context.user?.name || "there"}.</p>
-        </div>
-        <div className="flex gap-2 text-sm text-zinc-900 dark:text-zinc-100">
-          <span className="rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-800">{streak} day streak</span>
-          <span className="rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-800">Level {level}</span>
-        </div>
-      </nav>
+    <main className="space-y-6 text-text">
+      <PageHeader
+        eyebrow="Dashboard"
+        title={`${getTimeOfDay()}, ${userName} 👋`}
+        description="Your streak, XP, weekly effort, and next quick action are ready."
+        action={
+          <Link to="/log" className="inline-flex rounded-2xl bg-emerald-500 px-5 py-3 text-sm font-bold text-zinc-950 shadow-lg shadow-emerald-950/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-bg">
+            Quick Log
+          </Link>
+        }
+      />
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="Stats">
-        {stats.map((stat) => (
-          <StatCard key={stat.label} label={stat.label} value={stat.value} trend={stat.trend} />
-        ))}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <StreakCard current={currentStreak} longest={longestStreak} increased={currentStreak > 0} />
+        <div className="lg:col-span-2">
+          <XPProgressBar totalXp={totalXp} nextLevelXp={nextLevelXp} level={n(gamification.level || 1)} title={gamification.title} />
+        </div>
+      </div>
+
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Weekly summary">
+        <StatCard icon={Dumbbell} label="Workouts" value={n(gamification.totalWorkoutsThisWeek)} helper="This week" />
+        <StatCard icon={Timer} label="Minutes" value={`${n(gamification.totalMinutesThisWeek)}m`} helper="This week" />
+        <StatCard icon={Flame} label="Calories" value={n(gamification.totalCaloriesThisWeek)} helper="Backend totals" />
+        <StatCard icon={Zap} label="Total XP" value={totalXp.toLocaleString()} helper="Lifetime" />
       </section>
 
-      <LevelProgress totalXp={totalXp} nextLevelXp={nextLevelXp} title={context.gamification?.title} />
+      <section className="grid gap-4 lg:grid-cols-3">
+        <article className="rounded-2xl border border-border bg-surface p-5 shadow-lg shadow-black/10 lg:col-span-2">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Recent</p>
+              <h2 className="mt-1 text-lg font-semibold text-text">Last 3 workouts</h2>
+            </div>
+            <CalendarDays className="h-5 w-5 text-muted" aria-hidden="true" />
+          </div>
+          {recentWorkouts.length > 0 ? (
+            <div className="mt-4 space-y-3">
+              {recentWorkouts.map((workout) => (
+                <div key={workout.id} className="rounded-2xl bg-bg p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-text">{workout.title}</p>
+                      <p className="text-xs text-muted">{workout.date} • {workout.minutes} min</p>
+                    </div>
+                    <p className="text-right text-xs text-muted">+{workout.xp} XP<br />{workout.calories} cal</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              icon={Dumbbell}
+              title="No workouts yet — log your first in 10s"
+              description="Quick Log keeps the first workout fast and typing-free."
+              action={<Link to="/log" className="inline-flex rounded-2xl bg-emerald-500 px-4 py-2 text-sm font-bold text-zinc-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">Quick Log</Link>}
+            />
+          )}
+        </article>
 
-      {recentWorkouts.length > 0 ? (
-        <RecentTable workouts={recentWorkouts} />
-      ) : (
-        <EmptyState
-          icon={Dumbbell}
-          title="No workouts logged yet"
-          description="Log your first session to start earning XP."
-          action={
-            <Link className="text-sm font-medium text-zinc-900 underline underline-offset-4 dark:text-zinc-100" to="/log">
-              Log a workout
-            </Link>
-          }
-        />
-      )}
+        <article className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-5 shadow-lg shadow-black/10">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-300">AI insight</p>
+          <h2 className="mt-2 text-lg font-semibold text-text">{currentStreak > 0 ? "Keep the chain alive" : "Start with a 30-minute base"}</h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted">
+            {recentWorkouts.length > 0
+              ? `Your latest sessions total ${recentWorkouts.reduce((sum, item) => sum + item.minutes, 0)} minutes. A similar quick log today can protect your streak and push XP forward.`
+              : "A low-friction 30-minute session is enough to generate backend calories, XP, and streak progress."}
+          </p>
+          {badges.length > 0 && (
+            <div className="mt-4 grid gap-3">
+              {badges.map((badge) => <AchievementBadge key={badge.code} badge={badge} />)}
+            </div>
+          )}
+        </article>
+      </section>
     </main>
   );
 }
 
-/**
- * Neutral dashboard error state with retry action.
- * @param {{message: string, onRetry: Function}} props Component props.
- * @returns {JSX.Element}
- */
 function ErrorPanel({ message, onRetry }) {
   return (
-    <section role="alert" className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-      <p className="text-sm text-zinc-900 dark:text-zinc-100">{message}</p>
-      <button
-        type="button"
-        onClick={onRetry}
-        className="mt-4 rounded-lg border border-zinc-900 px-4 py-2 text-sm font-medium text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 dark:border-zinc-100 dark:text-zinc-100 dark:focus-visible:ring-zinc-100 dark:focus-visible:ring-offset-zinc-950"
-      >
+    <section role="alert" className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100">
+      <p>{message}</p>
+      <button type="button" onClick={onRetry} className="mt-4 rounded-2xl border border-red-400/40 px-4 py-2 font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
         Retry
       </button>
     </section>

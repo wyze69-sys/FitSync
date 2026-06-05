@@ -1,9 +1,4 @@
-/**
- * Shared, human-authored constants used across forms and quick actions.
- * Category IDs match the seeded exercise_categories:
- *   cat_1 Cardio Training, cat_2 Strength & Core, cat_3 Flexibility & Yoga,
- *   cat_4 HIIT & Circuit, cat_5 Hybrid Wellness.
- */
+/** Shared constants used across FitSync forms, quick actions, and profile setup. */
 
 export const GENDERS = [
   { value: "male", label: "Male" },
@@ -22,72 +17,105 @@ export const ACTIVITY_LEVELS = ["Sedentary", "Lightly active", "Moderately activ
 
 export const WORKOUT_TYPES = ["Strength", "Cardio", "HIIT", "Flexibility"];
 
-// One-tap quick-log presets shown on the dashboard and FAB drawer.
-export const QUICK_PRESETS = [
+export const WORKOUT_MAP = [
   {
-    key: "run",
-    label: "Outdoor Run",
-    tag: "Cardio",
-    duration: 30,
-    calories: 300,
-    exercise: "Outdoor Pace Running",
-    categoryId: "cat_1",
-    categoryName: "Cardio Training"
+    id: "cat_cardio",
+    slug: "cardio",
+    name: "Cardio",
+    description: "Endurance sessions that raise your heart rate.",
+    icon: "🏃",
+    subtypes: [
+      { name: "Running", slug: "running", categoryId: "cat_cardio" },
+      { name: "Walking", slug: "walking", categoryId: "cat_cardio" },
+      { name: "Cycling", slug: "cycling", categoryId: "cat_cardio" },
+      { name: "Swimming", slug: "swimming", categoryId: "cat_cardio" }
+    ]
   },
   {
-    key: "walk",
-    label: "Power Walk",
-    tag: "Recovery",
-    duration: 20,
-    calories: 110,
-    exercise: "Active Power Walking",
-    categoryId: "cat_1",
-    categoryName: "Cardio Training"
+    id: "cat_strength",
+    slug: "strength",
+    name: "Strength",
+    description: "Lifts, machines, and bodyweight strength work.",
+    icon: "💪",
+    subtypes: [
+      { name: "Chest", slug: "chest", categoryId: "cat_strength" },
+      { name: "Back", slug: "back", categoryId: "cat_strength" },
+      { name: "Shoulders", slug: "shoulders", categoryId: "cat_strength" },
+      { name: "Arms", slug: "arms", categoryId: "cat_strength" },
+      { name: "Legs", slug: "legs", categoryId: "cat_strength" },
+      { name: "Core", slug: "core", categoryId: "cat_strength" }
+    ]
   },
   {
-    key: "gym",
-    label: "Heavy Gym Lifts",
-    tag: "Strength",
-    duration: 45,
-    calories: 260,
-    exercise: "Dumbbell Strength Set",
-    categoryId: "cat_2",
-    categoryName: "Strength & Core"
+    id: "cat_hiit",
+    slug: "hiit",
+    name: "HIIT",
+    description: "Fast intervals, circuits, and high-output blocks.",
+    icon: "⚡",
+    subtypes: [
+      { name: "Burpees", slug: "burpees", categoryId: "cat_hiit" },
+      { name: "Circuits", slug: "circuits", categoryId: "cat_hiit" },
+      { name: "Tabata", slug: "tabata", categoryId: "cat_hiit" }
+    ]
   },
   {
-    key: "hiit",
-    label: "HIIT Circuit",
-    tag: "HIIT",
-    duration: 25,
-    calories: 240,
-    exercise: "High Intensity Circuit",
-    categoryId: "cat_4",
-    categoryName: "HIIT & Circuit"
+    id: "cat_yoga",
+    slug: "yoga",
+    name: "Yoga",
+    description: "Breath-led practice, flow, and mindful mobility.",
+    icon: "🧘",
+    subtypes: [
+      { name: "Hatha", slug: "yoga-hatha", categoryId: "cat_yoga" },
+      { name: "Vinyasa", slug: "yoga-vinyasa", categoryId: "cat_yoga" },
+      { name: "Power Yoga", slug: "power-yoga", categoryId: "cat_yoga" }
+    ]
   },
   {
-    key: "yoga",
-    label: "Yoga Stretch",
-    tag: "Mobility",
-    duration: 15,
-    calories: 60,
-    exercise: "Vinyasa Flow Stretching",
-    categoryId: "cat_3",
-    categoryName: "Flexibility & Yoga"
+    id: "cat_mobility",
+    slug: "mobility",
+    name: "Mobility",
+    description: "Recovery, stretching, and joint prep.",
+    icon: "🌿",
+    subtypes: [
+      { name: "Stretching", slug: "stretching", categoryId: "cat_mobility" },
+      { name: "Recovery", slug: "recovery", categoryId: "cat_mobility" }
+    ]
+  },
+  {
+    id: "cat_sports",
+    slug: "sports",
+    name: "Sports",
+    description: "Games and skills-based training.",
+    icon: "🏀",
+    subtypes: [
+      { name: "Basketball", slug: "basketball", categoryId: "cat_sports" },
+      { name: "Football", slug: "football", categoryId: "cat_sports" },
+      { name: "Badminton", slug: "badminton", categoryId: "cat_sports" },
+      { name: "Boxing", slug: "boxing", categoryId: "cat_sports" }
+    ]
   }
 ];
 
-// Starter workout templates that pre-fill the workout form.
+export const QUICK_PRESETS = WORKOUT_MAP.map((category) => ({
+  key: category.slug,
+  label: category.name,
+  tag: category.subtypes[0]?.name || category.name,
+  duration: 30,
+  exercise: category.subtypes[0]?.name || category.name,
+  categoryId: category.id,
+  categoryName: category.name
+}));
+
 export const WORKOUT_TEMPLATES = [
   {
     title: "Chest & Shoulders Push",
     desc: "Pre-fills bench press and overhead presses with sets.",
     exercises: [
       {
-        categoryId: "cat_2",
-        categoryName: "Strength & Core",
+        categoryId: "cat_strength",
+        categoryName: "Strength",
         exerciseName: "Flat Bench Press",
         duration: 30,
-        caloriesBurned: 180,
         sets: [
           { reps: 10, weight: 40 },
           { reps: 10, weight: 50 },
@@ -95,11 +123,10 @@ export const WORKOUT_TEMPLATES = [
         ]
       },
       {
-        categoryId: "cat_2",
-        categoryName: "Strength & Core",
+        categoryId: "cat_strength",
+        categoryName: "Strength",
         exerciseName: "Overhead Shoulder Press",
         duration: 15,
-        caloriesBurned: 100,
         sets: [
           { reps: 12, weight: 12 },
           { reps: 10, weight: 14 }
@@ -112,11 +139,10 @@ export const WORKOUT_TEMPLATES = [
     desc: "Pre-fills lat pulldowns and bicep curls.",
     exercises: [
       {
-        categoryId: "cat_2",
-        categoryName: "Strength & Core",
+        categoryId: "cat_strength",
+        categoryName: "Strength",
         exerciseName: "Seated Lat Pulldowns",
         duration: 25,
-        caloriesBurned: 140,
         sets: [
           { reps: 12, weight: 35 },
           { reps: 10, weight: 40 },
@@ -124,11 +150,10 @@ export const WORKOUT_TEMPLATES = [
         ]
       },
       {
-        categoryId: "cat_2",
-        categoryName: "Strength & Core",
+        categoryId: "cat_strength",
+        categoryName: "Strength",
         exerciseName: "Standing Dumbbell Curls",
         duration: 15,
-        caloriesBurned: 80,
         sets: [
           { reps: 12, weight: 10 },
           { reps: 12, weight: 10 }
@@ -141,11 +166,10 @@ export const WORKOUT_TEMPLATES = [
     desc: "Pre-fills barbell squats and bodyweight jump squats.",
     exercises: [
       {
-        categoryId: "cat_2",
-        categoryName: "Strength & Core",
+        categoryId: "cat_strength",
+        categoryName: "Strength",
         exerciseName: "Barbell Back Squats",
         duration: 35,
-        caloriesBurned: 240,
         sets: [
           { reps: 10, weight: 40 },
           { reps: 10, weight: 50 },
@@ -153,11 +177,10 @@ export const WORKOUT_TEMPLATES = [
         ]
       },
       {
-        categoryId: "cat_4",
-        categoryName: "HIIT & Circuit",
+        categoryId: "cat_hiit",
+        categoryName: "HIIT",
         exerciseName: "Bodyweight Jump Squats",
         duration: 15,
-        caloriesBurned: 110,
         sets: [
           { reps: 15, weight: 0 },
           { reps: 15, weight: 0 }

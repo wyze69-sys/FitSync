@@ -48,9 +48,9 @@ export default function AuthScreen({ defaultMode = "login", onAuthSuccess }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg text-text px-4 py-12 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-surface p-8 border border-border rounded-sm">
+      <div className="max-w-md w-full space-y-8 bg-surface p-8 border border-border rounded-2xl">
         <div className="text-center space-y-2">
-          <div className="mx-auto h-12 w-12 rounded-sm border border-border bg-bg flex items-center justify-center text-accent">
+          <div className="mx-auto h-12 w-12 rounded-2xl border border-border bg-bg flex items-center justify-center text-accent">
             <Dumbbell className="h-6 w-6" aria-hidden="true" />
           </div>
           <h1 className="text-3xl font-semibold tracking-tight text-text">FitSync</h1>
@@ -59,16 +59,16 @@ export default function AuthScreen({ defaultMode = "login", onAuthSuccess }) {
           </p>
         </div>
 
-        <div className="p-4 rounded-sm border border-border bg-bg space-y-2.5">
+        <div className="p-4 rounded-2xl border border-border bg-bg space-y-2.5">
           <div className="text-[10px] font-semibold text-muted font-mono uppercase tracking-[0.22em]">
             Demo account
           </div>
           <button
             type="button"
             onClick={fillCredentials}
-            className="w-full py-1.5 px-3 rounded-sm text-[10px] font-medium uppercase tracking-wider border border-border bg-transparent hover:border-accent text-text transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            className="w-full py-1.5 px-3 rounded-2xl text-[10px] font-medium uppercase tracking-wider border border-border bg-transparent hover:border-accent text-text transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <span className="h-1.5 w-1.5 rounded-sm bg-accent" />
+            <span className="h-1.5 w-1.5 rounded-2xl bg-accent" />
             Use demo account
           </button>
         </div>
@@ -76,7 +76,7 @@ export default function AuthScreen({ defaultMode = "login", onAuthSuccess }) {
         {error && (
           <div
             role="alert"
-            className="bg-red-950/45 border border-red-900/40 text-red-200 text-xs text-left p-3.5 rounded-sm font-medium flex items-start gap-2"
+            className="bg-red-950/45 border border-red-900/40 text-red-200 text-xs text-left p-3.5 rounded-2xl font-medium flex items-start gap-2"
           >
             <span className="font-bold uppercase tracking-wider font-mono text-[10px]">Error:</span>
             <span>{error}</span>
@@ -104,7 +104,7 @@ export default function AuthScreen({ defaultMode = "login", onAuthSuccess }) {
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   placeholder="Sarah Coleman"
-                  className="block w-full pl-9 pr-4 py-2 bg-bg border border-border rounded-sm focus:border-accent text-sm placeholder-muted/60 text-text transition-all font-sans focus:outline-none"
+                  className="block w-full pl-9 pr-4 py-2 bg-bg border border-border rounded-2xl focus:border-accent text-sm placeholder-muted/60 text-text transition-all font-sans focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                 />
               </div>
             </div>
@@ -129,7 +129,7 @@ export default function AuthScreen({ defaultMode = "login", onAuthSuccess }) {
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="user@fitsync.com"
-                className="block w-full pl-9 pr-4 py-2 bg-bg border border-border rounded-sm focus:border-accent text-sm placeholder-muted/60 text-text transition-all font-sans focus:outline-none"
+                className="block w-full pl-9 pr-4 py-2 bg-bg border border-border rounded-2xl focus:border-accent text-sm placeholder-muted/60 text-text transition-all font-sans focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               />
             </div>
           </div>
@@ -153,7 +153,7 @@ export default function AuthScreen({ defaultMode = "login", onAuthSuccess }) {
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="At least 8 characters"
-                className="block w-full pl-9 pr-10 py-2 bg-bg border border-border rounded-sm focus:border-accent text-sm placeholder-muted/60 text-text transition-all font-sans focus:outline-none"
+                className="block w-full pl-9 pr-10 py-2 bg-bg border border-border rounded-2xl focus:border-accent text-sm placeholder-muted/60 text-text transition-all font-sans focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               />
               <button
                 type="button"
@@ -169,7 +169,7 @@ export default function AuthScreen({ defaultMode = "login", onAuthSuccess }) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 px-4 bg-accent text-black rounded-sm text-xs font-medium uppercase tracking-widest active:scale-[0.99] flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-70 disabled:pointer-events-none"
+            className="w-full py-2.5 px-4 bg-accent text-black rounded-2xl text-xs font-medium uppercase tracking-widest active:scale-[0.99] flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-70 disabled:pointer-events-none"
           >
             {loading ? (
               <>

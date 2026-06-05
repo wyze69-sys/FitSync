@@ -1,231 +1,283 @@
-import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import { Dumbbell } from "lucide-react";
-import CategoryPicker from "../components/log/CategoryPicker.jsx";
+import PageHeader from "../components/common/PageHeader.jsx";
 import EmptyState from "../components/common/EmptyState.jsx";
-import WorkoutForm, { needsDistance } from "../components/log/WorkoutForm.jsx";
+import LoadingSpinner from "../components/common/LoadingSpinner.jsx";
+import QuickLogGrid from "../components/workout/QuickLogGrid.jsx";
+import SubtypePicker from "../components/workout/SubtypePicker.jsx";
+import PreviewPill from "../components/workout/PreviewPill.jsx";
+import RepeatLast from "../components/workout/RepeatLast.jsx";
+import { WORKOUT_MAP } from "../utils/constants.js";
+import { estimateCalories, estimateXP, getProfileWeight } from "../utils/previewCalculator.js";
 import workoutService from "../services/workoutService.js";
 import { todayStr } from "../utils/workoutUtils.js";
 
-const DEFAULT_WEIGHT_KG = 70;
-const DISTANCE_XP_FACTOR = 0.8;
-const INITIAL_FORM = {
-  date: todayStr(),
-  duration: "",
-  distance: "",
-  intensity: "med",
-  notes: ""
-};
+const LAST_WORKOUT_KEY = "fitsync:lastWorkout";
+const LAST_CATEGORY_KEY = "fitsync:lastCategory";
+const DEFAULT_DURATION = 30;
 
-/**
- * Handles log-form state transitions.
- * @param {object} state Current form state.
- * @param {object} action Reducer action.
- * @returns {object}
- */
-function formReducer(state, action) {
-  if (action.type === "field") {
-    return { ...state, [action.name]: action.value };
-  }
-  if (action.type === "reset") {
-    return { ...INITIAL_FORM, date: todayStr() };
-  }
-  if (action.type === "clearDistance") {
-    return { ...state, distance: "" };
-  }
-  return state;
+function normalize(value) {
+  return String(value || "").trim().toLowerCase();
 }
 
-/**
- * Returns the MET value used for a client-side preview only.
- * @param {object} category Selected category.
- * @param {number} distanceKm Distance in kilometres.
- * @param {number} durationMin Duration in minutes.
- * @returns {number}
- */
-function previewMet(category, distanceKm, durationMin) {
-  const baseMet = Number(category?.baseMet || 3.5);
-  if (!needsDistance(category?.slug) || distanceKm <= 0) return baseMet;
-
-  const speed = durationMin > 0 ? distanceKm / (durationMin / 60) : 0;
-  if (speed >= 14) return 12.51;
-  if (speed >= 10) return 10;
-  if (speed >= 8) return 8.29;
-  return baseMet;
-}
-
-/**
- * Calculates a muted local preview; the API remains the source of truth.
- * @param {object} category Selected category.
- * @param {object} form Form state.
- * @param {number} weightKg User weight.
- * @returns {{xp: number, calories: number}}
- */
-function previewReward(category, form, weightKg) {
-  const durationMin = Number(form.duration || 0);
-  const distanceKm = Number(form.distance || 0);
-  if (!category || durationMin <= 0) return { xp: 0, calories: 0 };
-
-  const met = previewMet(category, distanceKm, durationMin);
-  const xp = distanceKm > 0
-    ? Math.floor(distanceKm * met * DISTANCE_XP_FACTOR)
-    : Math.floor(durationMin * met * Number(category.xpPerMetMin || 0.2));
-  const calories = Math.round(met * weightKg * (durationMin / 60));
-  return { xp, calories };
-}
-
-/**
- * Loading skeleton for the log page.
- * @returns {JSX.Element}
- */
-function LogSkeleton() {
+function findCategoryMeta(apiCategories, category, subtype) {
+  const subtypeSlug = normalize(subtype?.slug);
+  const subtypeName = normalize(subtype?.name);
+  const categorySlug = normalize(category?.slug);
+  const categoryName = normalize(category?.name);
   return (
-    <div className="grid gap-6 lg:grid-cols-5" aria-label="Loading log form">
-      <div className="h-96 animate-pulse rounded-lg bg-zinc-200 dark:bg-zinc-800 lg:col-span-2" />
-      <div className="h-96 animate-pulse rounded-lg bg-zinc-200 dark:bg-zinc-800 lg:col-span-3" />
-    </div>
+    apiCategories.find((item) => normalize(item.slug) === subtypeSlug || normalize(item.name) === subtypeName) ||
+    apiCategories.find((item) => normalize(item.slug) === categorySlug || normalize(item.name) === categoryName) ||
+    null
   );
 }
 
-/**
- * Workout logging page with category picker and compact form.
- * @returns {JSX.Element}
- */
+function getStored(key) {
+  try {
+    return JSON.parse(localStorage.getItem(key) || "null");
+  } catch (err) {
+    return null;
+  }
+}
+
+function store(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
+function realNumber(result, names) {
+  for (const name of names) {
+    if (result?.[name] !== undefined && result?.[name] !== null) return Number(result[name]);
+  }
+  return 0;
+}
+
 export default function Log() {
   const { user, categories = [], loading, error, refreshAll, push } = useOutletContext();
-  const navigate = useNavigate();
-  const [form, dispatch] = useReducer(formReducer, INITIAL_FORM);
-  const [selectedSlug, setSelectedSlug] = useState("");
+  const [category, setCategory] = useState(null);
+  const [subtype, setSubtype] = useState(null);
+  const [duration, setDuration] = useState(DEFAULT_DURATION);
+  const [showDetails, setShowDetails] = useState(false);
+  const [details, setDetails] = useState({ date: todayStr(), distance: "", intensity: "med", notes: "" });
   const [submitting, setSubmitting] = useState(false);
-  const [formError, setFormError] = useState(null);
+  const [formError, setFormError] = useState("");
+  const [lastWorkout, setLastWorkout] = useState(null);
   const [announcement, setAnnouncement] = useState("");
 
   useEffect(() => {
-    if (!selectedSlug && categories[0]?.slug) {
-      setSelectedSlug(categories[0].slug);
-    }
-  }, [categories, selectedSlug]);
-
-  const selectedCategory = useMemo(
-    () => categories.find((category) => category.slug === selectedSlug),
-    [categories, selectedSlug]
-  );
-  const preview = useMemo(
-    () => previewReward(selectedCategory, form, Number(user?.weight || DEFAULT_WEIGHT_KG)),
-    [selectedCategory, form, user?.weight]
-  );
-  const canSubmit = Number(form.duration || 0) > 0 && (!needsDistance(selectedSlug) || Number(form.distance || 0) > 0);
-
-  const handleCategorySelect = useCallback((slug) => {
-    setSelectedSlug(slug);
-    if (!needsDistance(slug)) {
-      dispatch({ type: "clearDistance" });
-    }
+    const saved = getStored(LAST_CATEGORY_KEY);
+    const savedCategory = WORKOUT_MAP.find((item) => item.slug === saved?.categorySlug) || WORKOUT_MAP[0];
+    const savedSubtype = savedCategory.subtypes.find((item) => item.slug === saved?.subtypeSlug) || savedCategory.subtypes[0];
+    setCategory(savedCategory);
+    setSubtype(savedSubtype);
+    setDuration(Number(saved?.duration || DEFAULT_DURATION));
+    setLastWorkout(getStored(LAST_WORKOUT_KEY));
   }, []);
 
-  const handleChange = useCallback((event) => {
-    dispatch({ type: "field", name: event.target.name, value: event.target.value });
+  const categoryMeta = useMemo(() => findCategoryMeta(categories, category, subtype), [categories, category, subtype]);
+  const subtypeForPreview = useMemo(() => ({
+    ...subtype,
+    categorySlug: categoryMeta?.slug || category?.slug,
+    categoryName: categoryMeta?.name || category?.name
+  }), [category, categoryMeta, subtype]);
+  const preview = useMemo(() => {
+    const weightKg = getProfileWeight(user);
+    const distance = Number(details.distance || 0);
+    return {
+      calories: estimateCalories(subtypeForPreview, duration, weightKg, distance),
+      xp: estimateXP(subtypeForPreview, duration, weightKg, distance)
+    };
+  }, [details.distance, duration, subtypeForPreview, user]);
+
+  const handleCategorySelect = useCallback((nextCategory) => {
+    setCategory(nextCategory);
+    setSubtype(nextCategory.subtypes[0]);
+    store(LAST_CATEGORY_KEY, { categorySlug: nextCategory.slug, subtypeSlug: nextCategory.subtypes[0]?.slug, duration });
+  }, [duration]);
+
+  const handleSubtypeSelect = useCallback((nextSubtype) => {
+    setSubtype(nextSubtype);
+    store(LAST_CATEGORY_KEY, { categorySlug: category?.slug, subtypeSlug: nextSubtype.slug, duration });
+  }, [category?.slug, duration]);
+
+  const handleRepeat = useCallback((workout) => {
+    const nextCategory = WORKOUT_MAP.find((item) => item.slug === workout.categorySlug) || WORKOUT_MAP[0];
+    const nextSubtype = nextCategory.subtypes.find((item) => item.slug === workout.subtypeSlug) || nextCategory.subtypes[0];
+    setCategory(nextCategory);
+    setSubtype(nextSubtype);
+    setDuration(Number(workout.duration || DEFAULT_DURATION));
+    setDetails((current) => ({ ...current, distance: workout.distance || "", intensity: workout.intensity || "med" }));
+    setAnnouncement(`Ready to repeat ${nextSubtype.name}.`);
   }, []);
 
   const handleSubmit = useCallback(async (event) => {
     event.preventDefault();
-    if (!selectedCategory || !canSubmit) return;
+    if (!category || !subtype || submitting) return;
+
+    const meta = findCategoryMeta(categories, category, subtype);
+    const categorySlug = meta?.slug || category.slug;
+    const categoryId = meta?.id || subtype.categoryId || category.id;
+    const title = `${subtype.name} ${category.name}`;
+    const payload = {
+      date: details.date || todayStr(),
+      title,
+      category: categorySlug,
+      categorySlug,
+      duration_min: Number(duration || DEFAULT_DURATION),
+      distance_km: details.distance ? Number(details.distance) : undefined,
+      intensity: details.intensity,
+      notes: details.notes || undefined,
+      exercises: [
+        {
+          categoryId,
+          categoryName: meta?.name || category.name,
+          exerciseName: subtype.name,
+          duration: Number(duration || DEFAULT_DURATION),
+          categorySlug
+        }
+      ]
+    };
 
     setSubmitting(true);
-    setFormError(null);
-    setAnnouncement(`Logging ${selectedCategory.name}. Estimated ${preview.xp} XP.`);
+    setFormError("");
+    setAnnouncement(`Logging ${subtype.name}. Preview was ${preview.xp} XP.`);
 
     try {
-      const result = await workoutService.createWorkout({
-        date: form.date,
-        title: selectedCategory.name,
-        category: selectedCategory.slug,
-        duration_min: Number(form.duration),
-        distance_km: needsDistance(selectedCategory.slug) ? Number(form.distance) : undefined,
-        intensity: form.intensity,
-        notes: form.notes || undefined
-      });
-      setAnnouncement(`Workout logged. ${result.xp_earned || 0} XP added.`);
-      push(`+${result.xp_earned || 0} XP logged.`, "milestone");
+      const result = await workoutService.createWorkout(payload);
+      const realXp = realNumber(result, ["xp_earned", "xp", "xpEarned"]);
+      const realCalories = realNumber(result, ["calories", "caloriesTotal", "calories_total", "caloriesBurned"]);
+      const storedWorkout = {
+        categorySlug: category.slug,
+        categoryName: category.name,
+        subtypeSlug: subtype.slug,
+        subtypeName: subtype.name,
+        duration,
+        distance: details.distance,
+        intensity: details.intensity
+      };
+      store(LAST_WORKOUT_KEY, storedWorkout);
+      store(LAST_CATEGORY_KEY, storedWorkout);
+      setLastWorkout(storedWorkout);
+      push(`Nice! You earned +${realXp} XP • ${realCalories} cal`, "success");
+      setAnnouncement(`Workout logged. Backend awarded ${realXp} XP and ${realCalories} calories.`);
       await refreshAll();
-      dispatch({ type: "reset" });
-      navigate("/");
     } catch (err) {
       setFormError(err.message || "Could not log workout.");
       setAnnouncement("Workout was not logged. Please try again.");
     } finally {
       setSubmitting(false);
     }
-  }, [canSubmit, form, navigate, preview.xp, push, refreshAll, selectedCategory]);
+  }, [categories, category, details, duration, preview.xp, push, refreshAll, submitting, subtype]);
 
-  if (loading) return <LogSkeleton />;
+  if (loading) return <LoadingSpinner label="Loading workout logger" />;
 
   if (error) {
     return <PageError message={error} onRetry={refreshAll} />;
   }
 
+  if (!category || !subtype) {
+    return <EmptyState icon={Dumbbell} title="Workout map unavailable" description="Refresh to load quick logging." />;
+  }
+
   return (
-    <main className="space-y-6 bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
-      <div>
-        <h1 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">Log</h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-500">Choose a category and add the details you actually tracked.</p>
-      </div>
+    <main className="space-y-6 text-text">
+      <PageHeader
+        eyebrow="Quick log"
+        title="Log a workout in 3 taps"
+        description="Choose a category, choose a subtype, and submit. Preview values are estimates; saved values always come from the backend."
+      />
 
-      <div aria-live="polite" className="sr-only">{announcement}</div>
-
+      <div className="sr-only" aria-live="polite">{announcement}</div>
       {formError && <InlineError message={formError} />}
 
-      {categories.length > 0 ? (
-        <div className="grid gap-6 lg:grid-cols-5">
-          <div className="lg:col-span-2">
-            <CategoryPicker categories={categories} selectedSlug={selectedSlug} onSelect={handleCategorySelect} />
+      <RepeatLast workout={lastWorkout} onRepeat={handleRepeat} />
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <QuickLogGrid selectedSlug={category.slug} onSelect={handleCategorySelect} />
+        <SubtypePicker category={category} selectedSubtype={subtype} onSelect={handleSubtypeSelect} />
+
+        <section className="rounded-2xl border border-border bg-surface p-4 shadow-lg shadow-black/10">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted">Duration</p>
+              <div className="mt-2 flex gap-2" role="group" aria-label="Workout duration">
+                {[15, 30, 45, 60].map((minutes) => (
+                  <button
+                    type="button"
+                    key={minutes}
+                    onClick={() => {
+                      setDuration(minutes);
+                      store(LAST_CATEGORY_KEY, { categorySlug: category.slug, subtypeSlug: subtype.slug, duration: minutes });
+                    }}
+                    aria-pressed={duration === minutes}
+                    className={`min-h-[44px] min-w-[44px] rounded-full px-4 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${duration === minutes ? "bg-emerald-500 text-zinc-950" : "bg-bg text-text"}`}
+                  >
+                    {minutes}m
+                  </button>
+                ))}
+              </div>
+            </div>
+            <PreviewPill calories={preview.calories} xp={preview.xp} />
           </div>
-          <div className="lg:col-span-3">
-            <WorkoutForm
-              form={form}
-              selectedCategory={selectedCategory}
-              preview={preview}
-              canSubmit={canSubmit}
-              submitting={submitting}
-              onChange={handleChange}
-              onSubmit={handleSubmit}
-            />
-          </div>
-        </div>
-      ) : (
-        <EmptyState icon={Dumbbell} title="No categories available" description="Refresh to load the workout catalog." />
-      )}
+
+          <button
+            type="button"
+            onClick={() => setShowDetails((value) => !value)}
+            className="mt-4 text-sm font-semibold text-emerald-400 underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+            aria-expanded={showDetails}
+          >
+            Add details
+          </button>
+
+          {showDetails && (
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <label className="text-sm text-text">
+                Date
+                <input type="date" value={details.date} onChange={(e) => setDetails((current) => ({ ...current, date: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" />
+              </label>
+              <label className="text-sm text-text">
+                Distance (km, optional)
+                <input type="number" min="0" step="0.1" inputMode="decimal" value={details.distance} onChange={(e) => setDetails((current) => ({ ...current, distance: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" />
+              </label>
+              <label className="text-sm text-text">
+                Intensity
+                <select value={details.intensity} onChange={(e) => setDetails((current) => ({ ...current, intensity: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+                  <option value="low">Low</option>
+                  <option value="med">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </label>
+              <label className="text-sm text-text sm:col-span-2">
+                Notes
+                <textarea value={details.notes} onChange={(e) => setDetails((current) => ({ ...current, notes: e.target.value }))} rows="3" className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" />
+              </label>
+            </div>
+          )}
+        </section>
+
+        <button
+          type="submit"
+          disabled={submitting}
+          className="w-full rounded-2xl bg-emerald-500 px-5 py-4 text-base font-bold text-zinc-950 shadow-lg shadow-emerald-950/20 transition hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {submitting ? "Logging…" : `Log ${subtype.name}`}
+        </button>
+      </form>
     </main>
   );
 }
 
-/**
- * Neutral inline error for form submissions.
- * @param {{message: string}} props Component props.
- * @returns {JSX.Element}
- */
 function InlineError({ message }) {
-  return (
-    <section role="alert" className="rounded-lg border border-zinc-200 bg-white p-4 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100">
-      {message}
-    </section>
-  );
+  return <section role="alert" className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100">{message}</section>;
 }
 
-/**
- * Page-level load error with retry action.
- * @param {{message: string, onRetry: Function}} props Component props.
- * @returns {JSX.Element}
- */
 function PageError({ message, onRetry }) {
   return (
-    <main className="bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
-      <section role="alert" className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-        <p className="text-sm">{message}</p>
-        <button type="button" onClick={onRetry} className="mt-4 rounded-lg border border-zinc-900 px-4 py-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 dark:border-zinc-100 dark:focus-visible:ring-zinc-100 dark:focus-visible:ring-offset-zinc-950">
-          Retry
-        </button>
-      </section>
+    <main className="space-y-4 text-text">
+      <InlineError message={message} />
+      <button type="button" onClick={onRetry} className="rounded-2xl border border-border px-4 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+        Retry
+      </button>
     </main>
   );
 }
