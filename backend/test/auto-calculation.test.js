@@ -16,3 +16,22 @@ test("auto XP and calorie calculations match FitSync v2 examples", async () => {
     assert.strictEqual(calculateCalories(workout, weightKg), expectedCalories);
   }
 });
+
+test("calculateXP accepts an explicit db executor as the third argument", async () => {
+  const fakeDb = {
+    async execute(sql) {
+      if (sql.includes("exercise_categories")) {
+        return [[{ name: "Running", slug: "running", base_met: 9.8, xp_per_met_min: 0.18 }]];
+      }
+      if (sql.includes("user_gamification")) {
+        return [[{ current_streak: 0 }]];
+      }
+      return [[]];
+    }
+  };
+
+  assert.strictEqual(
+    await calculateXP({ category: "running", distance_km: 10, duration_min: 40 }, "usr_1", fakeDb),
+    100
+  );
+});

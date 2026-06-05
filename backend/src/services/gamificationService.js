@@ -32,6 +32,13 @@ function getStaticCategory(slug) {
   return CATEGORY_MET_DATA[slug] || null;
 }
 
+function normalizeCalculationOptions(dbOrOptions = {}) {
+  if (dbOrOptions && typeof dbOrOptions.execute === "function") {
+    return { executor: dbOrOptions };
+  }
+  return dbOrOptions || {};
+}
+
 async function getCategoryMeta(slug, executor = pool) {
   const fallback = getStaticCategory(slug);
   const [rows] = await executor.execute(
@@ -118,10 +125,12 @@ async function getStreakMultiplier(userId, executor = pool) {
   return 1;
 }
 
-async function calculateXP(workout, userId, options = {}) {
+async function calculateXP(workout, userId, dbOrOptions = {}) {
+  const options = normalizeCalculationOptions(dbOrOptions);
   const slug = normalizeCategorySlug(workout);
   const categoryMeta =
-    options.categoryMeta || (!userId && !options.executor ? getStaticCategory(slug) : await getCategoryMeta(slug, options.executor || pool));
+    options.categoryMeta ||
+    (!userId && !options.executor ? getStaticCategory(slug) : await getCategoryMeta(slug, options.executor || pool));
   const durationMin = Number(workout.duration_min ?? workout.durationMin ?? workout.duration ?? 0);
   const distanceKm = Number(workout.distance_km ?? workout.distanceKm ?? 0);
   const exercises = Array.isArray(workout.exercises) ? workout.exercises : [];
