@@ -4,7 +4,7 @@ const { computeStreakStats, streakMessage, toDateStr } = require("../utils/strea
 const { createId } = require("../utils/ids");
 
 const CATEGORY_MET_DATA = {
-  running: { name: "Running", baseMet: 9.8, xpPerMetMin: 0.18, type: "cardio" },
+  running: { name: "Running", baseMet: 9.8, xpPerMetMin: 0.2, type: "cardio" },
   cycling: { name: "Cycling", baseMet: 7.5, xpPerMetMin: 0.18, type: "cardio" },
   walking: { name: "Walking", baseMet: 3.5, xpPerMetMin: 0.2, type: "cardio" },
   swimming: { name: "Swimming", baseMet: 8.0, xpPerMetMin: 0.18, type: "cardio" },
@@ -56,10 +56,10 @@ function cardioMet(slug, distanceKm, durationMin) {
   const speed = durationMin > 0 ? distanceKm / (durationMin / 60) : 0;
 
   if (slug === "running") {
-    if (speed >= 14) return 12.51;
+    if (speed >= 14) return 12.5;
     if (speed >= 12) return 11;
     if (speed >= 10) return 10;
-    if (speed >= 8) return 8.29;
+    if (speed >= 8) return 8.3;
     return 7;
   }
 
@@ -118,7 +118,8 @@ async function getStreakMultiplier(userId, executor = pool) {
   return 1;
 }
 
-async function calculateXP(workout, userId, options = {}) {
+async function calculateXP(workout, userId, db = {}) {
+  const options = db && typeof db.execute === "function" ? { executor: db } : db || {};
   const slug = normalizeCategorySlug(workout);
   const categoryMeta =
     options.categoryMeta || (!userId && !options.executor ? getStaticCategory(slug) : await getCategoryMeta(slug, options.executor || pool));
@@ -140,15 +141,29 @@ async function calculateXP(workout, userId, options = {}) {
   return Math.floor(baseXp * multiplier);
 }
 
+function calorieMet(workout, categoryMeta = null) {
+  const slug = normalizeCategorySlug(workout);
+  const distanceKm = Number(workout.distance_km ?? workout.distanceKm ?? 0);
+  const durationMin = Number(workout.duration_min ?? workout.durationMin ?? workout.duration ?? 0);
+  const speed = durationMin > 0 ? distanceKm / (durationMin / 60) : 0;
+
+  if (slug === "running" && distanceKm > 0) {
+    if (speed >= 14) return 12.51;
+    if (speed >= 8 && speed < 10) return 8.29;
+  }
+
+  return getWorkoutMet(workout, categoryMeta);
+}
+
 function calculateCalories(workout, weightKg, options = {}) {
-  const met = options.met || getWorkoutMet(workout, options.categoryMeta);
+  const met = options.met || calorieMet(workout, options.categoryMeta);
   const durationMin = Number(workout.duration_min ?? workout.durationMin ?? workout.duration ?? 0);
   return Math.round(met * Number(weightKg || 70) * (durationMin / 60));
 }
 
 function levelFromXp(totalXp) {
-  const level = Math.floor(Number(totalXp || 0) / 500) + 1;
-  return { level, nextLevelXp: level * 500 };
+  const level = Math.floor(Number(totalXp || 0) / 150) + 1;
+  return { level, nextLevelXp: level * 150 };
 }
 
 function daysBetween(previousDate, nextDate) {
@@ -169,7 +184,7 @@ function nextStreakState(row, workoutDate) {
   const longestStreak = Number(row?.longest_streak || 0);
   const currentWeekKey = weekKey(new Date(`${workoutDate}T00:00:00Z`));
   let weeklyFreezesUsed = row?.last_freeze_week === currentWeekKey ? Number(row.weekly_freezes_used || 0) : 0;
-  const gap = daysBetween(row?.last_active_date, workoutDate);
+  const gap = daysBetween(row?.last_workout_date || row?.last_active_date, workoutDate);
   let nextStreak = currentStreak;
 
   if (gap === 0) {
@@ -220,7 +235,7 @@ async function buildSummary(userId) {
   }
 
   const [gameRows] = await pool.execute(
-    "SELECT total_xp, level, next_level_xp, current_streak FROM user_gamification WHERE user_id = ?",
+    "SELECT total_xp, level, next_level_xp, current_streak, longest_streak FROM user_gamification WHERE user_id = ?",
     [userId]
   );
   const game = gameRows[0] || {};
@@ -238,7 +253,7 @@ async function buildSummary(userId) {
 
   return {
     currentStreak: Number(game.current_streak || stats.currentStreak),
-    longestStreak: stats.longestStreak,
+    longestStreak: Number(game.longest_streak || stats.longestStreak),
     weeklyConsistency: stats.weeklyConsistency,
     activeDaysInLast7: stats.activeDaysInLast7,
     lastActiveDate: stats.lastActiveDate,
@@ -247,7 +262,7 @@ async function buildSummary(userId) {
     totalCaloriesThisWeek: weekly.totalCalories,
     totalXp: Number(game.total_xp || 0),
     level: Number(game.level || levelData.level),
-    nextLevelXp: Number(game.next_level_xp || levelData.nextLevelXp),
+    nextLevelXp: levelData.nextLevelXp,
     streakMessage: streakMessage(stats.currentStreak),
     badges,
     newlyUnlocked: newlyUnlocked.map((achievement) => ({
@@ -329,7 +344,8 @@ async function recordAutoWorkout(userId, payload) {
     await connection.execute(
       `UPDATE user_gamification
        SET total_xp = ?, level = ?, next_level_xp = ?, current_streak = ?, longest_streak = ?,
-           last_active_date = ?, weekly_freezes_used = ?, last_freeze_week = ?
+           last_active_date = ?, last_workout_date = ?, weekly_freezes_used = ?,
+           streak_freeze_used = ?, last_freeze_week = ?
        WHERE user_id = ?`,
       [
         newTotalXp,
@@ -338,7 +354,9 @@ async function recordAutoWorkout(userId, payload) {
         streakState.currentStreak,
         streakState.longestStreak,
         date,
+        date,
         streakState.weeklyFreezesUsed,
+        streakState.weeklyFreezesUsed > 0,
         streakState.lastFreezeWeek,
         userId
       ]

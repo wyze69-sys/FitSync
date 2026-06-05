@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useOutletContext } from "react-router-dom";
-import { CalendarDays, Flame, Target, Zap } from "lucide-react";
+import { CalendarDays, Target, Zap } from "lucide-react";
 import workoutService from "../services/workoutService.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import DashboardHeader from "../components/dashboard/DashboardHeader.jsx";
@@ -27,31 +27,30 @@ function getCurrentWeekRange() {
 }
 
 function LevelCard({ gamification }) {
-  const totalXp = Number(gamification?.totalXp || 0);
+  const totalXp = Number(gamification?.total_xp ?? gamification?.totalXp ?? 0);
   const level = Number(gamification?.level || 1);
-  const nextLevelXp = Number(gamification?.nextLevelXp || 500);
-  const previousLevelXp = Math.max(0, (level - 1) * 500);
-  const progress = Math.min(100, Math.round(((totalXp - previousLevelXp) / (nextLevelXp - previousLevelXp || 1)) * 100));
-
   return (
-    <div className="bg-surface border border-border rounded-lg p-6 sm:p-8 space-y-6">
+    <div className="bg-[#141414] border border-border rounded-lg p-6 sm:p-8 space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[10px] font-mono font-bold uppercase tracking-[0.3em] text-accent">Level</p>
-          <h2 className="mt-2 text-4xl sm:text-5xl font-black tracking-tight">Level {level}</h2>
-          <p className="mt-2 text-sm text-muted">{totalXp.toLocaleString()} / {nextLevelXp.toLocaleString()} XP</p>
+          <p className="text-[10px] font-mono font-bold uppercase tracking-[0.3em] text-muted">Current Level</p>
+          <div className="mt-2 flex items-end gap-3">
+            <span className="text-6xl sm:text-7xl font-black leading-none text-[#c4ff00]">{level}</span>
+            <span className="pb-2 text-xl font-black uppercase tracking-tight">Level</span>
+          </div>
+          <p className="mt-3 text-sm font-bold text-text">{totalXp.toLocaleString()} XP</p>
         </div>
-        <div className="rounded-full bg-accent/10 p-4 text-accent">
+        <div className="rounded-full bg-[#c4ff00]/10 p-4 text-[#c4ff00]">
           <Zap className="h-8 w-8" aria-hidden="true" />
         </div>
       </div>
       <div>
-        <div className="h-4 overflow-hidden rounded-full bg-bg border border-border">
-          <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${progress}%` }} />
+        <div className="h-4 overflow-hidden rounded-full bg-[#0a0a0a] border border-border">
+          <div className="h-full rounded-full bg-[#c4ff00] transition-all" style={{ width: `${(totalXp % 150) / 150 * 100}%` }} />
         </div>
         <div className="mt-2 flex justify-between text-[10px] font-mono uppercase tracking-widest text-muted">
-          <span>{progress}% to next level</span>
-          <span>{Math.max(0, nextLevelXp - totalXp).toLocaleString()} XP left</span>
+          <span>{Math.round((totalXp % 150) / 150 * 100)}% to next level</span>
+          <span>{(totalXp % 150 === 0 ? 0 : 150 - (totalXp % 150)).toLocaleString()} XP left</span>
         </div>
       </div>
     </div>
@@ -60,7 +59,7 @@ function LevelCard({ gamification }) {
 
 function StatCard({ icon: Icon, label, value }) {
   return (
-    <div className="bg-surface border border-border rounded-lg p-5">
+    <div className="bg-[#141414] border border-border rounded-lg p-5">
       <Icon className="h-5 w-5 text-accent mb-4" aria-hidden="true" />
       <div className="text-3xl font-black tabular-nums">{value}</div>
       <div className="mt-1 text-[10px] font-mono font-bold uppercase tracking-widest text-muted">{label}</div>
@@ -116,7 +115,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6 text-left text-text pb-16">
+    <div className="space-y-6 bg-[#0a0a0a] text-left text-text pb-16">
       {profileIncomplete && <OnboardingModal user={user} onComplete={handleProfileUpdated} />}
       <DashboardHeader user={user} />
       <ErrorBanner message={error || weekSummary.error} onRetry={refreshAll} />
@@ -124,12 +123,12 @@ export default function Dashboard() {
       <LevelCard gamification={gamification} />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard icon={Flame} label="🔥 streak" value={`${gamification?.currentStreak || 0}d`} />
-        <StatCard icon={CalendarDays} label="workouts this week" value={weekSummary.loading ? "…" : weekSummary.workouts.length} />
-        <StatCard icon={Target} label="kcal today" value={weekSummary.loading ? "…" : kcalToday.toLocaleString()} />
+        <StatCard icon={CalendarDays} label="Workouts This Week" value={weekSummary.loading ? "…" : weekSummary.workouts.length} />
+        <StatCard icon={Target} label="Kcal Today" value={weekSummary.loading ? "…" : kcalToday.toLocaleString()} />
+        <StatCard icon={Zap} label="Total XP" value={Number(gamification?.total_xp ?? gamification?.totalXp ?? 0).toLocaleString()} />
       </div>
 
-      <div className="bg-surface border border-border rounded-lg p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="bg-[#141414] border border-border rounded-lg p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-xl font-black">Ready for the next one?</h2>
           <p className="mt-1 text-sm text-muted">No charts. No AI. Just quick logging, fair XP, and automatic calories.</p>
