@@ -1,5 +1,4 @@
 const { workoutService } = require("../services/workoutService");
-const { gamificationService } = require("../services/gamificationService");
 
 const workoutController = {
   async getWorkouts(req, res, next) {
@@ -13,20 +12,16 @@ const workoutController = {
 
   async createWorkout(req, res, next) {
     try {
-      if (req.body.category || req.body.categorySlug) {
-        const result = await gamificationService.recordAutoWorkout(req.user.id, req.body);
-        res.status(201).json(result);
-        return;
-      }
-
-      const { date, title, notes, exercises } = req.body;
-      const newWorkout = await workoutService.createWorkout(req.user.id, {
-        date,
-        title,
-        notes,
-        exercises
+      const newWorkout = await workoutService.createWorkout(req.user.id, req.body);
+      res.status(201).json({
+        ...newWorkout,
+        xp_earned: newWorkout.xp || 0,
+        calories_burned: newWorkout.calories || newWorkout.caloriesBurned || 0,
+        new_total_xp: newWorkout.reward?.totalXp,
+        level: newWorkout.reward?.level,
+        title: newWorkout.reward?.title,
+        next_level_xp: newWorkout.reward?.nextLevelXp
       });
-      res.status(201).json(newWorkout);
     } catch (err) {
       next(err);
     }

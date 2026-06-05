@@ -38,6 +38,7 @@ async function createTables() {
       height DECIMAL(5,2),
       weight DECIMAL(5,2),
       weight_kg DECIMAL(5,2),
+      total_xp INT NOT NULL DEFAULT 0,
       target_weight DECIMAL(5,2),
       preferred_workout_type VARCHAR(50),
       goal VARCHAR(255) DEFAULT 'Maintain fitness',
@@ -71,6 +72,9 @@ async function createTables() {
       duration_total INT NOT NULL DEFAULT 0,
       calories_total INT NOT NULL DEFAULT 0,
       calories_burned INT,
+      calories INT,
+      xp INT NOT NULL DEFAULT 0,
+      intensity ENUM('low','med','high') NOT NULL DEFAULT 'med',
       calories_source ENUM('auto','manual') NOT NULL DEFAULT 'auto',
       user_weight_at_log DECIMAL(5,2),
       notes TEXT,
@@ -205,6 +209,16 @@ async function createTables() {
   `);
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS levels (
+      id VARCHAR(50) PRIMARY KEY,
+      level_number INT NOT NULL UNIQUE,
+      xp_required INT NOT NULL,
+      badge_unlock VARCHAR(50),
+      title VARCHAR(255) NOT NULL
+    )
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS xp_logs (
       id VARCHAR(50) PRIMARY KEY,
       user_id VARCHAR(50) NOT NULL,
@@ -241,6 +255,7 @@ async function ensureColumn(table, column, definition) {
 }
 
 async function applySchemaUpgrades() {
+  await ensureColumn("users", "total_xp", "total_xp INT NOT NULL DEFAULT 0");
   await ensureColumn("users", "target_weight", "target_weight DECIMAL(5,2)");
   await ensureColumn("users", "weight_kg", "weight_kg DECIMAL(5,2)");
   await ensureColumn("users", "preferred_workout_type", "preferred_workout_type VARCHAR(50)");
@@ -268,6 +283,9 @@ async function applySchemaUpgrades() {
     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
   );
   await ensureColumn("workouts", "calories_burned", "calories_burned INT");
+  await ensureColumn("workouts", "calories", "calories INT");
+  await ensureColumn("workouts", "xp", "xp INT NOT NULL DEFAULT 0");
+  await ensureColumn("workouts", "intensity", "intensity ENUM('low','med','high') NOT NULL DEFAULT 'med'");
   await ensureColumn(
     "workouts",
     "calories_source",
@@ -289,17 +307,19 @@ async function applySchemaUpgrades() {
 
 async function seedCategories() {
   const categories = [
-    ["cat_running", "Running", "Outdoor or treadmill running.", "running", 9.8, 0.18, false],
-    ["cat_cycling", "Cycling", "Road, indoor, or casual cycling.", "cycling", 7.5, 0.18, false],
-    ["cat_walking", "Walking", "Brisk walks and low-impact cardio.", "walking", 3.5, 0.2, false],
-    ["cat_swimming", "Swimming", "Pool or open-water swimming.", "swimming", 8.0, 0.18, false],
-    ["cat_chest", "Chest", "Chest-focused strength training.", "chest", 6.0, 0.2, false],
-    ["cat_back", "Back", "Back-focused strength training.", "back", 6.0, 0.2, false],
-    ["cat_legs", "Legs", "Leg-focused strength training.", "legs", 6.5, 0.2, false],
-    ["cat_core", "Core", "Abs, trunk stability, and core circuits.", "core", 3.8, 0.22, false],
-    ["cat_yoga_hatha", "Yoga Hatha", "Gentle hatha yoga practice.", "yoga-hatha", 2.5, 0.25, false],
-    ["cat_yoga_vinyasa", "Yoga Vinyasa", "Flow-based vinyasa yoga practice.", "yoga-vinyasa", 4.0, 0.25, false]
+    ["cat_cardio", "Cardio", "Running, cycling, rowing, walking, and swimming.", "cardio", 7.5, 0.18, false],
+    ["cat_strength", "Strength", "Free weights, machines, bodyweight strength, and core lifts.", "strength", 6.0, 0.2, false],
+    ["cat_hiit", "HIIT", "Intervals, circuits, bootcamp blocks, and high-output conditioning.", "hiit", 8.0, 0.22, false],
+    ["cat_yoga", "Yoga", "Vinyasa, hatha, restorative yoga, and breath-led flow.", "yoga", 4.0, 0.25, false],
+    ["cat_mobility", "Mobility", "Stretching, rehab drills, foam rolling, and joint prep.", "mobility", 2.8, 0.22, false],
+    ["cat_sports", "Sports", "Basketball, soccer, tennis, climbing, and recreational games.", "sports", 7.0, 0.2, false]
   ];
+  const categoryIds = categories.map((category) => category[0]);
+
+  await pool.execute(
+    `DELETE FROM exercise_categories WHERE id NOT IN (${categoryIds.map(() => "?").join(", ")})`,
+    categoryIds
+  );
 
   for (const category of categories) {
     await pool.execute(
@@ -316,6 +336,34 @@ async function seedCategories() {
     );
   }
 }
+
+async function seedLevels() {
+  const levels = [
+    ["lvl_1", 1, 0, "level_1", "Starter"],
+    ["lvl_2", 2, 150, "level_2", "Warm Up"],
+    ["lvl_3", 3, 350, "level_3", "Builder"],
+    ["lvl_4", 4, 600, "level_4", "Regular"],
+    ["lvl_5", 5, 900, "level_5", "Momentum"],
+    ["lvl_6", 6, 1250, "level_6", "Athlete"],
+    ["lvl_7", 7, 1650, "level_7", "Specialist"],
+    ["lvl_8", 8, 2100, "level_8", "Pro"],
+    ["lvl_9", 9, 2600, "level_9", "Elite"],
+    ["lvl_10", 10, 3150, "level_10", "Legend"]
+  ];
+
+  for (const level of levels) {
+    await pool.execute(
+      `INSERT INTO levels (id, level_number, xp_required, badge_unlock, title)
+       VALUES (?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+         xp_required = VALUES(xp_required),
+         badge_unlock = VALUES(badge_unlock),
+         title = VALUES(title)`,
+      level
+    );
+  }
+}
+
 
 async function seedAchievements() {
   const achievements = [
@@ -423,8 +471,8 @@ async function seedWorkouts(today) {
       exercises: [
         {
           id: "ex_seed_1",
-          categoryId: "cat_running",
-          categoryName: "Running",
+          categoryId: "cat_cardio",
+          categoryName: "Cardio",
           exerciseName: "Jogging / Running",
           duration: 35,
           caloriesBurned: 320,
@@ -440,8 +488,8 @@ async function seedWorkouts(today) {
       exercises: [
         {
           id: "ex_seed_2",
-          categoryId: "cat_back",
-          categoryName: "Back",
+          categoryId: "cat_strength",
+          categoryName: "Strength",
           exerciseName: "Shoulder press & Rows",
           duration: 40,
           caloriesBurned: 240,
@@ -461,8 +509,8 @@ async function seedWorkouts(today) {
       exercises: [
         {
           id: "ex_seed_3",
-          categoryId: "cat_yoga_hatha",
-          categoryName: "Yoga Hatha",
+          categoryId: "cat_yoga",
+          categoryName: "Yoga",
           exerciseName: "Flow Stretch session",
           duration: 25,
           caloriesBurned: 80,
@@ -478,8 +526,8 @@ async function seedWorkouts(today) {
       exercises: [
         {
           id: "ex_seed_4",
-          categoryId: "cat_core",
-          categoryName: "Core",
+          categoryId: "cat_hiit",
+          categoryName: "HIIT",
           exerciseName: "High rep calisthenics circuit",
           duration: 30,
           caloriesBurned: 290,
@@ -499,8 +547,8 @@ async function seedWorkouts(today) {
       exercises: [
         {
           id: "ex_seed_5",
-          categoryId: "cat_running",
-          categoryName: "Running",
+          categoryId: "cat_cardio",
+          categoryName: "Cardio",
           exerciseName: "Outdoor Road Run",
           duration: 42,
           caloriesBurned: 410,
@@ -605,6 +653,7 @@ async function seedDefaults() {
   const today = new Date();
 
   await seedCategories();
+  await seedLevels();
   await seedAchievements();
   await seedUsers();
   await seedWeightLogs(today);
