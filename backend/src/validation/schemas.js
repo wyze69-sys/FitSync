@@ -31,10 +31,18 @@ const profileUpdateSchema = {
 };
 
 const workoutBodySchema = {
-  date: { type: "date", required: true },
-  title: { type: "string", required: true, minLength: 2, maxLength: 255 },
+  date: { type: "date" },
+  title: { type: "string", minLength: 2, maxLength: 255 },
   notes: { type: "string", maxLength: 2000 },
-  exercises: { type: "array", required: true, minLength: 1, maxLength: 50 }
+  category: { type: "string", maxLength: 80 },
+  categorySlug: { type: "string", maxLength: 80 },
+  duration_min: { type: "number", min: 1, max: 1440 },
+  durationMin: { type: "number", min: 1, max: 1440 },
+  distance_km: { type: "number", min: 0, max: 1000 },
+  distanceKm: { type: "number", min: 0, max: 1000 },
+  user_weight: { type: "number", min: 20, max: 500 },
+  userWeight: { type: "number", min: 20, max: 500 },
+  exercises: { type: "array", minLength: 1, maxLength: 50 }
 };
 
 const workoutQuerySchema = {

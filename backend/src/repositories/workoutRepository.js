@@ -64,6 +64,9 @@ async function hydrateWorkouts(workoutRows, executor = pool) {
     title: row.title,
     durationTotal: Number(row.duration_total),
     caloriesTotal: Number(row.calories_total),
+    caloriesBurned: row.calories_burned === null || row.calories_burned === undefined ? Number(row.calories_total) : Number(row.calories_burned),
+    caloriesSource: row.calories_source || "manual",
+    userWeightAtLog: row.user_weight_at_log === null || row.user_weight_at_log === undefined ? undefined : Number(row.user_weight_at_log),
     notes: row.notes || undefined,
     exercises: exercisesByWorkoutId.get(row.id) || [],
     createdAt: formatTimestamp(row.created_at)
@@ -179,8 +182,8 @@ async function createWorkout(workout) {
   try {
     await connection.beginTransaction();
     await connection.execute(
-      `INSERT INTO workouts (id, user_id, date, title, duration_total, calories_total, notes)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO workouts (id, user_id, date, title, duration_total, calories_total, calories_burned, calories_source, user_weight_at_log, notes)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         workout.userId,
@@ -188,6 +191,9 @@ async function createWorkout(workout) {
         workout.title,
         workout.durationTotal,
         workout.caloriesTotal,
+        workout.caloriesBurned ?? workout.caloriesTotal,
+        workout.caloriesSource || "manual",
+        workout.userWeightAtLog || null,
         workout.notes || null
       ]
     );

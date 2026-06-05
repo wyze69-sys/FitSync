@@ -1,14 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocation, useOutletContext } from "react-router-dom";
-import { CalendarDays, Dumbbell, Layers, Sparkles } from "lucide-react";
+import { Link, useLocation, useOutletContext } from "react-router-dom";
+import { CalendarDays, Flame, Target, Zap } from "lucide-react";
 import workoutService from "../services/workoutService.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import DashboardHeader from "../components/dashboard/DashboardHeader.jsx";
-import MotivationCard from "../components/dashboard/MotivationCard.jsx";
-import QuickLogButtons from "../components/dashboard/QuickLogButtons.jsx";
 import OnboardingModal from "../components/modals/OnboardingModal.jsx";
 import Spinner from "../components/common/Spinner.jsx";
 import ErrorBanner from "../components/common/ErrorBanner.jsx";
+
+function toDateInput(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const dateNum = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${dateNum}`;
+}
 
 function getCurrentWeekRange() {
   const today = new Date();
@@ -18,100 +23,66 @@ function getCurrentWeekRange() {
   monday.setDate(today.getDate() + diffToMonday);
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
-
-  const toDateInput = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const dateNum = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${dateNum}`;
-  };
-
-  return { monday: toDateInput(monday), sunday: toDateInput(sunday) };
+  return { monday: toDateInput(monday), sunday: toDateInput(sunday), today: toDateInput(today) };
 }
 
-function countSets(workouts = []) {
-  return workouts.reduce(
-    (total, workout) =>
-      total +
-      (workout.exercises || []).reduce(
-        (exerciseTotal, exercise) => exerciseTotal + (exercise.sets?.length || 0),
-        0
-      ),
-    0
-  );
-}
+function LevelCard({ gamification }) {
+  const totalXp = Number(gamification?.totalXp || 0);
+  const level = Number(gamification?.level || 1);
+  const nextLevelXp = Number(gamification?.nextLevelXp || 500);
+  const previousLevelXp = Math.max(0, (level - 1) * 500);
+  const progress = Math.min(100, Math.round(((totalXp - previousLevelXp) / (nextLevelXp - previousLevelXp || 1)) * 100));
 
-function CoachTip({ insight }) {
   return (
-    <div className="bg-surface border border-border rounded-sm p-5 space-y-3">
-      <div className="flex items-center justify-between">
+    <div className="bg-surface border border-border rounded-lg p-6 sm:p-8 space-y-6">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <span className="text-[10px] font-mono font-bold text-muted uppercase tracking-widest">
-            Coach tip
-          </span>
-          <h2 className="text-sm font-semibold text-text mt-0.5">Weekly AI insight</h2>
+          <p className="text-[10px] font-mono font-bold uppercase tracking-[0.3em] text-accent">Level</p>
+          <h2 className="mt-2 text-4xl sm:text-5xl font-black tracking-tight">Level {level}</h2>
+          <p className="mt-2 text-sm text-muted">{totalXp.toLocaleString()} / {nextLevelXp.toLocaleString()} XP</p>
         </div>
-        <Sparkles className="h-5 w-5 text-accent" aria-hidden="true" />
+        <div className="rounded-full bg-accent/10 p-4 text-accent">
+          <Zap className="h-8 w-8" aria-hidden="true" />
+        </div>
       </div>
-      <p className="text-xs text-muted leading-relaxed">
-        {insight?.summary || "No tip yet — log your first workout."}
-      </p>
+      <div>
+        <div className="h-4 overflow-hidden rounded-full bg-bg border border-border">
+          <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${progress}%` }} />
+        </div>
+        <div className="mt-2 flex justify-between text-[10px] font-mono uppercase tracking-widest text-muted">
+          <span>{progress}% to next level</span>
+          <span>{Math.max(0, nextLevelXp - totalXp).toLocaleString()} XP left</span>
+        </div>
+      </div>
     </div>
   );
 }
 
-function WeekSummary({ loading, error, workouts }) {
-  const totalSets = useMemo(() => countSets(workouts), [workouts]);
-
+function StatCard({ icon: Icon, label, value }) {
   return (
-    <div className="bg-surface border border-border rounded-sm p-5 space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <span className="text-[10px] font-mono font-bold text-muted uppercase tracking-widest">
-            This week
-          </span>
-          <h2 className="text-sm font-semibold text-text mt-0.5">Week Summary</h2>
-        </div>
-        <CalendarDays className="h-5 w-5 text-accent" aria-hidden="true" />
-      </div>
-      {error && <p className="text-xs text-red-300">{error}</p>}
-      {loading ? (
-        <div className="text-xs text-muted">Loading this week...</div>
-      ) : (
-        <div className="grid grid-cols-2 gap-3">
-          <div className="p-4 rounded-sm bg-bg border border-border">
-            <Dumbbell className="h-4 w-4 text-accent mb-3" aria-hidden="true" />
-            <div className="text-3xl font-mono tabular-nums text-text font-semibold">
-              {workouts.length}
-            </div>
-            <div className="text-[10px] font-mono uppercase tracking-widest text-muted mt-1">
-              Workouts
-            </div>
-          </div>
-          <div className="p-4 rounded-sm bg-bg border border-border">
-            <Layers className="h-4 w-4 text-accent mb-3" aria-hidden="true" />
-            <div className="text-3xl font-mono tabular-nums text-text font-semibold">
-              {totalSets}
-            </div>
-            <div className="text-[10px] font-mono uppercase tracking-widest text-muted mt-1">
-              Total sets
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="bg-surface border border-border rounded-lg p-5">
+      <Icon className="h-5 w-5 text-accent mb-4" aria-hidden="true" />
+      <div className="text-3xl font-black tabular-nums">{value}</div>
+      <div className="mt-1 text-[10px] font-mono font-bold uppercase tracking-widest text-muted">{label}</div>
     </div>
   );
 }
 
-/** Home page: beginner-friendly motivation, quick logging, coaching, and week volume. */
 export default function Dashboard() {
-  const { user, gamification, insights, loading, error, refreshAll, recordCheckin } =
-    useOutletContext();
+  const { user, gamification, loading, error, refreshAll } = useOutletContext();
   const { updateUser } = useAuth();
   const location = useLocation();
   const [weekSummary, setWeekSummary] = useState({ workouts: [], loading: true, error: null });
 
   const profileIncomplete = !user.height || !user.weight;
+  const { today } = useMemo(() => getCurrentWeekRange(), []);
+  const kcalToday = useMemo(
+    () =>
+      weekSummary.workouts
+        .filter((workout) => workout.date === today)
+        .reduce((sum, workout) => sum + Number(workout.caloriesBurned || workout.caloriesTotal || 0), 0),
+    [today, weekSummary.workouts]
+  );
 
   useEffect(() => {
     let active = true;
@@ -121,23 +92,15 @@ export default function Dashboard() {
       try {
         const { monday, sunday } = getCurrentWeekRange();
         const result = await workoutService.getWorkouts({ from: monday, to: sunday, limit: 50 });
-        if (active) {
-          setWeekSummary({ workouts: result.items || [], loading: false, error: null });
-        }
+        if (active) setWeekSummary({ workouts: result.items || [], loading: false, error: null });
       } catch (err) {
         if (active) {
-          setWeekSummary({
-            workouts: [],
-            loading: false,
-            error: err.message || "Could not load this week's workouts."
-          });
+          setWeekSummary({ workouts: [], loading: false, error: err.message || "Could not load this week." });
         }
       }
     }
 
-    if (location.pathname === "/") {
-      loadWeek();
-    }
+    if (location.pathname === "/") loadWeek();
     return () => {
       active = false;
     };
@@ -156,17 +119,24 @@ export default function Dashboard() {
     <div className="space-y-6 text-left text-text pb-16">
       {profileIncomplete && <OnboardingModal user={user} onComplete={handleProfileUpdated} />}
       <DashboardHeader user={user} />
-      <ErrorBanner message={error} onRetry={refreshAll} />
+      <ErrorBanner message={error || weekSummary.error} onRetry={refreshAll} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <MotivationCard gamification={gamification} onCheckin={recordCheckin} busy={loading} />
-          <QuickLogButtons />
+      <LevelCard gamification={gamification} />
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <StatCard icon={Flame} label="🔥 streak" value={`${gamification?.currentStreak || 0}d`} />
+        <StatCard icon={CalendarDays} label="workouts this week" value={weekSummary.loading ? "…" : weekSummary.workouts.length} />
+        <StatCard icon={Target} label="kcal today" value={weekSummary.loading ? "…" : kcalToday.toLocaleString()} />
+      </div>
+
+      <div className="bg-surface border border-border rounded-lg p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-black">Ready for the next one?</h2>
+          <p className="mt-1 text-sm text-muted">No charts. No AI. Just quick logging, fair XP, and automatic calories.</p>
         </div>
-        <div className="space-y-6">
-          <CoachTip insight={insights?.[0]} />
-          <WeekSummary {...weekSummary} />
-        </div>
+        <Link to="/log" className="rounded-sm bg-accent px-6 py-3 text-center text-xs font-black uppercase tracking-widest text-black">
+          Log in 7 sec
+        </Link>
       </div>
     </div>
   );
