@@ -24,7 +24,7 @@ function mapUserRow(row) {
     age: toNumberOrUndefined(row.age),
     gender: row.gender || undefined,
     height: toNumberOrUndefined(row.height),
-    weight: toNumberOrUndefined(row.weight),
+    weight: toNumberOrUndefined(row.weight ?? row.weight_kg),
     targetWeight: toNumberOrUndefined(row.target_weight),
     preferredWorkoutType: row.preferred_workout_type || undefined,
     goal: row.goal || undefined,
@@ -40,6 +40,9 @@ function mapCategoryRow(row) {
     id: row.id,
     name: row.name,
     description: row.description,
+    slug: row.slug || undefined,
+    baseMet: toNumberOrUndefined(row.base_met),
+    xpPerMetMin: toNumberOrUndefined(row.xp_per_met_min),
     isCustom: Boolean(row.is_custom)
   };
 }

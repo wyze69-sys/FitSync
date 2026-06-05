@@ -6,6 +6,8 @@
 CREATE DATABASE IF NOT EXISTS fitsync_db;
 USE fitsync_db;
 
+DROP TABLE IF EXISTS xp_logs;
+DROP TABLE IF EXISTS user_gamification;
 DROP TABLE IF EXISTS user_achievements;
 DROP TABLE IF EXISTS user_streaks;
 DROP TABLE IF EXISTS daily_checkins;
@@ -28,6 +30,7 @@ CREATE TABLE users (
     gender VARCHAR(50),
     height DECIMAL(5,2),
     weight DECIMAL(5,2),
+    weight_kg DECIMAL(5,2),
     target_weight DECIMAL(5,2),
     preferred_workout_type VARCHAR(50),
     goal VARCHAR(255) DEFAULT 'Maintain fitness',
@@ -41,6 +44,9 @@ CREATE TABLE exercise_categories (
     id VARCHAR(50) PRIMARY KEY,
     name VARCHAR(255) UNIQUE NOT NULL,
     description TEXT NOT NULL,
+    slug VARCHAR(80) UNIQUE,
+    base_met DECIMAL(4,2) NOT NULL DEFAULT 3.50,
+    xp_per_met_min DECIMAL(5,3) NOT NULL DEFAULT 0.200,
     is_custom BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -53,6 +59,9 @@ CREATE TABLE workouts (
     title VARCHAR(255) NOT NULL,
     duration_total INT NOT NULL DEFAULT 0,
     calories_total INT NOT NULL DEFAULT 0,
+    calories_burned INT,
+    calories_source ENUM('auto','manual') NOT NULL DEFAULT 'auto',
+    user_weight_at_log DECIMAL(5,2),
     notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -144,6 +153,34 @@ CREATE TABLE user_achievements (
     UNIQUE KEY uniq_user_achievement (user_id, achievement_code),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (achievement_code) REFERENCES achievements(code) ON DELETE CASCADE
+);
+
+-- Gamification: automatic XP, levels, and streak state for v2.
+CREATE TABLE user_gamification (
+    user_id VARCHAR(50) PRIMARY KEY,
+    total_xp INT NOT NULL DEFAULT 0,
+    level INT NOT NULL DEFAULT 1,
+    next_level_xp INT NOT NULL DEFAULT 500,
+    current_streak INT NOT NULL DEFAULT 0,
+    longest_streak INT NOT NULL DEFAULT 0,
+    last_active_date DATE,
+    weekly_freezes_used INT NOT NULL DEFAULT 0,
+    last_freeze_week VARCHAR(16),
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE xp_logs (
+    id VARCHAR(50) PRIMARY KEY,
+    user_id VARCHAR(50) NOT NULL,
+    workout_id VARCHAR(50),
+    xp_earned INT NOT NULL,
+    reason VARCHAR(255) NOT NULL,
+    breakdown JSON,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE SET NULL,
+    INDEX idx_xp_logs_user_created (user_id, created_at)
 );
 
 -- Gamification: cached streak state per user (recomputed on activity).

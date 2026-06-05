@@ -37,6 +37,7 @@ async function createTables() {
       gender VARCHAR(50),
       height DECIMAL(5,2),
       weight DECIMAL(5,2),
+      weight_kg DECIMAL(5,2),
       target_weight DECIMAL(5,2),
       preferred_workout_type VARCHAR(50),
       goal VARCHAR(255) DEFAULT 'Maintain fitness',
@@ -52,6 +53,9 @@ async function createTables() {
       id VARCHAR(50) PRIMARY KEY,
       name VARCHAR(255) UNIQUE NOT NULL,
       description TEXT NOT NULL,
+      slug VARCHAR(80) UNIQUE,
+      base_met DECIMAL(4,2) NOT NULL DEFAULT 3.50,
+      xp_per_met_min DECIMAL(5,3) NOT NULL DEFAULT 0.200,
       is_custom BOOLEAN NOT NULL DEFAULT FALSE,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -66,6 +70,9 @@ async function createTables() {
       title VARCHAR(255) NOT NULL,
       duration_total INT NOT NULL DEFAULT 0,
       calories_total INT NOT NULL DEFAULT 0,
+      calories_burned INT,
+      calories_source ENUM('auto','manual') NOT NULL DEFAULT 'auto',
+      user_weight_at_log DECIMAL(5,2),
       notes TEXT,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -178,6 +185,37 @@ async function createTables() {
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )
   `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS user_gamification (
+      user_id VARCHAR(50) PRIMARY KEY,
+      total_xp INT NOT NULL DEFAULT 0,
+      level INT NOT NULL DEFAULT 1,
+      next_level_xp INT NOT NULL DEFAULT 500,
+      current_streak INT NOT NULL DEFAULT 0,
+      longest_streak INT NOT NULL DEFAULT 0,
+      last_active_date DATE,
+      weekly_freezes_used INT NOT NULL DEFAULT 0,
+      last_freeze_week VARCHAR(16),
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS xp_logs (
+      id VARCHAR(50) PRIMARY KEY,
+      user_id VARCHAR(50) NOT NULL,
+      workout_id VARCHAR(50),
+      xp_earned INT NOT NULL,
+      reason VARCHAR(255) NOT NULL,
+      breakdown JSON,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE SET NULL,
+      INDEX idx_xp_logs_user_created (user_id, created_at)
+    )
+  `);
 }
 
 /**
@@ -202,12 +240,20 @@ async function ensureColumn(table, column, definition) {
 
 async function applySchemaUpgrades() {
   await ensureColumn("users", "target_weight", "target_weight DECIMAL(5,2)");
+  await ensureColumn("users", "weight_kg", "weight_kg DECIMAL(5,2)");
   await ensureColumn("users", "preferred_workout_type", "preferred_workout_type VARCHAR(50)");
   await ensureColumn("users", "is_active", "is_active BOOLEAN NOT NULL DEFAULT TRUE");
   await ensureColumn(
     "users",
     "updated_at",
     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+  );
+  await ensureColumn("exercise_categories", "slug", "slug VARCHAR(80) UNIQUE");
+  await ensureColumn("exercise_categories", "base_met", "base_met DECIMAL(4,2) NOT NULL DEFAULT 3.50");
+  await ensureColumn(
+    "exercise_categories",
+    "xp_per_met_min",
+    "xp_per_met_min DECIMAL(5,3) NOT NULL DEFAULT 0.200"
   );
   await ensureColumn(
     "exercise_categories",
@@ -219,6 +265,13 @@ async function applySchemaUpgrades() {
     "updated_at",
     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
   );
+  await ensureColumn("workouts", "calories_burned", "calories_burned INT");
+  await ensureColumn(
+    "workouts",
+    "calories_source",
+    "calories_source ENUM('auto','manual') NOT NULL DEFAULT 'auto'"
+  );
+  await ensureColumn("workouts", "user_weight_at_log", "user_weight_at_log DECIMAL(5,2)");
   await ensureColumn(
     "workouts",
     "updated_at",
@@ -228,37 +281,29 @@ async function applySchemaUpgrades() {
 
 async function seedCategories() {
   const categories = [
-    ["cat_1", "Cardio Training", "Running, jogging, cycling, walking, and swimming.", false],
-    [
-      "cat_2",
-      "Strength & Core",
-      "Gym weight machines, free dumbbells, barbell lifts, and core training.",
-      false
-    ],
-    [
-      "cat_3",
-      "Flexibility & Yoga",
-      "Stretching, standard yoga, and body recovery movements.",
-      false
-    ],
-    [
-      "cat_4",
-      "HIIT & Circuit",
-      "High-intensity interval training, fast calisthenics, and active circuit routines.",
-      false
-    ],
-    [
-      "cat_5",
-      "Hybrid Wellness",
-      "Mixed cardio and strength routines in a single training block.",
-      false
-    ]
+    ["cat_running", "Running", "Outdoor or treadmill running.", "running", 9.8, 0.18, false],
+    ["cat_cycling", "Cycling", "Road, indoor, or casual cycling.", "cycling", 7.5, 0.18, false],
+    ["cat_walking", "Walking", "Brisk walks and low-impact cardio.", "walking", 3.5, 0.2, false],
+    ["cat_swimming", "Swimming", "Pool or open-water swimming.", "swimming", 8.0, 0.18, false],
+    ["cat_chest", "Chest", "Chest-focused strength training.", "chest", 6.0, 0.2, false],
+    ["cat_back", "Back", "Back-focused strength training.", "back", 6.0, 0.2, false],
+    ["cat_legs", "Legs", "Leg-focused strength training.", "legs", 6.5, 0.2, false],
+    ["cat_core", "Core", "Abs, trunk stability, and core circuits.", "core", 3.8, 0.22, false],
+    ["cat_yoga_hatha", "Yoga Hatha", "Gentle hatha yoga practice.", "yoga-hatha", 2.5, 0.25, false],
+    ["cat_yoga_vinyasa", "Yoga Vinyasa", "Flow-based vinyasa yoga practice.", "yoga-vinyasa", 4.0, 0.25, false]
   ];
 
   for (const category of categories) {
     await pool.execute(
-      `INSERT IGNORE INTO exercise_categories (id, name, description, is_custom)
-       VALUES (?, ?, ?, ?)`,
+      `INSERT INTO exercise_categories (id, name, description, slug, base_met, xp_per_met_min, is_custom)
+       VALUES (?, ?, ?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+         name = VALUES(name),
+         description = VALUES(description),
+         slug = VALUES(slug),
+         base_met = VALUES(base_met),
+         xp_per_met_min = VALUES(xp_per_met_min),
+         is_custom = VALUES(is_custom)`,
       category
     );
   }
@@ -300,10 +345,10 @@ async function seedUsers() {
 
   await pool.execute(
     `INSERT IGNORE INTO users (
-       id, email, name, role, password_hash, age, gender, height, weight, target_weight,
+       id, email, name, role, password_hash, age, gender, height, weight, weight_kg, target_weight,
        preferred_workout_type, goal, activity_level, created_at
      )
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       "usr_demo",
       "user@fitsync.com",
@@ -314,12 +359,18 @@ async function seedUsers() {
       "female",
       168.0,
       65.0,
+      65.0,
       62.0,
       "Strength",
       "Lose weight & Tone muscle",
       "Moderately active",
       toMysqlDateTime(thirtyDaysAgo)
     ]
+  );
+
+  await pool.execute(
+    `INSERT IGNORE INTO user_gamification (user_id, total_xp, level, next_level_xp)
+     SELECT id, 0, 1, 500 FROM users`
   );
 }
 
@@ -364,8 +415,8 @@ async function seedWorkouts(today) {
       exercises: [
         {
           id: "ex_seed_1",
-          categoryId: "cat_1",
-          categoryName: "Cardio Training",
+          categoryId: "cat_running",
+          categoryName: "Running",
           exerciseName: "Jogging / Running",
           duration: 35,
           caloriesBurned: 320,
@@ -381,8 +432,8 @@ async function seedWorkouts(today) {
       exercises: [
         {
           id: "ex_seed_2",
-          categoryId: "cat_2",
-          categoryName: "Strength & Core",
+          categoryId: "cat_back",
+          categoryName: "Back",
           exerciseName: "Shoulder press & Rows",
           duration: 40,
           caloriesBurned: 240,
@@ -402,8 +453,8 @@ async function seedWorkouts(today) {
       exercises: [
         {
           id: "ex_seed_3",
-          categoryId: "cat_3",
-          categoryName: "Flexibility & Yoga",
+          categoryId: "cat_yoga_hatha",
+          categoryName: "Yoga Hatha",
           exerciseName: "Flow Stretch session",
           duration: 25,
           caloriesBurned: 80,
@@ -419,8 +470,8 @@ async function seedWorkouts(today) {
       exercises: [
         {
           id: "ex_seed_4",
-          categoryId: "cat_4",
-          categoryName: "HIIT & Circuit",
+          categoryId: "cat_core",
+          categoryName: "Core",
           exerciseName: "High rep calisthenics circuit",
           duration: 30,
           caloriesBurned: 290,
@@ -440,8 +491,8 @@ async function seedWorkouts(today) {
       exercises: [
         {
           id: "ex_seed_5",
-          categoryId: "cat_1",
-          categoryName: "Cardio Training",
+          categoryId: "cat_running",
+          categoryName: "Running",
           exerciseName: "Outdoor Road Run",
           duration: 42,
           caloriesBurned: 410,

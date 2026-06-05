@@ -1,4 +1,5 @@
 const { workoutService } = require("../services/workoutService");
+const { gamificationService } = require("../services/gamificationService");
 
 const workoutController = {
   async getWorkouts(req, res, next) {
@@ -12,6 +13,12 @@ const workoutController = {
 
   async createWorkout(req, res, next) {
     try {
+      if (req.body.category || req.body.categorySlug) {
+        const result = await gamificationService.recordAutoWorkout(req.user.id, req.body);
+        res.status(201).json(result);
+        return;
+      }
+
       const { date, title, notes, exercises } = req.body;
       const newWorkout = await workoutService.createWorkout(req.user.id, {
         date,

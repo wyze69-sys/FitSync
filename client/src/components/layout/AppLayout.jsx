@@ -6,7 +6,7 @@ import { useToast } from "../../context/ToastContext.jsx";
 import Navbar from "../common/Navbar.jsx";
 import workoutService from "../../services/workoutService.js";
 import progressService from "../../services/progressService.js";
-import insightService from "../../services/insightService.js";
+import authService from "../../services/authService.js";
 import gamificationService from "../../services/gamificationService.js";
 
 const MOBILE_LINKS = [
@@ -21,14 +21,13 @@ const MOBILE_LINKS = [
  * keeps admin users on the separate admin shell.
  */
 export default function AppLayout() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { push } = useToast();
 
   const [data, setData] = useState({
     workouts: [],
     workoutTotal: 0,
     weightLogs: [],
-    insights: [],
     gamification: null,
     categories: []
   });
@@ -48,18 +47,18 @@ export default function AppLayout() {
     setLoading(true);
     setError(null);
     try {
-      const [workoutRes, weightLogs, insights, gamification, categories] = await Promise.all([
+      const [currentUser, workoutRes, weightLogs, gamification, categories] = await Promise.all([
+        authService.getMe(),
         workoutService.getWorkouts({ limit: 50, sort: "date_desc" }),
         progressService.getWeightLogs(),
-        insightService.getInsights(),
         gamificationService.getSummary(),
         workoutService.getCategories()
       ]);
+      updateUser(currentUser);
       setData({
         workouts: workoutRes.items || [],
         workoutTotal: workoutRes.total || 0,
         weightLogs: weightLogs || [],
-        insights: insights || [],
         gamification,
         categories: categories || []
       });
@@ -69,13 +68,13 @@ export default function AppLayout() {
     } finally {
       setLoading(false);
     }
-  }, [notifyNewBadges]);
+  }, [notifyNewBadges, updateUser]);
 
   useEffect(() => {
     if (user && user.role === "user") {
       refreshAll();
     }
-  }, [user, refreshAll]);
+  }, [user?.id, user?.role, refreshAll]);
 
   const recordCheckin = useCallback(
     async (type) => {
@@ -139,7 +138,7 @@ export default function AppLayout() {
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>FitSync &mdash; Fitness tracking</div>
           <div>&copy; 2026 FitSync</div>
-          <div>Weekly insights powered by Gemini</div>
+          <div>Auto XP and calories</div>
         </div>
       </footer>
     </div>

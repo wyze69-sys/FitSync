@@ -3,20 +3,59 @@ const { createId } = require("../utils/ids");
 const { calculateBMI } = require("../utils/calculateBMI");
 const { mapUserRow } = require("../utils/rowMappers");
 
-const USER_COLUMNS = `id, email, name, role, password_hash, age, gender, height, weight,
-  target_weight, preferred_workout_type, goal, activity_level, is_active, created_at, updated_at`;
+const USER_COLUMNS = `u.id, u.email, u.name, u.role, u.password_hash, u.age, u.gender, u.height,
+  u.weight, u.weight_kg, u.target_weight, u.preferred_workout_type, u.goal, u.activity_level,
+  u.is_active, u.created_at, u.updated_at`;
+
+const USER_WITH_DASHBOARD_SQL = `
+  SELECT ${USER_COLUMNS},
+         COALESCE(ug.total_xp, 0) AS total_xp,
+         COALESCE(ug.level, 1) AS level,
+         COALESCE(ug.current_streak, 0) AS current_streak,
+         COALESCE(ug.longest_streak, 0) AS longest_streak,
+         COALESCE(ug.next_level_xp, 500) AS next_level_xp,
+         COALESCE((
+           SELECT SUM(COALESCE(w.calories_burned, w.calories_total, 0))
+           FROM workouts w
+           WHERE w.user_id = u.id AND w.date = CURDATE()
+         ), 0) AS today_calories,
+         COALESCE((
+           SELECT COUNT(*)
+           FROM workouts w
+           WHERE w.user_id = u.id
+             AND YEARWEEK(w.date, 1) = YEARWEEK(CURDATE(), 1)
+         ), 0) AS week_workouts
+  FROM users u
+  LEFT JOIN user_gamification ug ON ug.user_id = u.id
+`;
+
+function mapUserWithDashboard(row) {
+  if (!row) return undefined;
+  return {
+    ...mapUserRow(row),
+    gamification: {
+      total_xp: Number(row.total_xp || 0),
+      level: Number(row.level || 1),
+      current_streak: Number(row.current_streak || 0),
+      longest_streak: Number(row.longest_streak || 0),
+      next_level_xp: Number(row.next_level_xp || 500)
+    },
+    todayCalories: Number(row.today_calories || 0),
+    weekWorkouts: Number(row.week_workouts || 0)
+  };
+}
 
 async function getUserById(id) {
-  const [rows] = await pool.execute(`SELECT ${USER_COLUMNS} FROM users WHERE id = ?`, [id]);
-  return rows[0] ? mapUserRow(rows[0]) : undefined;
+  const [rows] = await pool.execute(`${USER_WITH_DASHBOARD_SQL} WHERE u.id = ?`, [id]);
+  return mapUserWithDashboard(rows[0]);
 }
 
 async function getUserByEmail(email) {
   const normalizedEmail = email.toLowerCase().trim();
-  const [rows] = await pool.execute(`SELECT ${USER_COLUMNS} FROM users WHERE LOWER(email) = ?`, [
+  const [rows] = await pool.execute(`${USER_WITH_DASHBOARD_SQL} WHERE LOWER(u.email) = ?`, [
     normalizedEmail
   ]);
-  return rows[0] ? mapUserRow(rows[0]) : undefined;
+  return mapUserWithDashboard(rows[0]);
 }
 
 async function createUser(user) {
@@ -35,10 +74,10 @@ async function createUser(user) {
 
     await connection.execute(
       `INSERT INTO users (
-         id, email, name, role, password_hash, age, gender, height, weight,
+         id, email, name, role, password_hash, age, gender, height, weight, weight_kg,
          target_weight, preferred_workout_type, goal, activity_level
        )
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         email,
@@ -48,6 +87,7 @@ async function createUser(user) {
         user.age || null,
         user.gender || null,
         user.height || null,
+        user.weight || null,
         user.weight || null,
         user.targetWeight || null,
         user.preferredWorkoutType || null,
@@ -59,6 +99,12 @@ async function createUser(user) {
     await connection.execute(
       `INSERT IGNORE INTO user_streaks (user_id, current_streak, longest_streak, last_active_date)
        VALUES (?, 0, 0, NULL)`,
+      [id]
+    );
+
+    await connection.execute(
+      `INSERT IGNORE INTO user_gamification (user_id, total_xp, level, next_level_xp)
+       VALUES (?, 0, 1, 500)`,
       [id]
     );
 
