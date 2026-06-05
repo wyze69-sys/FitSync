@@ -7,33 +7,33 @@ const TOAST_META = {
   streak: { label: "Streak", border: "rgba(245, 158, 11, 0.4)" },
   milestone: { label: "Badge unlocked", border: "rgba(234, 179, 8, 0.4)" },
   info: { label: "Notice", border: "#2A2E37" },
-  success: { label: "Success", border: "#C7FF41" }
+  success: { label: "Success", border: "#10B981" }
 };
 
 function ToastIcon({ type }) {
   if (type === "streak") {
     return (
-      <span className="h-9 w-9 bg-amber-950/20 text-amber-500 rounded-sm flex items-center justify-center border border-amber-900/40">
+      <span className="h-9 w-9 bg-amber-950/20 text-amber-500 rounded-2xl flex items-center justify-center border border-amber-900/40">
         <Flame className="h-5 w-5 fill-current" />
       </span>
     );
   }
   if (type === "milestone") {
     return (
-      <span className="h-9 w-9 bg-yellow-950/20 text-yellow-500 rounded-sm flex items-center justify-center border border-yellow-900/40">
+      <span className="h-9 w-9 bg-yellow-950/20 text-yellow-500 rounded-2xl flex items-center justify-center border border-yellow-900/40">
         <Trophy className="h-5 w-5 fill-current" />
       </span>
     );
   }
   if (type === "info") {
     return (
-      <span className="h-9 w-9 bg-bg text-muted rounded-sm flex items-center justify-center border border-border">
+      <span className="h-9 w-9 bg-bg text-muted rounded-2xl flex items-center justify-center border border-border">
         <Zap className="h-4 w-4" />
       </span>
     );
   }
   return (
-    <span className="h-9 w-9 bg-accent/10 text-accent rounded-sm flex items-center justify-center border border-accent/30">
+    <span className="h-9 w-9 bg-accent/10 text-accent rounded-2xl flex items-center justify-center border border-accent/30">
       <Check className="h-5 w-5 stroke-[3]" />
     </span>
   );
@@ -77,7 +77,7 @@ export function ToastProvider({ children }) {
           <div
             key={toast.id}
             role="status"
-            className="animate-slide-in flex items-center gap-3.5 px-4 py-3.5 rounded-sm border bg-surface max-w-sm"
+            className="animate-slide-in flex items-center gap-3.5 px-4 py-3.5 rounded-2xl border bg-surface max-w-sm"
             style={{ borderColor: (TOAST_META[toast.type] || TOAST_META.success).border }}
           >
             <ToastIcon type={toast.type} />

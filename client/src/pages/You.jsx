@@ -31,7 +31,7 @@ export default function You() {
 
       <DashboardProfileSummary user={user} onProfileUpdated={handleProfileUpdated} onToast={push} />
 
-      <div className="bg-surface p-5 rounded-sm border border-border text-xs text-muted space-y-4">
+      <div className="bg-surface p-5 rounded-2xl border border-border text-xs text-muted space-y-4">
         <div>
           <div className="font-mono uppercase tracking-widest text-[10px] text-muted">Account</div>
           <div className="text-text mt-1">{user.email}</div>
@@ -48,7 +48,7 @@ export default function You() {
         <button
           type="button"
           onClick={handleLogout}
-          className="w-full py-2.5 px-3 rounded-sm border border-border text-text hover:border-accent flex items-center justify-center gap-2 text-xs font-medium uppercase tracking-widest"
+          className="w-full py-2.5 px-3 rounded-2xl border border-border text-text hover:border-accent flex items-center justify-center gap-2 text-xs font-medium uppercase tracking-widest"
         >
           <LogOut className="h-4 w-4" aria-hidden="true" /> Logout
         </button>

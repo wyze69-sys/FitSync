@@ -9,13 +9,13 @@
   --color-surface: #181A20;
   --color-text: #F7F7F5;
   --color-muted: #9AA0A6;
-  --color-accent: #C7FF41;
+  --color-accent: #10B981;
   --color-border: #2A2E37;
 
   --radius-sm: 4px;
   --radius-md: 8px;
-  --radius-lg: 8px;
-  --radius-xl: 8px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
 }
 
 @layer base {
@@ -91,4 +91,25 @@ body {
 
 .animate-bounce-subtle {
   animation: bounceSubtle 1.8s infinite ease-in-out;
+}
+
+
+@keyframes flamePop {
+  0% { transform: scale(0.9) rotate(-8deg); filter: drop-shadow(0 0 0 rgba(245, 158, 11, 0)); }
+  45% { transform: scale(1.22) rotate(7deg); filter: drop-shadow(0 0 18px rgba(245, 158, 11, 0.65)); }
+  100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.25)); }
+}
+
+@keyframes badgePop {
+  0% { transform: scale(0.94); opacity: 0; }
+  60% { transform: scale(1.04); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-flame-pop {
+  animation: flamePop 700ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.animate-badge-pop {
+  animation: badgePop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
