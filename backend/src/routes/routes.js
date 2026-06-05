@@ -6,6 +6,7 @@ const gamificationRoutes = require("./gamificationRoutes");
 const profileRoutes = require("./profileRoutes");
 const weightRoutes = require("./weightRoutes");
 const workoutRoutes = require("./workoutRoutes");
+const aiRoutes = require("./aiRoutes");
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use("/weights", weightRoutes);
 router.use("/categories", categoryRoutes);
 router.use("/gamification", gamificationRoutes);
 router.use("/admin", adminRoutes);
+router.use("/ai", aiRoutes);
 
 module.exports = router;

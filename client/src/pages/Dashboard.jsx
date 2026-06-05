@@ -109,7 +109,7 @@ export default function Dashboard() {
         </article>
 
         <article className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-5 shadow-lg shadow-black/10">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-300">AI insight</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-300">Today's tip</p>
           <h2 className="mt-2 text-lg font-semibold text-text">{currentStreak > 0 ? "Keep the chain alive" : "Start with a 30-minute base"}</h2>
           <p className="mt-3 text-sm leading-relaxed text-muted">
             {recentWorkouts.length > 0
