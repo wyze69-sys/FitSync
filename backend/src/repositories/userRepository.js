@@ -8,7 +8,56 @@ const USER_COLUMNS = `id, email, name, role, password_hash, age, gender, height,
 
 async function getUserById(id) {
   const [rows] = await pool.execute(`SELECT ${USER_COLUMNS} FROM users WHERE id = ?`, [id]);
-  return rows[0] ? mapUserRow(rows[0]) : undefined;
+  return rows[0] ? attachUserDashboardStats(mapUserRow(rows[0])) : undefined;
+}
+
+function weekBounds(date = new Date()) {
+  const today = new Date(date);
+  const day = today.getDay();
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + diffToMonday);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  return {
+    monday: monday.toISOString().slice(0, 10),
+    sunday: sunday.toISOString().slice(0, 10),
+    today: today.toISOString().slice(0, 10)
+  };
+}
+
+async function attachUserDashboardStats(user) {
+  if (!user) return user;
+
+  const { monday, sunday, today } = weekBounds();
+  const [[game]] = await pool.execute(
+    `SELECT total_xp, level, current_streak, longest_streak
+     FROM user_gamification
+     WHERE user_id = ?`,
+    [user.id]
+  );
+  const [[stats]] = await pool.execute(
+    `SELECT
+       COALESCE(SUM(CASE WHEN date = ? THEN COALESCE(calories_burned, calories_total, 0) ELSE 0 END), 0) AS today_calories,
+       COUNT(CASE WHEN date BETWEEN ? AND ? THEN 1 END) AS week_workouts
+     FROM workouts
+     WHERE user_id = ?`,
+    [today, monday, sunday, user.id]
+  );
+  const level = Number(game?.level || 1);
+
+  return {
+    ...user,
+    gamification: {
+      total_xp: Number(game?.total_xp || 0),
+      level,
+      current_streak: Number(game?.current_streak || 0),
+      longest_streak: Number(game?.longest_streak || 0),
+      next_level_xp: level * 150
+    },
+    todayCalories: Number(stats?.today_calories || 0),
+    weekWorkouts: Number(stats?.week_workouts || 0)
+  };
 }
 
 async function getUserByEmail(email) {
@@ -64,7 +113,7 @@ async function createUser(user) {
 
     await connection.execute(
       `INSERT IGNORE INTO user_gamification (user_id, total_xp, level, next_level_xp)
-       VALUES (?, 0, 1, 500)`,
+       VALUES (?, 0, 1, 150)`,
       [id]
     );
 

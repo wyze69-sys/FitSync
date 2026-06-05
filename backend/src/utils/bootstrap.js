@@ -191,11 +191,13 @@ async function createTables() {
       user_id VARCHAR(50) PRIMARY KEY,
       total_xp INT NOT NULL DEFAULT 0,
       level INT NOT NULL DEFAULT 1,
-      next_level_xp INT NOT NULL DEFAULT 500,
+      next_level_xp INT NOT NULL DEFAULT 150,
       current_streak INT NOT NULL DEFAULT 0,
       longest_streak INT NOT NULL DEFAULT 0,
       last_active_date DATE,
+      last_workout_date DATE,
       weekly_freezes_used INT NOT NULL DEFAULT 0,
+      streak_freeze_used BOOLEAN NOT NULL DEFAULT FALSE,
       last_freeze_week VARCHAR(16),
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -272,6 +274,12 @@ async function applySchemaUpgrades() {
     "calories_source ENUM('auto','manual') NOT NULL DEFAULT 'auto'"
   );
   await ensureColumn("workouts", "user_weight_at_log", "user_weight_at_log DECIMAL(5,2)");
+  await ensureColumn("user_gamification", "next_level_xp", "next_level_xp INT NOT NULL DEFAULT 150");
+  await ensureColumn("user_gamification", "last_active_date", "last_active_date DATE");
+  await ensureColumn("user_gamification", "last_workout_date", "last_workout_date DATE");
+  await ensureColumn("user_gamification", "weekly_freezes_used", "weekly_freezes_used INT NOT NULL DEFAULT 0");
+  await ensureColumn("user_gamification", "streak_freeze_used", "streak_freeze_used BOOLEAN NOT NULL DEFAULT FALSE");
+  await ensureColumn("user_gamification", "last_freeze_week", "last_freeze_week VARCHAR(16)");
   await ensureColumn(
     "workouts",
     "updated_at",
@@ -370,7 +378,7 @@ async function seedUsers() {
 
   await pool.execute(
     `INSERT IGNORE INTO user_gamification (user_id, total_xp, level, next_level_xp)
-     SELECT id, 0, 1, 500 FROM users`
+     SELECT id, 0, 1, 150 FROM users`
   );
 }
 
