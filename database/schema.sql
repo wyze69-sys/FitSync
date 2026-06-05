@@ -7,6 +7,7 @@ CREATE DATABASE IF NOT EXISTS fitsync_db;
 USE fitsync_db;
 
 DROP TABLE IF EXISTS xp_logs;
+DROP TABLE IF EXISTS levels;
 DROP TABLE IF EXISTS user_gamification;
 DROP TABLE IF EXISTS user_achievements;
 DROP TABLE IF EXISTS user_streaks;
@@ -31,6 +32,7 @@ CREATE TABLE users (
     height DECIMAL(5,2),
     weight DECIMAL(5,2),
     weight_kg DECIMAL(5,2),
+    total_xp INT NOT NULL DEFAULT 0,
     target_weight DECIMAL(5,2),
     preferred_workout_type VARCHAR(50),
     goal VARCHAR(255) DEFAULT 'Maintain fitness',
@@ -60,6 +62,9 @@ CREATE TABLE workouts (
     duration_total INT NOT NULL DEFAULT 0,
     calories_total INT NOT NULL DEFAULT 0,
     calories_burned INT,
+    calories INT,
+    xp INT NOT NULL DEFAULT 0,
+    intensity ENUM('low','med','high') NOT NULL DEFAULT 'med',
     calories_source ENUM('auto','manual') NOT NULL DEFAULT 'auto',
     user_weight_at_log DECIMAL(5,2),
     notes TEXT,
@@ -168,6 +173,14 @@ CREATE TABLE user_gamification (
     last_freeze_week VARCHAR(16),
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE levels (
+    id VARCHAR(50) PRIMARY KEY,
+    level_number INT NOT NULL UNIQUE,
+    xp_required INT NOT NULL,
+    badge_unlock VARCHAR(50),
+    title VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE xp_logs (

@@ -42,8 +42,8 @@ async function getWeeklyWorkoutTotals(userId, fromDate) {
   };
 }
 
-async function addCheckin(userId, date, type) {
-  const [result] = await pool.execute(
+async function addCheckin(userId, date, type, executor = pool) {
+  const [result] = await executor.execute(
     `INSERT IGNORE INTO daily_checkins (id, user_id, date, type) VALUES (?, ?, ?, ?)`,
     [createId("chk"), userId, date, type]
   );

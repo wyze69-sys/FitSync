@@ -65,6 +65,9 @@ async function hydrateWorkouts(workoutRows, executor = pool) {
     durationTotal: Number(row.duration_total),
     caloriesTotal: Number(row.calories_total),
     caloriesBurned: row.calories_burned === null || row.calories_burned === undefined ? Number(row.calories_total) : Number(row.calories_burned),
+    calories: row.calories === null || row.calories === undefined ? Number(row.calories_total) : Number(row.calories),
+    xp: Number(row.xp || 0),
+    intensity: row.intensity || "med",
     caloriesSource: row.calories_source || "manual",
     userWeightAtLog: row.user_weight_at_log === null || row.user_weight_at_log === undefined ? undefined : Number(row.user_weight_at_log),
     notes: row.notes || undefined,
@@ -182,8 +185,10 @@ async function createWorkout(workout) {
   try {
     await connection.beginTransaction();
     await connection.execute(
-      `INSERT INTO workouts (id, user_id, date, title, duration_total, calories_total, calories_burned, calories_source, user_weight_at_log, notes)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO workouts (
+         id, user_id, date, title, duration_total, calories_total, calories_burned,
+         calories, xp, intensity, calories_source, user_weight_at_log, notes
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         workout.userId,
@@ -192,7 +197,10 @@ async function createWorkout(workout) {
         workout.durationTotal,
         workout.caloriesTotal,
         workout.caloriesBurned ?? workout.caloriesTotal,
-        workout.caloriesSource || "manual",
+        workout.calories ?? workout.caloriesTotal,
+        workout.xp || 0,
+        workout.intensity || "med",
+        workout.caloriesSource || "auto",
         workout.userWeightAtLog || null,
         workout.notes || null
       ]
@@ -266,6 +274,28 @@ async function updateWorkout(id, updates) {
   return getWorkoutById(id);
 }
 
+async function applyWorkoutReward(userId, workoutId, xp) {
+  const { gamificationService } = require("../services/gamificationService");
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+    const reward = await gamificationService.addUserXp(userId, Number(xp || 0), connection);
+    await connection.execute(
+      `INSERT INTO xp_logs (id, user_id, workout_id, xp_earned, reason, breakdown)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [createId("xp"), userId, workoutId, Number(xp || 0), "Workout logged", JSON.stringify({ source: "workoutService" })]
+    );
+    await connection.commit();
+    return reward;
+  } catch (err) {
+    await connection.rollback();
+    throw err;
+  } finally {
+    connection.release();
+  }
+}
+
 async function deleteWorkout(id, userId) {
   const [result] = await pool.execute("DELETE FROM workouts WHERE id = ? AND user_id = ?", [
     id,
@@ -280,6 +310,7 @@ module.exports = {
     getWorkoutById,
     createWorkout,
     updateWorkout,
+    applyWorkoutReward,
     deleteWorkout
   }
 };

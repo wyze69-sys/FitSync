@@ -25,6 +25,7 @@ function mapUserRow(row) {
     gender: row.gender || undefined,
     height: toNumberOrUndefined(row.height),
     weight: toNumberOrUndefined(row.weight),
+    totalXp: toNumberOrUndefined(row.total_xp),
     targetWeight: toNumberOrUndefined(row.target_weight),
     preferredWorkoutType: row.preferred_workout_type || undefined,
     goal: row.goal || undefined,
