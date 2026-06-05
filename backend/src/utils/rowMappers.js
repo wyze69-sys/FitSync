@@ -40,6 +40,9 @@ function mapCategoryRow(row) {
     id: row.id,
     name: row.name,
     description: row.description,
+    slug: row.slug || undefined,
+    baseMet: toNumberOrUndefined(row.base_met),
+    xpPerMetMin: toNumberOrUndefined(row.xp_per_met_min),
     isCustom: Boolean(row.is_custom)
   };
 }

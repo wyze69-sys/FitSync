@@ -62,6 +62,12 @@ async function createUser(user) {
       [id]
     );
 
+    await connection.execute(
+      `INSERT IGNORE INTO user_gamification (user_id, total_xp, level, next_level_xp)
+       VALUES (?, 0, 1, 500)`,
+      [id]
+    );
+
     await connection.commit();
   } catch (err) {
     await connection.rollback();

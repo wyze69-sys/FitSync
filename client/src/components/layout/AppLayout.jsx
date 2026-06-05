@@ -6,7 +6,6 @@ import { useToast } from "../../context/ToastContext.jsx";
 import Navbar from "../common/Navbar.jsx";
 import workoutService from "../../services/workoutService.js";
 import progressService from "../../services/progressService.js";
-import insightService from "../../services/insightService.js";
 import gamificationService from "../../services/gamificationService.js";
 
 const MOBILE_LINKS = [
@@ -28,7 +27,6 @@ export default function AppLayout() {
     workouts: [],
     workoutTotal: 0,
     weightLogs: [],
-    insights: [],
     gamification: null,
     categories: []
   });
@@ -48,10 +46,9 @@ export default function AppLayout() {
     setLoading(true);
     setError(null);
     try {
-      const [workoutRes, weightLogs, insights, gamification, categories] = await Promise.all([
+      const [workoutRes, weightLogs, gamification, categories] = await Promise.all([
         workoutService.getWorkouts({ limit: 50, sort: "date_desc" }),
         progressService.getWeightLogs(),
-        insightService.getInsights(),
         gamificationService.getSummary(),
         workoutService.getCategories()
       ]);
@@ -59,7 +56,6 @@ export default function AppLayout() {
         workouts: workoutRes.items || [],
         workoutTotal: workoutRes.total || 0,
         weightLogs: weightLogs || [],
-        insights: insights || [],
         gamification,
         categories: categories || []
       });
@@ -139,7 +135,7 @@ export default function AppLayout() {
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>FitSync &mdash; Fitness tracking</div>
           <div>&copy; 2026 FitSync</div>
-          <div>Weekly insights powered by Gemini</div>
+          <div>Auto XP and calories</div>
         </div>
       </footer>
     </div>
