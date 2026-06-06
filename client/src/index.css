@@ -170,15 +170,42 @@
 .rank-medal-face { fill: rgba(255, 255, 255, 0.35); stroke: rgba(255, 255, 255, 0.55); stroke-width: 2; }
 .rank-medal-spark { fill: rgba(255, 255, 255, 0.6); }
 .rank-ribbon-left, .rank-ribbon-right { fill: rgba(31, 41, 55, 0.22); }
-.rank-medal-bronze { --medal-gradient: url(#unused); color: #CD7F32; }
+/* ── Badge tier: Bronze (levels 1-2) ─────────────────────── */
+.rank-medal-bronze { color: #7C3E0E; }
 .rank-medal-bronze .rank-medal-ring { fill: #CD7F32; }
-.rank-medal-bronze .rank-medal-face { fill: #A05A2C; }
+.rank-medal-bronze .rank-medal-face { fill: #A05A2C; filter: brightness(1.15); }
+.rank-medal-bronze .rank-medal-spark { fill: rgba(255,220,150,0.7); }
+.rank-medal-bronze .rank-ribbon-left,
+.rank-medal-bronze .rank-ribbon-right { fill: #8B4513; }
+
+/* ── Badge tier: Silver (levels 3-4) ─────────────────────── */
+.rank-medal-silver { color: #4B5563; }
 .rank-medal-silver .rank-medal-ring { fill: #C0C0C0; }
 .rank-medal-silver .rank-medal-face { fill: #F3F4F6; }
+.rank-medal-silver .rank-medal-spark { fill: rgba(255,255,255,0.85); }
+.rank-medal-silver .rank-ribbon-left,
+.rank-medal-silver .rank-ribbon-right { fill: #6B7280; }
+.rank-medal-silver .rank-medal-level { color: #374151; }
+
+/* ── Badge tier: Gold (levels 5-7) ───────────────────────── */
+.rank-medal-gold { color: #92400E; }
 .rank-medal-gold .rank-medal-ring { fill: #FFD700; }
 .rank-medal-gold .rank-medal-face { fill: #D4AF37; }
-.rank-medal-platinum .rank-medal-ring { fill: #E5E4E2; }
-.rank-medal-platinum .rank-medal-face { fill: #F9FAFB; }
+.rank-medal-gold .rank-medal-spark { fill: rgba(255,255,200,0.85); }
+.rank-medal-gold .rank-ribbon-left,
+.rank-medal-gold .rank-ribbon-right { fill: #B45309; }
+.rank-medal-gold .rank-medal-level { color: #78350F; }
+
+/* ── Badge tier: Platinum (levels 8-10) ──────────────────── */
+.rank-medal-platinum { color: #1E3A5F; }
+.rank-medal-platinum .rank-medal-ring { fill: #B8D4E8; }
+.rank-medal-platinum .rank-medal-face { fill: #E8F4FD; }
+.rank-medal-platinum .rank-medal-spark { fill: rgba(200,230,255,0.9); }
+.rank-medal-platinum .rank-ribbon-left,
+.rank-medal-platinum .rank-ribbon-right { fill: #3B82F6; }
+.rank-medal-platinum .rank-medal-level { color: #1E40AF; }
+
+/* ── Badge tier: Legendary (levels 11+) ──────────────────── */
 .rank-medal-legendary::before {
   content: "";
   position: absolute;
@@ -190,6 +217,7 @@
 }
 .rank-medal-legendary .rank-medal-ring { fill: rgba(255, 255, 255, 0.18); }
 .rank-medal-legendary .rank-medal-face { fill: rgba(255, 255, 255, 0.82); }
+.rank-medal-legendary .rank-medal-level { color: #6D28D9; font-weight: 900; }
 
 .confetti-piece {
   position: fixed;

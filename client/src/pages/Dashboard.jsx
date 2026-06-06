@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
-import { CalendarDays, Dumbbell, Flame, Terminal, Timer, X } from "lucide-react";
+import { CalendarDays, Dumbbell, Flame, Sparkles, Terminal, Timer, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import PageHeader from "../components/common/PageHeader.jsx";
 import StatCard from "../components/common/StatCard.jsx";
@@ -9,6 +9,7 @@ import LoadingSpinner from "../components/common/LoadingSpinner.jsx";
 import StreakCard from "../components/gamification/StreakCard.jsx";
 import XPProgressBar from "../components/gamification/XPProgressBar.jsx";
 import AchievementBadge from "../components/gamification/AchievementBadge.jsx";
+import insightService from "../services/insightService.js";
 
 function n(value) {
   return Number(value || 0);
@@ -22,9 +23,19 @@ function getTimeOfDay() {
 }
 
 function formatWorkout(workout) {
+  // The title saved by the new Log.jsx is just the subtype name (e.g. "Boxing").
+  // For older workouts stored as "Boxing Sports", we try to split on the category name.
+  const rawTitle = workout.title || workout.exercises?.[0]?.exerciseName || "Workout";
+  const categoryName = workout.exercises?.[0]?.categoryName || "";
+  // If title ends with " <CategoryName>", strip it to get the activity name only.
+  const activity = categoryName && rawTitle.endsWith(` ${categoryName}`)
+    ? rawTitle.slice(0, rawTitle.length - categoryName.length - 1).trim()
+    : rawTitle;
+  const group = categoryName;
   return {
     id: workout.id,
-    title: workout.title || workout.exercises?.[0]?.exerciseName || "Workout",
+    activity,
+    group,
     date: workout.date ? new Date(workout.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Today",
     calories: n(workout.calories ?? workout.caloriesTotal),
     xp: n(workout.xp ?? workout.xp_earned),
@@ -44,10 +55,39 @@ export default function Dashboard() {
   const currentStreak = n(gamification.currentStreak);
   const longestStreak = n(gamification.longestStreak);
   const level = n(gamification.level || 1);
+  const todayWorkouts = n(gamification.todayWorkouts);
+  const todayMinutes = n(gamification.todayMinutes);
+  const todayCalories = n(gamification.todayCalories);
+  const todayXp = n(gamification.todayXp);
   const [celebration, setCelebration] = useState(null);
+  const [aiInsight, setAiInsight] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
   const previousLevelRef = useRef(null);
   const shownStreakMilestonesRef = useRef(new Set());
   const shownUnlockRef = useRef(new Set());
+
+  // Fetch latest AI insight on mount
+  useEffect(() => {
+    let cancelled = false;
+    insightService.getInsights().then((insights) => {
+      if (!cancelled && Array.isArray(insights) && insights.length > 0) {
+        setAiInsight(insights[0]);
+      }
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleGenerateInsight = async () => {
+    setAiLoading(true);
+    try {
+      const insight = await insightService.generateWeeklyInsight();
+      setAiInsight(insight);
+    } catch (err) {
+      // silently fail — card shows fallback
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!gamification || context.loading) return;
@@ -100,11 +140,11 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Weekly summary">
-        <StatCard icon={Dumbbell} label="Workouts" value={n(gamification.totalWorkoutsThisWeek)} helper="This week" />
-        <StatCard icon={Timer} label="Minutes" value={`${n(gamification.totalMinutesThisWeek)}m`} helper="This week" />
-        <StatCard icon={Flame} label="Calories" iconClassName="text-streak bg-streak/10" value={n(gamification.totalCaloriesThisWeek)} helper="Backend totals" />
-        <StatCard icon={Terminal} label="Dev XP" iconClassName="text-xp bg-xp/10" value={totalXp.toLocaleString()} helper="Lifetime" />
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Today's summary">
+        <StatCard icon={Dumbbell} label="Workouts" value={todayWorkouts} helper="Today" />
+        <StatCard icon={Timer} label="Minutes" value={`${todayMinutes}m`} helper="Today" />
+        <StatCard icon={Flame} label="Calories" iconClassName="text-streak bg-streak/10" value={todayCalories} helper="Today" />
+        <StatCard icon={Terminal} label="XP" iconClassName="text-xp bg-xp/10" value={todayXp} helper="Today" />
       </section>
 
       <section className="grid gap-4 lg:grid-cols-3">
@@ -122,8 +162,15 @@ export default function Dashboard() {
                 <div key={workout.id} className="rounded-2xl bg-bg p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-text">{workout.title}</p>
-                      <p className="text-xs text-muted">{workout.date} • {workout.minutes} min</p>
+                      <p className="text-sm font-semibold text-text">{workout.activity}</p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <span className="text-xs text-muted">{workout.date} • {workout.minutes} min</span>
+                        {workout.group && (
+                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
+                            {workout.group}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <p className="text-right text-xs text-muted">+{workout.xp} XP<br />{workout.calories} cal</p>
                   </div>
@@ -141,16 +188,55 @@ export default function Dashboard() {
         </article>
 
         <article className="rounded-3xl bg-surface border border-border p-6 shadow-lg shadow-black/10">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Insight</p>
-          <h2 className="mt-2 text-lg font-semibold text-text">{currentStreak > 0 ? "Keep the chain alive" : "Start with a 30-minute base"}</h2>
-          <p className="mt-3 text-sm leading-relaxed text-muted">
-            {recentWorkouts.length > 0
-              ? `Your latest sessions total ${recentWorkouts.reduce((sum, item) => sum + item.minutes, 0)} minutes. A similar quick log today can protect your streak and push XP forward.`
-              : "Log 3 more workouts to unlock your personalized insight"}
-          </p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-primary">This Week's AI Insight</p>
+            <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
+          </div>
+          {aiInsight ? (
+            <div className="mt-3">
+              <p className="text-sm leading-relaxed text-text">{aiInsight.summary}</p>
+              {aiInsight.goalProgress && (
+                <p className="mt-2 text-xs leading-relaxed text-muted">{aiInsight.goalProgress}</p>
+              )}
+              {Array.isArray(aiInsight.recommendations) && aiInsight.recommendations.length > 0 && (
+                <ul className="mt-3 space-y-1.5">
+                  {aiInsight.recommendations.map((tip, i) => (
+                    <li key={i} className="flex items-start gap-2 text-xs text-muted">
+                      <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true" />
+                      {tip}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="mt-3 flex flex-wrap gap-3 text-[10px] font-bold uppercase tracking-widest text-muted">
+                {aiInsight.workoutCount != null && <span>{aiInsight.workoutCount} workouts</span>}
+                {aiInsight.totalCalories != null && <span>{aiInsight.totalCalories} cal</span>}
+                {aiInsight.totalMinutes != null && <span>{Math.round(aiInsight.totalMinutes / 6) / 10}h</span>}
+              </div>
+            </div>
+          ) : (
+            <div className="mt-3">
+              <h2 className="text-lg font-semibold text-text">
+                {currentStreak > 0 ? "Your week in review" : "Start with a 30-minute base"}
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted">
+                {recentWorkouts.length > 0
+                  ? `You've logged ${recentWorkouts.length} recent sessions. Generate an AI-powered insight to see personalized tips.`
+                  : "Log a few workouts to unlock your personalized weekly AI insight."}
+              </p>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={handleGenerateInsight}
+            disabled={aiLoading}
+            className="mt-4 w-full rounded-2xl border border-primary/30 bg-primary/5 px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-primary transition hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
+          >
+            {aiLoading ? "Generating…" : "✨ Generate Weekly Insight"}
+          </button>
           {badges.length > 0 && (
             <div className="mt-4 grid gap-3">
-              {badges.map((badge) => <AchievementBadge key={badge.code || badge.name} level={level} title={badge.name || gamification.title} size="sm" badge={badge} />)}
+              {badges.map((badge) => <AchievementBadge key={badge.code || badge.name} size="sm" badge={badge} />)}
             </div>
           )}
         </article>
@@ -200,7 +286,7 @@ function CelebrationModal({ celebration, onClose }) {
         </button>
         <div className="animate-medal-reveal">
           {isLevel ? (
-            <AchievementBadge level={celebration.level} title={celebration.title} size="xl" />
+            <AchievementBadge size="xl" badge={{ level: celebration.level, name: celebration.title }} />
           ) : (
             <div className="mx-auto grid h-32 w-32 place-items-center rounded-full bg-amber-100 text-amber-500 streak-gold-glow">
               <Flame className="size-16 animate-flame-pulse" aria-hidden="true" />

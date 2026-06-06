@@ -130,7 +130,7 @@ export default function Log() {
     const meta = findCategoryMeta(categories, category, subtype);
     const categorySlug = meta?.slug || category.slug;
     const categoryId = meta?.id || subtype.categoryId || category.id;
-    const title = `${subtype.name} ${category.name}`;
+    const title = subtype.name;
     const payload = {
       date: details.date || todayStr(),
       title,

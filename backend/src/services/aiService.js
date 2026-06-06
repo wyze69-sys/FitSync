@@ -22,18 +22,17 @@ const aiService = {
       throw new Error("User profile not found.");
     }
 
+    const weeklyStats = await gamificationService.getWeeklyStats(userId);
+
     const workoutResult = await workoutRepository.getWorkoutsByUserId(user.id, { limit: 100 });
     const workouts = workoutResult.items;
     const weightLogs = await weightRepository.getWeightLogsByUserId(user.id);
-    const streak = await gamificationService.getSummary(user.id);
 
     const today = new Date();
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(today.getDate() - 7);
 
     const recentWorkouts = workouts.filter((workout) => new Date(workout.date) >= sevenDaysAgo);
-    const totalCalories = recentWorkouts.reduce((sum, workout) => sum + workout.caloriesTotal, 0);
-    const totalMinutes = recentWorkouts.reduce((sum, workout) => sum + workout.durationTotal, 0);
     const currentWeight = user.weight || weightLogs[0]?.weight || 70;
     const currentBmi = calculateBMI(currentWeight, user.height || 170);
 
@@ -62,7 +61,7 @@ const aiService = {
             .join("\n")
         : "No workouts logged this week.";
 
-    const systemPrompt = `You are a supportive fitness coach. Focus on workout consistency, recovery, body-weight trend awareness, streak motivation, and realistic next training steps. Do not provide medical advice, meal plans, or calorie targets. Keep goalProgress under 600 characters. Generate a JSON object with this exact shape:
+    const systemPrompt = `You are a supportive fitness coach. Provide: 1 short summary sentence of the week, then 1-2 motivational sentences. Do not provide medical advice or use fake numbers. Focus on workout consistency, recovery, body-weight trend awareness, streak motivation, and realistic next training steps. Keep goalProgress under 600 characters. Generate a JSON object with this exact shape:
 {
   "summary": "A friendly weekly coaching summary.",
   "recommendations": ["tip 1", "tip 2", "tip 3"],
@@ -80,8 +79,13 @@ Analyze this athlete training log:
 ${targetWeightLine}
 - BMI: ${currentBmi}
 - Weight Delta (7 days): ${weightProgressSummary}
-- Current Activity Streak: ${streak.currentStreak} day(s) (best: ${streak.longestStreak})
-- Weekly Consistency: ${streak.weeklyConsistency}%
+- Current Activity Streak: ${weeklyStats.currentStreak} day(s)
+- Days Active This Week: ${weeklyStats.daysActive}
+- Total Workouts: ${weeklyStats.totalWorkouts}
+- Total Calories: ${weeklyStats.totalCalories} kcal
+- Total Minutes: ${weeklyStats.totalMinutes} min (${weeklyStats.totalHours} hrs)
+- Total XP: ${weeklyStats.totalXp}
+- Top Activity: ${weeklyStats.topActivity}
 
 Weekly Active Workout Logs:
 ${workoutsText}`;
@@ -114,14 +118,14 @@ ${workoutsText}`;
       generatedInsight = JSON.parse(response.text || "{}");
     } catch (err) {
       const activeQuote =
-        recentWorkouts.length > 2
+        weeklyStats.totalWorkouts > 2
           ? "Your workout consistency is strong and your momentum is building."
           : "You are building the foundation, and every logged effort counts.";
 
       generatedInsight = {
-        summary: `Hey ${user.name}! ${activeQuote} This week, you logged ${recentWorkouts.length} sessions for ${totalMinutes} active minutes and ${totalCalories} estimated calories. Your BMI is ${currentBmi} with body weight at ${currentWeight} kg, and your current activity streak is ${streak.currentStreak} day(s).`,
+        summary: `Hey ${user.name}! ${activeQuote} This week, you logged ${weeklyStats.totalWorkouts} sessions for ${weeklyStats.totalMinutes} active minutes and ${weeklyStats.totalCalories} estimated calories. Your BMI is ${currentBmi} with body weight at ${currentWeight} kg, and your current activity streak is ${weeklyStats.currentStreak} day(s).`,
         recommendations: [
-          `Target at least ${recentWorkouts.length > 2 ? "4" : "3"} sessions this coming week to strengthen routine consistency.`,
+          `Target at least ${weeklyStats.totalWorkouts > 2 ? "4" : "3"} sessions this coming week to strengthen routine consistency.`,
           "Use rest days, hydration, and sleep to support recovery between sessions.",
           "Keep weight check-ins consistent by measuring at similar morning hours."
         ],
@@ -134,9 +138,9 @@ ${workoutsText}`;
       dateGenerated: dateString(today),
       startDate: dateString(sevenDaysAgo),
       endDate: dateString(today),
-      workoutCount: recentWorkouts.length,
-      totalCalories,
-      totalMinutes,
+      workoutCount: weeklyStats.totalWorkouts,
+      totalCalories: weeklyStats.totalCalories,
+      totalMinutes: weeklyStats.totalMinutes,
       bmiValue: currentBmi,
       currentWeight,
       summary: generatedInsight.summary,

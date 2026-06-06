@@ -2,6 +2,23 @@ const pool = require("../config/db");
 const { gamificationRepository } = require("../repositories/gamificationRepository");
 const { computeStreakStats, streakMessage, toDateStr } = require("../utils/streak");
 const { createId } = require("../utils/ids");
+
+/**
+ * Returns the current local date string (YYYY-MM-DD) in the Asia/Phnom_Penh timezone.
+ * Uses Intl.DateTimeFormat — no external library required.
+ * @returns {string}
+ */
+function getTodayLocal() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Phnom_Penh',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(new Date());
+  const get = (type) => parts.find((p) => p.type === type)?.value || '';
+  return `${get('year')}-${get('month')}-${get('day')}`;
+}
+
 const {
   CATEGORY_PROFILES,
   calculateCalories,
@@ -117,8 +134,11 @@ async function getCategoryMeta(category, executor = pool) {
 async function ensureBadge(code, title, executor) {
   if (!code) return;
   await executor.execute(
-    `INSERT IGNORE INTO achievements (code, name, description, requirement_type, requirement_value, sort_order)
-     VALUES (?, ?, ?, 'level', 0, 100)`,
+    `INSERT INTO achievements (code, name, description, requirement_type, requirement_value, sort_order)
+     VALUES (?, ?, ?, 'level', 0, 100)
+     ON DUPLICATE KEY UPDATE
+       name = VALUES(name),
+       description = VALUES(description)`,
     [code, title, `Reached ${title}.`]
   );
 }
@@ -186,6 +206,81 @@ async function addUserXp(userId, xpAmount, executor) {
 }
 
 /**
+ * Queries today's workout totals for a user using Asia/Phnom_Penh local date.
+ * Uses workouts.xp, workouts.duration_total, workouts.calories_total.
+ * @param {string} userId User id.
+ * @returns {Promise<{todayWorkouts: number, todayMinutes: number, todayCalories: number, todayXp: number}>}
+ */
+async function getTodaySummary(userId) {
+  const todayLocal = getTodayLocal();
+  const [[row]] = await pool.execute(
+    `SELECT
+       COUNT(*) AS workout_count,
+       COALESCE(SUM(duration_total), 0) AS total_minutes,
+       COALESCE(SUM(calories_total), 0) AS total_calories,
+       COALESCE(SUM(xp), 0) AS total_xp
+     FROM workouts
+     WHERE user_id = ? AND date = ?`,
+    [userId, todayLocal]
+  );
+  return {
+    todayWorkouts: Number(row.workout_count),
+    todayMinutes: Number(row.total_minutes),
+    todayCalories: Number(row.total_calories),
+    todayXp: Number(row.total_xp)
+  };
+}
+
+/**
+ * Returns weekly stats for the last 7 days.
+ * @param {string} userId User id.
+ * @returns {Promise<object>}
+ */
+async function getWeeklyStats(userId) {
+  const [[row]] = await pool.execute(
+    `SELECT
+       COUNT(DISTINCT date) AS days_active,
+       COUNT(*) AS total_workouts,
+       COALESCE(SUM(calories_total), 0) AS total_calories,
+       COALESCE(SUM(xp), 0) AS total_xp,
+       COALESCE(SUM(duration_total), 0) AS total_minutes
+     FROM workouts
+     WHERE user_id = ? AND date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)`,
+    [userId]
+  );
+
+  // Most common workout title in the last 7 days
+  const [topRows] = await pool.execute(
+    `SELECT title, COUNT(*) AS cnt
+     FROM workouts
+     WHERE user_id = ? AND date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+     GROUP BY title
+     ORDER BY cnt DESC
+     LIMIT 1`,
+    [userId]
+  );
+
+  // Streak from existing helpers
+  const activeDates = await gamificationRepository.getActivityDates(userId);
+  const streakStats = computeStreakStats(activeDates);
+
+  const daysActive = Number(row.days_active);
+  const totalMinutes = Number(row.total_minutes);
+
+  return {
+    daysActive,
+    workoutDays: daysActive,
+    totalWorkouts: Number(row.total_workouts),
+    totalCalories: Number(row.total_calories),
+    totalXp: Number(row.total_xp),
+    totalMinutes,
+    totalHours: Math.round(totalMinutes / 60 * 10) / 10,
+    topActivity: topRows[0]?.title || 'None',
+    currentStreak: streakStats.currentStreak
+  };
+}
+
+/**
  * Builds the authenticated user's gamification summary.
  * @param {string} userId User id.
  * @returns {Promise<object>}
@@ -212,6 +307,7 @@ async function buildSummary(userId) {
   const nextLevel = await getNextLevel(level.levelNumber);
   const catalog = await gamificationRepository.getAchievementCatalog();
   const unlocked = await gamificationRepository.getUnlockedAchievements(userId);
+  const todayData = await getTodaySummary(userId);
 
   return {
     currentStreak: stats.currentStreak,
@@ -222,6 +318,10 @@ async function buildSummary(userId) {
     totalWorkoutsThisWeek: weekly.workoutCount,
     totalMinutesThisWeek: weekly.totalMinutes,
     totalCaloriesThisWeek: weekly.totalCalories,
+    todayWorkouts: todayData.todayWorkouts,
+    todayMinutes: todayData.todayMinutes,
+    todayCalories: todayData.todayCalories,
+    todayXp: todayData.todayXp,
     totalXp,
     total_xp: totalXp,
     level: level.levelNumber,
@@ -339,6 +439,8 @@ const gamificationService = {
   getCategoryMeta,
   recordAutoWorkout,
   addUserXp,
+  getTodaySummary,
+  getWeeklyStats,
 
   async getSummary(userId) {
     return buildSummary(userId);
@@ -377,6 +479,7 @@ const gamificationService = {
 
 module.exports = {
   gamificationService,
+  getWeeklyStats,
   calculateXP,
   calculateCalories,
   CATEGORY_MET_DATA: CATEGORY_PROFILES

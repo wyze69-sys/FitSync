@@ -106,7 +106,7 @@ export default function AppLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-bg text-text flex flex-col font-sans relative pb-20 md:pb-8">
+    <div className="min-h-screen bg-bg text-text flex flex-col font-sans relative pb-20 md:pb-8 overflow-x-hidden">
       <Navbar />
 
       <main className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6 bg-bg text-text flex-grow pb-24 md:pb-8">
