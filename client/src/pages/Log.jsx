@@ -6,7 +6,6 @@ import EmptyState from "../components/common/EmptyState.jsx";
 import LoadingSpinner from "../components/common/LoadingSpinner.jsx";
 import QuickLogGrid from "../components/workout/QuickLogGrid.jsx";
 import SubtypePicker from "../components/workout/SubtypePicker.jsx";
-import PreviewPill from "../components/workout/PreviewPill.jsx";
 import RepeatLast from "../components/workout/RepeatLast.jsx";
 import { WORKOUT_MAP } from "../utils/constants.js";
 import { estimateCalories, estimateXP, getProfileWeight } from "../utils/previewCalculator.js";
@@ -14,7 +13,7 @@ import workoutService from "../services/workoutService.js";
 import { todayStr } from "../utils/workoutUtils.js";
 
 const LAST_WORKOUT_KEY = "fitsync:lastWorkout";
-const LAST_CATEGORY_KEY = "fitsync:lastCategory";
+const LAST_CATEGORY_KEY = "fitsync_last_log";
 const DEFAULT_DURATION = 30;
 
 function normalize(value) {
@@ -58,11 +57,12 @@ export default function Log() {
   const [subtype, setSubtype] = useState(null);
   const [duration, setDuration] = useState(DEFAULT_DURATION);
   const [showDetails, setShowDetails] = useState(false);
-  const [details, setDetails] = useState({ date: todayStr(), distance: "", intensity: "med", notes: "" });
+  const [details, setDetails] = useState({ date: todayStr(), distance: "", intensity: "med", notes: "", sets: "", reps: "", weight: "" });
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [lastWorkout, setLastWorkout] = useState(null);
   const [announcement, setAnnouncement] = useState("");
+  const [savedTotals, setSavedTotals] = useState(null);
 
   useEffect(() => {
     const saved = getStored(LAST_CATEGORY_KEY);
@@ -80,22 +80,27 @@ export default function Log() {
     categorySlug: categoryMeta?.slug || category?.slug,
     categoryName: categoryMeta?.name || category?.name
   }), [category, categoryMeta, subtype]);
+  const isCardio = normalize(category?.slug).includes("cardio") || normalize(category?.name).includes("cardio");
+  const isStrength = normalize(category?.slug).includes("strength") || normalize(category?.name).includes("strength");
+
   const preview = useMemo(() => {
     const weightKg = getProfileWeight(user);
-    const distance = Number(details.distance || 0);
+    const distance = isCardio ? Number(details.distance || 0) : 0;
     return {
       calories: estimateCalories(subtypeForPreview, duration, weightKg, distance),
       xp: estimateXP(subtypeForPreview, duration, weightKg, distance)
     };
-  }, [details.distance, duration, subtypeForPreview, user]);
+  }, [details.distance, duration, isCardio, subtypeForPreview, user]);
 
   const handleCategorySelect = useCallback((nextCategory) => {
+    setSavedTotals(null);
     setCategory(nextCategory);
     setSubtype(nextCategory.subtypes[0]);
     store(LAST_CATEGORY_KEY, { categorySlug: nextCategory.slug, subtypeSlug: nextCategory.subtypes[0]?.slug, duration });
   }, [duration]);
 
   const handleSubtypeSelect = useCallback((nextSubtype) => {
+    setSavedTotals(null);
     setSubtype(nextSubtype);
     store(LAST_CATEGORY_KEY, { categorySlug: category?.slug, subtypeSlug: nextSubtype.slug, duration });
   }, [category?.slug, duration]);
@@ -103,12 +108,20 @@ export default function Log() {
   const handleRepeat = useCallback((workout) => {
     const nextCategory = WORKOUT_MAP.find((item) => item.slug === workout.categorySlug) || WORKOUT_MAP[0];
     const nextSubtype = nextCategory.subtypes.find((item) => item.slug === workout.subtypeSlug) || nextCategory.subtypes[0];
+    setSavedTotals(null);
     setCategory(nextCategory);
     setSubtype(nextSubtype);
     setDuration(Number(workout.duration || DEFAULT_DURATION));
-    setDetails((current) => ({ ...current, distance: workout.distance || "", intensity: workout.intensity || "med" }));
+    setDetails((current) => ({ ...current, distance: workout.distance || "", intensity: workout.intensity || "med", sets: workout.sets || "", reps: workout.reps || "", weight: workout.weight || "" }));
     setAnnouncement(`Ready to repeat ${nextSubtype.name}.`);
   }, []);
+
+  const handleCustomDuration = useCallback((value) => {
+    const nextDuration = Math.min(300, Math.max(1, Number(value || 1)));
+    setDuration(nextDuration);
+    setSavedTotals(null);
+    store(LAST_CATEGORY_KEY, { categorySlug: category?.slug, subtypeSlug: subtype?.slug, duration: nextDuration });
+  }, [category?.slug, subtype?.slug]);
 
   const handleSubmit = useCallback(async (event) => {
     event.preventDefault();
@@ -124,7 +137,7 @@ export default function Log() {
       category: categorySlug,
       categorySlug,
       duration_min: Number(duration || DEFAULT_DURATION),
-      distance_km: details.distance ? Number(details.distance) : undefined,
+      distance_km: isCardio && details.distance ? Number(details.distance) : undefined,
       intensity: details.intensity,
       notes: details.notes || undefined,
       exercises: [
@@ -133,7 +146,8 @@ export default function Log() {
           categoryName: meta?.name || category.name,
           exerciseName: subtype.name,
           duration: Number(duration || DEFAULT_DURATION),
-          categorySlug
+          categorySlug,
+          sets: isStrength && details.sets ? [{ reps: Number(details.reps || 0), weight: Number(details.weight || 0) }] : undefined
         }
       ]
     };
@@ -143,9 +157,10 @@ export default function Log() {
     setAnnouncement(`Logging ${subtype.name}. Preview was ${preview.xp} XP.`);
 
     try {
-      const result = await workoutService.createWorkout(payload);
+      const result = await workoutService.log(payload);
       const realXp = realNumber(result, ["xp_earned", "xp", "xpEarned"]);
       const realCalories = realNumber(result, ["calories", "caloriesTotal", "calories_total", "caloriesBurned"]);
+      setSavedTotals({ xp: realXp, calories: realCalories });
       const storedWorkout = {
         categorySlug: category.slug,
         categoryName: category.name,
@@ -153,7 +168,10 @@ export default function Log() {
         subtypeName: subtype.name,
         duration,
         distance: details.distance,
-        intensity: details.intensity
+        intensity: details.intensity,
+        sets: details.sets,
+        reps: details.reps,
+        weight: details.weight
       };
       store(LAST_WORKOUT_KEY, storedWorkout);
       store(LAST_CATEGORY_KEY, storedWorkout);
@@ -167,7 +185,7 @@ export default function Log() {
     } finally {
       setSubmitting(false);
     }
-  }, [categories, category, details, duration, preview.xp, push, refreshAll, submitting, subtype]);
+  }, [categories, category, details, duration, isCardio, isStrength, preview.xp, push, refreshAll, submitting, subtype]);
 
   if (loading) return <LoadingSpinner label="Loading workout logger" />;
 
@@ -200,13 +218,14 @@ export default function Log() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted">Duration</p>
-              <div className="mt-2 flex gap-2" role="group" aria-label="Workout duration">
+              <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Workout duration">
                 {[15, 30, 45, 60].map((minutes) => (
                   <button
                     type="button"
                     key={minutes}
                     onClick={() => {
                       setDuration(minutes);
+                      setSavedTotals(null);
                       store(LAST_CATEGORY_KEY, { categorySlug: category.slug, subtypeSlug: subtype.slug, duration: minutes });
                     }}
                     aria-pressed={duration === minutes}
@@ -215,9 +234,29 @@ export default function Log() {
                     {minutes}m
                   </button>
                 ))}
+                <label className="sr-only" htmlFor="custom-duration">Custom duration</label>
+                <input
+                  id="custom-duration"
+                  type="number"
+                  min="1"
+                  max="300"
+                  placeholder="Custom"
+                  value={[15, 30, 45, 60].includes(Number(duration)) ? "" : duration}
+                  onChange={(event) => handleCustomDuration(event.target.value)}
+                  className="min-h-[44px] w-28 rounded-full border border-border bg-bg px-4 py-2 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-primary"
+                />
               </div>
             </div>
-            <PreviewPill calories={preview.calories} xp={preview.xp} />
+            <div className="rounded-2xl border border-border bg-bg p-3 text-sm">
+              {savedTotals ? (
+                <p className="font-bold text-primary">Saved XP: {savedTotals.xp} / Calories: {savedTotals.calories}</p>
+              ) : (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted">Estimate before submit</p>
+                  <p className="mt-1 font-bold text-text">Estimated XP: {preview.xp} / Calories: {preview.calories}</p>
+                </div>
+              )}
+            </div>
           </div>
 
           <button
@@ -235,10 +274,12 @@ export default function Log() {
                 Date
                 <input type="date" value={details.date} onChange={(e) => setDetails((current) => ({ ...current, date: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
               </label>
-              <label className="text-sm text-text">
-                Distance (km, optional)
-                <input type="number" min="0" step="0.1" inputMode="decimal" value={details.distance} onChange={(e) => setDetails((current) => ({ ...current, distance: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
-              </label>
+              {isCardio && (
+                <label className="text-sm text-text">
+                  Distance (km, optional)
+                  <input type="number" min="0" step="0.1" inputMode="decimal" value={details.distance} onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, distance: e.target.value })); }} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:ring-2 focus-visible:ring-primary" />
+                </label>
+              )}
               <label className="text-sm text-text">
                 Intensity
                 <select value={details.intensity} onChange={(e) => setDetails((current) => ({ ...current, intensity: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
@@ -247,9 +288,25 @@ export default function Log() {
                   <option value="high">High</option>
                 </select>
               </label>
+              {isStrength && (
+                <div className="grid gap-3 sm:col-span-2 sm:grid-cols-3">
+                  <label className="text-sm text-text">
+                    Sets
+                    <input type="number" min="1" max="20" value={details.sets} onChange={(e) => setDetails((current) => ({ ...current, sets: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:ring-2 focus-visible:ring-primary" />
+                  </label>
+                  <label className="text-sm text-text">
+                    Reps
+                    <input type="number" min="1" max="100" value={details.reps} onChange={(e) => setDetails((current) => ({ ...current, reps: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:ring-2 focus-visible:ring-primary" />
+                  </label>
+                  <label className="text-sm text-text">
+                    Weight (kg)
+                    <input type="number" min="0" step="0.5" value={details.weight} onChange={(e) => setDetails((current) => ({ ...current, weight: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:ring-2 focus-visible:ring-primary" />
+                  </label>
+                </div>
+              )}
               <label className="text-sm text-text sm:col-span-2">
                 Notes
-                <textarea value={details.notes} onChange={(e) => setDetails((current) => ({ ...current, notes: e.target.value }))} rows="3" className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
+                <textarea value={details.notes} onChange={(e) => setDetails((current) => ({ ...current, notes: e.target.value }))} rows="3" className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:ring-2 focus-visible:ring-primary" />
               </label>
             </div>
           )}
@@ -268,7 +325,7 @@ export default function Log() {
 }
 
 function InlineError({ message }) {
-  return <section role="alert" className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100">{message}</section>;
+  return <section role="alert" className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-700">{message}</section>;
 }
 
 function PageError({ message, onRetry }) {

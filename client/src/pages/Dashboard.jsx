@@ -1,6 +1,6 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
-import { CalendarDays, Dumbbell, Flame, Terminal, Timer } from "lucide-react";
+import { CalendarDays, Dumbbell, Flame, Terminal, Timer, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import PageHeader from "../components/common/PageHeader.jsx";
 import StatCard from "../components/common/StatCard.jsx";
@@ -43,6 +43,37 @@ export default function Dashboard() {
   const nextLevelXp = n(gamification.nextLevelXp ?? gamification.next_level_xp);
   const currentStreak = n(gamification.currentStreak);
   const longestStreak = n(gamification.longestStreak);
+  const level = n(gamification.level || 1);
+  const [celebration, setCelebration] = useState(null);
+  const previousLevelRef = useRef(null);
+  const shownStreakMilestonesRef = useRef(new Set());
+  const shownUnlockRef = useRef(new Set());
+
+  useEffect(() => {
+    if (!gamification || context.loading) return;
+
+    const previousLevel = previousLevelRef.current;
+    const newUnlocks = gamification.newlyUnlocked || gamification.badge_awarded || [];
+    const unlockList = Array.isArray(newUnlocks) ? newUnlocks : [newUnlocks].filter(Boolean);
+    const unlockKey = unlockList.map((badge) => badge.code || badge.id || badge.name).filter(Boolean).join(":");
+    const hasNewUnlock = unlockKey && !shownUnlockRef.current.has(unlockKey);
+
+    if (hasNewUnlock) shownUnlockRef.current.add(unlockKey);
+
+    if ((previousLevel !== null && previousLevel < level) || hasNewUnlock) {
+      setCelebration({ type: "level", level, title: gamification.title || "New Rank" });
+    }
+
+    previousLevelRef.current = level;
+  }, [context.loading, gamification, level]);
+
+  useEffect(() => {
+    const milestones = [7, 14, 30, 60, 100];
+    if (!context.loading && milestones.includes(currentStreak) && !shownStreakMilestonesRef.current.has(currentStreak)) {
+      shownStreakMilestonesRef.current.add(currentStreak);
+      setCelebration({ type: "streak", streak: currentStreak });
+    }
+  }, [context.loading, currentStreak]);
 
   if (context.loading) return <LoadingSpinner label="Loading dashboard" />;
 
@@ -50,6 +81,7 @@ export default function Dashboard() {
 
   return (
     <main className="space-y-6 text-text">
+      {celebration && <CelebrationModal celebration={celebration} onClose={() => setCelebration(null)} />}
       <PageHeader
         eyebrow="Dashboard"
         title={`${getTimeOfDay()}, ${userName} 👋`}
@@ -62,9 +94,9 @@ export default function Dashboard() {
       />
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <StreakCard current={currentStreak} longest={longestStreak} increased={currentStreak > 0} />
+        <StreakCard current={currentStreak} longest={longestStreak} />
         <div className="lg:col-span-2">
-          <XPProgressBar totalXp={totalXp} nextLevelXp={nextLevelXp} level={n(gamification.level || 1)} title={gamification.title} />
+          <XPProgressBar totalXp={totalXp} nextLevelXp={nextLevelXp} level={level} title={gamification.title} />
         </div>
       </div>
 
@@ -118,7 +150,7 @@ export default function Dashboard() {
           </p>
           {badges.length > 0 && (
             <div className="mt-4 grid gap-3">
-              {badges.map((badge) => <AchievementBadge key={badge.code} badge={badge} />)}
+              {badges.map((badge) => <AchievementBadge key={badge.code || badge.name} level={level} title={badge.name || gamification.title} size="sm" badge={badge} />)}
             </div>
           )}
         </article>
@@ -135,5 +167,52 @@ function ErrorPanel({ message, onRetry }) {
         Retry
       </button>
     </section>
+  );
+}
+
+
+const CONFETTI_COLORS = ["#10B981", "#34D399", "#F59E0B", "#EF4444", "#8B5CF6"];
+
+function CelebrationModal({ celebration, onClose }) {
+  const isLevel = celebration.type === "level";
+  const title = isLevel ? `Level Up! You reached Level ${celebration.level}` : `${celebration.streak} Day Streak!`;
+  const subtitle = isLevel ? celebration.title : "Your consistency is heating up.";
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-gray-900/45 px-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="celebration-title">
+      <div aria-live="polite" className="sr-only">{title} {subtitle}</div>
+      {Array.from({ length: 30 }).map((_, index) => (
+        <span
+          key={index}
+          className="confetti-piece"
+          style={{
+            "--confetti-left": `${(index * 37) % 100}%`,
+            "--confetti-color": CONFETTI_COLORS[index % CONFETTI_COLORS.length],
+            "--confetti-delay": `${(index % 10) * 0.08}s`,
+            "--confetti-duration": `${2 + (index % 6) * 0.18}s`,
+            "--confetti-drift": `${index % 2 === 0 ? "" : "-"}${18 + (index % 8) * 4}px`
+          }}
+        />
+      ))}
+      <section className="relative w-full max-w-md rounded-3xl border border-border bg-surface p-7 text-center shadow-2xl">
+        <button type="button" onClick={onClose} className="absolute right-4 top-4 rounded-full p-2 text-muted hover:bg-bg hover:text-text" aria-label="Close celebration">
+          <X className="size-4" aria-hidden="true" />
+        </button>
+        <div className="animate-medal-reveal">
+          {isLevel ? (
+            <AchievementBadge level={celebration.level} title={celebration.title} size="xl" />
+          ) : (
+            <div className="mx-auto grid h-32 w-32 place-items-center rounded-full bg-amber-100 text-amber-500 streak-gold-glow">
+              <Flame className="size-16 animate-flame-pulse" aria-hidden="true" />
+            </div>
+          )}
+        </div>
+        <h2 id="celebration-title" className="mt-6 text-2xl font-black text-text">{title}</h2>
+        <p className="mt-2 text-sm font-semibold text-primary">{subtitle}</p>
+        <button type="button" onClick={onClose} className="mt-6 rounded-2xl bg-primary px-5 py-3 text-sm font-bold text-white shadow-md shadow-primary/20 hover:bg-secondary focus-visible:ring-2 focus-visible:ring-primary">
+          Continue
+        </button>
+      </section>
+    </div>
   );
 }

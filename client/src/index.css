@@ -1,19 +1,26 @@
 @import url('https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600&f[]=jetbrains-mono@500&display=swap');
 @import "tailwindcss";
 
+:root {
+  --primary: #10B981;
+  --bg-app: #FAFAF9;
+  --surface: #FFFFFF;
+  --border: #E5E7EB;
+}
+
 @theme {
   --font-sans: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  --color-bg: #EEEEEE;
+  --color-bg: #FAFAF9;
   --color-surface: #FFFFFF;
-  --color-text: #2F332C;
-  --color-muted: #777C6D;
-  --color-primary: #777C6D;
-  --color-secondary: #B7B89F;
+  --color-text: #1F2937;
+  --color-muted: #4B5563;
+  --color-primary: #10B981;
+  --color-secondary: #059669;
   --color-streak: #EF4444;
-  --color-xp: #22C55E;
-  --color-border: #CBCBCB;
+  --color-xp: #16A34A;
+  --color-border: #E5E7EB;
 
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -25,13 +32,41 @@
   html {
     font-family: theme('fontFamily.sans');
   }
-}
 
-body {
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  -webkit-font-smoothing: antialiased;
-  color-scheme: light;
+  body {
+    background-color: var(--bg-app);
+    color: theme('colors.text');
+    -webkit-font-smoothing: antialiased;
+    color-scheme: light;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  }
+
+  button:not(:disabled):hover,
+  a:hover {
+    transform: translateY(-1px);
+  }
+
+  input,
+  select,
+  textarea {
+    color: theme('colors.text');
+  }
+
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  button:focus-visible,
+  a:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
 }
 
 ::-webkit-scrollbar {
@@ -40,24 +75,25 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-bg);
+  background: var(--bg-app);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: var(--border);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-muted);
+  background: var(--primary);
 }
 
 .card-hover-effect {
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card-hover-effect:hover {
-  border-color: var(--color-primary);
+  border-color: var(--primary);
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.15);
 }
 
 @keyframes slideIn {
@@ -80,27 +116,9 @@ body {
   50% { transform: translateY(-4px); }
 }
 
-.animate-slide-in {
-  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-slide-up {
-  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.25s ease-out forwards;
-}
-
-.animate-bounce-subtle {
-  animation: bounceSubtle 1.8s infinite ease-in-out;
-}
-
-
-@keyframes flamePop {
-  0% { transform: scale(0.9) rotate(-8deg); filter: drop-shadow(0 0 0 rgba(245, 158, 11, 0)); }
-  45% { transform: scale(1.22) rotate(7deg); filter: drop-shadow(0 0 18px rgba(245, 158, 11, 0.65)); }
-  100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.25)); }
+@keyframes flamePulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(239, 68, 68, 0.35)); }
+  50% { transform: scale(1.12) rotate(-3deg); filter: drop-shadow(0 0 16px rgba(245, 158, 11, 0.7)); }
 }
 
 @keyframes badgePop {
@@ -109,10 +127,80 @@ body {
   100% { transform: scale(1); opacity: 1; }
 }
 
-.animate-flame-pop {
-  animation: flamePop 700ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+@keyframes medalReveal {
+  0% { transform: scale(0.4) rotate(-12deg); opacity: 0; }
+  70% { transform: scale(1.08) rotate(3deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
 }
 
-.animate-badge-pop {
-  animation: badgePop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+@keyframes legendaryRotate {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fall {
+  0% { transform: translate3d(0, -20vh, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate3d(var(--confetti-drift, 0), 110vh, 0) rotate(720deg); opacity: 0; }
+}
+
+.animate-slide-in { animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-fade-in { animation: fadeIn 0.25s ease-out forwards; }
+.animate-bounce-subtle { animation: bounceSubtle 1.8s infinite ease-in-out; }
+.animate-flame-pulse { animation: flamePulse 1.3s ease-in-out infinite; }
+.animate-badge-pop { animation: badgePop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.animate-medal-reveal { animation: medalReveal 620ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.streak-gold-glow { filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.75)); }
+
+.rank-medal {
+  position: relative;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+
+.rank-medal svg { position: absolute; inset: 0; }
+.rank-medal-level {
+  position: relative;
+  z-index: 2;
+  color: var(--color-text);
+  font-weight: 900;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+.rank-medal-ring { fill: var(--medal-gradient); }
+.rank-medal-face { fill: rgba(255, 255, 255, 0.35); stroke: rgba(255, 255, 255, 0.55); stroke-width: 2; }
+.rank-medal-spark { fill: rgba(255, 255, 255, 0.6); }
+.rank-ribbon-left, .rank-ribbon-right { fill: rgba(31, 41, 55, 0.22); }
+.rank-medal-bronze { --medal-gradient: url(#unused); color: #CD7F32; }
+.rank-medal-bronze .rank-medal-ring { fill: #CD7F32; }
+.rank-medal-bronze .rank-medal-face { fill: #A05A2C; }
+.rank-medal-silver .rank-medal-ring { fill: #C0C0C0; }
+.rank-medal-silver .rank-medal-face { fill: #F3F4F6; }
+.rank-medal-gold .rank-medal-ring { fill: #FFD700; }
+.rank-medal-gold .rank-medal-face { fill: #D4AF37; }
+.rank-medal-platinum .rank-medal-ring { fill: #E5E4E2; }
+.rank-medal-platinum .rank-medal-face { fill: #F9FAFB; }
+.rank-medal-legendary::before {
+  content: "";
+  position: absolute;
+  inset: 2%;
+  border-radius: 999px;
+  background: conic-gradient(from 0deg, #10B981, #60A5FA, #A78BFA, #F59E0B, #10B981);
+  animation: legendaryRotate 4s linear infinite;
+  z-index: -1;
+}
+.rank-medal-legendary .rank-medal-ring { fill: rgba(255, 255, 255, 0.18); }
+.rank-medal-legendary .rank-medal-face { fill: rgba(255, 255, 255, 0.82); }
+
+.confetti-piece {
+  position: fixed;
+  top: 0;
+  left: var(--confetti-left, 50%);
+  width: 0.55rem;
+  height: 0.9rem;
+  border-radius: 0.2rem;
+  background: var(--confetti-color, var(--primary));
+  animation: fall var(--confetti-duration, 2.4s) linear forwards;
+  animation-delay: var(--confetti-delay, 0s);
+  pointer-events: none;
+  z-index: 60;
 }
