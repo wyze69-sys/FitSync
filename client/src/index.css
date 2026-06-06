@@ -5,12 +5,15 @@
   --font-sans: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  --color-bg: #0F1115;
-  --color-surface: #181A20;
-  --color-text: #F7F7F5;
-  --color-muted: #9AA0A6;
-  --color-accent: #10B981;
-  --color-border: #2A2E37;
+  --color-bg: #EEEEEE;
+  --color-surface: #FFFFFF;
+  --color-text: #2F332C;
+  --color-muted: #777C6D;
+  --color-primary: #777C6D;
+  --color-secondary: #B7B89F;
+  --color-streak: #EF4444;
+  --color-xp: #22C55E;
+  --color-border: #CBCBCB;
 
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -28,7 +31,7 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 ::-webkit-scrollbar {
@@ -54,7 +57,7 @@ body {
 }
 
 .card-hover-effect:hover {
-  border-color: var(--color-accent);
+  border-color: var(--color-primary);
 }
 
 @keyframes slideIn {

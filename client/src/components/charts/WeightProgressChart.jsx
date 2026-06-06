@@ -53,7 +53,7 @@ export default function WeightProgressChart({ weightLogs = [], targetWeight, max
               y1={y}
               x2={width - paddingX}
               y2={y}
-              stroke="#2A2E37"
+              stroke="#CBCBCB"
               strokeWidth="1"
               opacity="0.8"
             />
@@ -66,7 +66,7 @@ export default function WeightProgressChart({ weightLogs = [], targetWeight, max
                 y1={targetY}
                 x2={width - paddingX}
                 y2={targetY}
-                stroke="#C7FF41"
+                stroke="#777C6D"
                 strokeWidth="1.5"
                 strokeDasharray="5 4"
                 opacity="0.85"
@@ -75,7 +75,7 @@ export default function WeightProgressChart({ weightLogs = [], targetWeight, max
                 x={width - paddingX}
                 y={targetY - 5}
                 textAnchor="end"
-                className="font-mono tabular-nums text-[9px] fill-accent"
+                className="font-mono tabular-nums text-[9px] fill-primary"
               >
                 Target {targetWeight}kg
               </text>
@@ -84,7 +84,7 @@ export default function WeightProgressChart({ weightLogs = [], targetWeight, max
 
           <polyline
             fill="none"
-            stroke="#C7FF41"
+            stroke="#777C6D"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -104,8 +104,8 @@ export default function WeightProgressChart({ weightLogs = [], targetWeight, max
                   cx={x}
                   cy={y}
                   r="5"
-                  fill="#181A20"
-                  stroke="#C7FF41"
+                  fill="#FFFFFF"
+                  stroke="#777C6D"
                   strokeWidth="2"
                   className="opacity-0 transition-opacity group-hover:opacity-100"
                 />

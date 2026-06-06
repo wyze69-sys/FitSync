@@ -13,7 +13,7 @@ export default function DashboardWorkoutTemplates({ onSelectTemplate }) {
         {WORKOUT_TEMPLATES.map((template) => (
           <div
             key={template.title}
-            className="bg-surface p-3 rounded-2xl border border-border flex flex-col justify-between gap-3 hover:border-accent transition-all"
+            className="bg-surface p-3 rounded-2xl border border-border flex flex-col justify-between gap-3 hover:border-primary transition-all"
           >
             <div>
               <h4 className="text-xs font-semibold text-text tracking-wider uppercase">
@@ -34,7 +34,7 @@ export default function DashboardWorkoutTemplates({ onSelectTemplate }) {
             <button
               type="button"
               onClick={() => onSelectTemplate(template)}
-              className="w-full py-1.5 bg-transparent border border-border hover:border-accent transition-all text-[10px] font-medium uppercase tracking-widest rounded-2xl text-center cursor-pointer text-text"
+              className="w-full py-1.5 bg-transparent border border-border hover:border-primary transition-all text-[10px] font-medium uppercase tracking-widest rounded-2xl text-center cursor-pointer text-text"
             >
               Use Template
             </button>

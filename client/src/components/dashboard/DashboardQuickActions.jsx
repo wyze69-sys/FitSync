@@ -29,8 +29,8 @@ export default function DashboardQuickActions({ onQuickLog, onCheckin, checkedIn
             onClick={() => onCheckin("Hydration check-in")}
             className={`p-2.5 rounded-2xl border text-xs font-semibold uppercase tracking-wider transition-all flex items-center justify-between cursor-pointer ${
               checkedInToday
-                ? "bg-accent/5 border-accent/30 text-text"
-                : "bg-bg border-border hover:border-accent text-text"
+                ? "bg-primary/5 border-primary/30 text-text"
+                : "bg-bg border-border hover:border-primary text-text"
             }`}
           >
             <span className="flex items-center gap-2">
@@ -48,8 +48,8 @@ export default function DashboardQuickActions({ onQuickLog, onCheckin, checkedIn
             onClick={() => onCheckin("Stretch & recovery check-in")}
             className={`p-2.5 rounded-2xl border text-xs font-semibold uppercase tracking-wider transition-all flex items-center justify-between cursor-pointer ${
               checkedInToday
-                ? "bg-accent/5 border-accent/30 text-text"
-                : "bg-bg border-border hover:border-accent text-text"
+                ? "bg-primary/5 border-primary/30 text-text"
+                : "bg-bg border-border hover:border-primary text-text"
             }`}
           >
             <span className="flex items-center gap-2">
@@ -79,7 +79,7 @@ export default function DashboardQuickActions({ onQuickLog, onCheckin, checkedIn
               type="button"
               disabled={busy}
               onClick={() => onQuickLog(preset)}
-              className="p-3 rounded-2xl bg-surface border border-border text-left hover:border-accent transition-all cursor-pointer group flex flex-col justify-between h-24 disabled:opacity-50"
+              className="p-3 rounded-2xl bg-surface border border-border text-left hover:border-primary transition-all cursor-pointer group flex flex-col justify-between h-24 disabled:opacity-50"
             >
               <span className="text-[10px] font-mono text-muted font-bold group-hover:text-text uppercase tracking-widest">
                 {preset.tag}

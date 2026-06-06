@@ -6,7 +6,7 @@ import ErrorBanner from "../common/ErrorBanner.jsx";
 const LABEL =
   "block text-[10px] uppercase tracking-wider text-muted font-mono mb-1.5 font-bold";
 const INPUT =
-  "block w-full px-3 py-2.5 bg-bg border border-border focus:border-accent rounded-sm text-sm text-text focus:outline-none";
+  "block w-full px-3 py-2.5 bg-bg border border-border focus:border-primary rounded-sm text-sm text-text focus:outline-none";
 
 /**
  * Four-step onboarding shown when a profile is missing height/weight.
@@ -68,7 +68,7 @@ export default function OnboardingModal({ user, onComplete }) {
     >
       <div className="bg-surface max-w-lg w-full rounded-sm border border-border p-6 md:p-8 space-y-6 relative my-8">
         <div className="flex justify-between items-center text-xs font-mono">
-          <span className="text-accent font-bold uppercase tracking-widest">
+          <span className="text-primary font-bold uppercase tracking-widest">
             Welcome to FitSync
           </span>
           <span className="text-muted font-semibold">Step {step} of 4</span>
@@ -141,7 +141,7 @@ export default function OnboardingModal({ user, onComplete }) {
                   type="button"
                   disabled={!form.name.trim() || !form.age}
                   onClick={() => setStep(2)}
-                  className="px-6 py-2 bg-accent text-black text-xs font-medium uppercase tracking-widest rounded-sm cursor-pointer disabled:opacity-40"
+                  className="px-6 py-2 bg-primary text-white text-xs font-medium uppercase tracking-widest rounded-sm cursor-pointer disabled:opacity-40"
                 >
                   Next: Body metrics
                 </button>
@@ -214,7 +214,7 @@ export default function OnboardingModal({ user, onComplete }) {
                   type="button"
                   disabled={!form.height || !form.weight}
                   onClick={() => setStep(3)}
-                  className="px-6 py-2 bg-accent text-black text-xs font-medium uppercase tracking-widest rounded-sm cursor-pointer disabled:opacity-40"
+                  className="px-6 py-2 bg-primary text-white text-xs font-medium uppercase tracking-widest rounded-sm cursor-pointer disabled:opacity-40"
                 >
                   Next: Goals
                 </button>
@@ -275,7 +275,7 @@ export default function OnboardingModal({ user, onComplete }) {
                 <button
                   type="button"
                   onClick={() => setStep(4)}
-                  className="px-6 py-2 bg-accent text-black text-xs font-medium uppercase tracking-widest rounded-sm cursor-pointer"
+                  className="px-6 py-2 bg-primary text-white text-xs font-medium uppercase tracking-widest rounded-sm cursor-pointer"
                 >
                   Next: Style
                 </button>
@@ -299,7 +299,7 @@ export default function OnboardingModal({ user, onComplete }) {
                     onClick={() => setField("preferredWorkoutType", type)}
                     className={`p-3 text-xs font-semibold rounded-sm border uppercase tracking-wider transition-all text-center ${
                       form.preferredWorkoutType === type
-                        ? "border-accent bg-accent/10 text-accent"
+                        ? "border-primary bg-primary/10 text-primary"
                         : "border-border bg-bg text-muted hover:text-text"
                     }`}
                   >
@@ -322,7 +322,7 @@ export default function OnboardingModal({ user, onComplete }) {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-6 py-2 bg-accent text-black text-xs font-medium uppercase tracking-widest rounded-sm cursor-pointer transition-all disabled:opacity-50"
+                  className="px-6 py-2 bg-primary text-white text-xs font-medium uppercase tracking-widest rounded-sm cursor-pointer transition-all disabled:opacity-50"
                 >
                   {saving ? "Saving..." : "Complete & Launch"}
                 </button>

@@ -13,10 +13,10 @@ export default function DashboardStreakCard({ gamification }) {
       <div className="flex justify-between items-start">
         <div>
           <span className="text-[9px] font-mono font-bold text-muted uppercase tracking-widest">
-            Daily streak
+            Commit Streak
           </span>
           <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-4xl font-mono tabular-nums font-semibold text-accent leading-none">
+            <span className="text-4xl font-mono tabular-nums font-semibold text-streak leading-none">
               {currentStreak}
             </span>
             <span className="text-[10px] text-muted font-mono uppercase font-semibold">
@@ -27,11 +27,11 @@ export default function DashboardStreakCard({ gamification }) {
         <div
           className={`h-8 w-8 rounded-sm border flex items-center justify-center ${
             currentStreak > 0
-              ? "text-accent bg-accent/10 border-accent/30"
+              ? "text-streak bg-streak/10 border-streak/30"
               : "text-muted bg-bg border-border"
           }`}
         >
-          <Flame className="h-5 w-5 fill-current" aria-hidden="true" />
+          <Flame className="size-5 text-streak" aria-hidden="true" />
         </div>
       </div>
 

@@ -9,7 +9,7 @@ function StatTile({ label, value, hint, accent = false }) {
       >
         {label}
       </span>
-      <div className={`text-2xl font-mono tabular-nums font-semibold mt-1 ${accent ? "text-accent" : "text-text"}`}>
+      <div className={`text-2xl font-mono tabular-nums font-semibold mt-1 ${accent ? "text-primary" : "text-text"}`}>
         {value}
       </div>
       {hint && (
@@ -34,15 +34,17 @@ export default function DashboardStats({ gamification, workoutTotal, user, weigh
   const hasBmi = Boolean(user?.weight && user?.height);
 
   // Target-weight progress: from the earliest logged weight toward the target.
-  const startWeight =
+  const startingWeight =
     weightLogs.length > 0 ? weightLogs[weightLogs.length - 1].weight : user?.weight;
   const currentWeight = user?.weight;
   const targetWeight = user?.targetWeight;
   let targetProgress = null;
-  if (targetWeight && currentWeight && startWeight && startWeight !== targetWeight) {
-    const ratio = ((startWeight - currentWeight) / (startWeight - targetWeight)) * 100;
+  if (targetWeight && currentWeight && startingWeight) {
+    const pct = targetWeight === startingWeight
+      ? 0
+      : Math.min(100, Math.max(0, ((startingWeight - currentWeight) / (startingWeight - targetWeight)) * 100));
     targetProgress = {
-      percent: Math.max(0, Math.min(100, Math.round(ratio))),
+      percent: Math.round(pct),
       remaining: Math.abs(Number((currentWeight - targetWeight).toFixed(1)))
     };
   }
@@ -101,7 +103,7 @@ export default function DashboardStats({ gamification, workoutTotal, user, weigh
           {targetProgress ? (
             <div>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-mono tabular-nums font-semibold text-accent">
+                <span className="text-3xl font-mono tabular-nums font-semibold text-primary">
                   {targetProgress.percent}%
                 </span>
                 <span className="text-[11px] text-muted font-mono tabular-nums">
@@ -110,7 +112,7 @@ export default function DashboardStats({ gamification, workoutTotal, user, weigh
               </div>
               <div className="mt-3 h-1 w-full bg-bg rounded-sm overflow-hidden">
                 <div
-                  className="h-full bg-accent rounded-sm"
+                  className="h-full bg-primary rounded-sm"
                   style={{ width: `${targetProgress.percent}%` }}
                 />
               </div>

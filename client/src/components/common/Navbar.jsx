@@ -45,12 +45,12 @@ export default function Navbar() {
 
   const desktopClass = ({ isActive }) =>
     `h-16 flex items-center gap-1.5 border-b-2 font-semibold transition-all cursor-pointer ${
-      isActive ? "text-text border-accent" : "border-transparent text-muted hover:text-text"
+      isActive ? "text-text border-primary" : "border-transparent text-muted hover:text-text"
     }`;
 
   const mobileClass = ({ isActive }) =>
     `w-full text-left py-2 px-3 rounded-sm font-medium flex items-center gap-2 uppercase tracking-widest ${
-      isActive ? "bg-accent text-black" : "text-muted hover:text-text hover:bg-bg"
+      isActive ? "bg-primary text-white" : "text-muted hover:text-text hover:bg-bg"
     }`;
 
   return (
@@ -59,7 +59,7 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex items-center gap-2">
             <div className="h-9 w-9 bg-surface border border-border rounded-sm flex items-center justify-center">
-              <Dumbbell className="h-5 w-5 text-accent" aria-hidden="true" />
+              <Dumbbell className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
             <span className="tracking-tight text-xl font-semibold text-text select-none">
               FitSync
@@ -87,7 +87,7 @@ export default function Navbar() {
               onClick={handleLogout}
               aria-label="Log out"
               title="Log out"
-              className="h-8 w-8 rounded-sm bg-surface border border-border text-muted hover:text-text hover:border-accent flex items-center justify-center transition-all cursor-pointer"
+              className="h-8 w-8 rounded-sm bg-surface border border-border text-muted hover:text-text hover:border-primary flex items-center justify-center transition-all cursor-pointer"
             >
               <LogOut className="h-4 w-4" />
             </button>
@@ -128,7 +128,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={handleLogout}
-              className="py-1.5 px-3 bg-transparent border border-border text-text font-medium rounded-sm flex items-center gap-1 cursor-pointer hover:border-accent"
+              className="py-1.5 px-3 bg-transparent border border-border text-text font-medium rounded-sm flex items-center gap-1 cursor-pointer hover:border-primary"
             >
               <LogOut className="h-3.5 w-3.5" /> Logout
             </button>

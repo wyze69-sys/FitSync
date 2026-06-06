@@ -22,7 +22,7 @@ export default function You() {
   return (
     <div className="space-y-6 text-left max-w-2xl mx-auto">
       <div className="flex items-center gap-2">
-        <UserCog className="h-5 w-5 text-accent" aria-hidden="true" />
+        <UserCog className="h-5 w-5 text-primary" aria-hidden="true" />
         <h1 className="text-xl font-semibold tracking-tight text-text">You</h1>
       </div>
       <p className="text-xs text-muted">
@@ -48,7 +48,7 @@ export default function You() {
         <button
           type="button"
           onClick={handleLogout}
-          className="w-full py-2.5 px-3 rounded-2xl border border-border text-text hover:border-accent flex items-center justify-center gap-2 text-xs font-medium uppercase tracking-widest"
+          className="w-full py-2.5 px-3 rounded-2xl border border-border text-text hover:border-primary flex items-center justify-center gap-2 text-xs font-medium uppercase tracking-widest"
         >
           <LogOut className="h-4 w-4" aria-hidden="true" /> Logout
         </button>
