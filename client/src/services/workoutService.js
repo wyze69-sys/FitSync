@@ -14,6 +14,10 @@ const workoutService = {
     return apiClient.post("/workouts", workoutData);
   },
 
+  log(workoutData) {
+    return apiClient.post("/workouts", workoutData);
+  },
+
   updateWorkout(id, workoutData) {
     return apiClient.put(`/workouts/${id}`, workoutData);
   },
