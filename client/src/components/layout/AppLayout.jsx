@@ -109,8 +109,12 @@ export default function AppLayout() {
     <div className="min-h-screen bg-bg text-text flex flex-col font-sans relative pb-20 md:pb-8">
       <Navbar />
 
-      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
-        <Outlet context={context} />
+      <main className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6 bg-bg text-text flex-grow pb-24 md:pb-8">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+          <div className="xl:col-span-12">
+            <Outlet context={context} />
+          </div>
+        </div>
       </main>
 
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-border px-2 py-2.5 flex items-center justify-around z-40">
@@ -121,7 +125,7 @@ export default function AppLayout() {
             end={to === "/"}
             className={({ isActive }) =>
               `flex flex-col items-center gap-1.5 py-1 px-3 rounded-sm transition-all select-none ${
-                isActive ? "text-accent" : "text-muted"
+                isActive ? "text-primary" : "text-muted"
               }`
             }
           >

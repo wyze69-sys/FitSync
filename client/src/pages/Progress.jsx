@@ -9,7 +9,7 @@ function getLatestWeight(weightLogs = []) {
   return 0;
 }
 
-function TargetProgress({ latestWeight, targetWeight }) {
+function TargetProgress({ latestWeight, startingWeight, targetWeight }) {
   if (!latestWeight || !targetWeight) {
     return (
       <div className="p-4 rounded-2xl border border-border bg-surface shadow-lg shadow-black/10 text-xs text-muted">
@@ -19,8 +19,9 @@ function TargetProgress({ latestWeight, targetWeight }) {
   }
 
   const difference = Math.abs(latestWeight - targetWeight);
-  const range = Math.max(Math.abs(latestWeight - targetWeight) * 2, latestWeight * 0.1, 1);
-  const progress = Math.max(0, Math.min(100, 100 - (difference / range) * 100));
+  const progress = targetWeight === startingWeight
+    ? 0
+    : Math.min(100, Math.max(0, ((startingWeight - latestWeight) / (startingWeight - targetWeight)) * 100));
   const direction = latestWeight > targetWeight ? "to go" : latestWeight < targetWeight ? "below target" : "at target";
 
   return (
@@ -32,15 +33,15 @@ function TargetProgress({ latestWeight, targetWeight }) {
           </span>
           <h2 className="text-sm font-semibold text-text mt-0.5">Progress</h2>
         </div>
-        <Target className="h-5 w-5 text-accent" aria-hidden="true" />
+        <Target className="h-5 w-5 text-primary" aria-hidden="true" />
       </div>
       <div className="space-y-2">
         <div className="flex justify-between text-xs font-mono tabular-nums">
           <span className="text-muted">Current {latestWeight} kg</span>
-          <span className="text-accent">Target {targetWeight} kg</span>
+          <span className="text-primary">Target {targetWeight} kg</span>
         </div>
         <div className="h-3 rounded-2xl bg-bg border border-border overflow-hidden">
-          <div className="h-full bg-accent" style={{ width: `${progress}%` }} />
+          <div className="h-full bg-primary" style={{ width: `${progress}%` }} />
         </div>
         <p className="text-xs text-muted">
           {difference === 0 ? "You are at your target weight." : `${difference.toFixed(1)} kg ${direction}.`}
@@ -79,7 +80,7 @@ function BmiCard({ height, latestWeight }) {
           <span className="text-[10px] font-mono font-bold text-muted uppercase tracking-widest">BMI</span>
           <h2 className="text-sm font-semibold text-text mt-0.5">Body Mass Index</h2>
         </div>
-        <Scale className="h-5 w-5 text-accent" aria-hidden="true" />
+        <Scale className="h-5 w-5 text-primary" aria-hidden="true" />
       </div>
       <div className="flex items-end gap-2">
         <span className={`text-5xl font-mono tabular-nums font-semibold ${bmiMeta.colorClass}`}>{bmi}</span>
@@ -97,6 +98,7 @@ export default function Progress() {
   const { user, weightLogs } = useOutletContext();
   const latestWeight = getLatestWeight(weightLogs);
   const hasWeightLogs = weightLogs.length > 0;
+  const startingWeight = weightLogs.length > 0 ? Number(weightLogs[weightLogs.length - 1].weight) : latestWeight;
 
   return (
     <div className="space-y-6 text-left text-text">
@@ -124,7 +126,7 @@ export default function Progress() {
             <h2 className="text-sm font-semibold text-text mt-0.5">Recent entries</h2>
           </div>
           {user.targetWeight && (
-            <span className="text-xs text-accent font-mono tabular-nums">
+            <span className="text-xs text-primary font-mono tabular-nums">
               Target {user.targetWeight} kg
             </span>
           )}
@@ -142,7 +144,7 @@ export default function Progress() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <BmiCard height={user.height} latestWeight={latestWeight} />
-        <TargetProgress latestWeight={latestWeight} targetWeight={user.targetWeight} />
+        <TargetProgress latestWeight={latestWeight} startingWeight={startingWeight} targetWeight={user.targetWeight} />
       </div>
     </div>
   );

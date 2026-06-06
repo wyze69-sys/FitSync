@@ -44,7 +44,7 @@ export default function ConfirmDialog({
       >
         <div className="flex items-start gap-3">
           <span
-            className={`h-9 w-9 rounded-sm flex items-center justify-center shrink-0 border ${destructive ? "bg-red-950/30 border-red-900/40 text-red-300" : "bg-accent/10 border-accent/30 text-accent"}`}
+            className={`h-9 w-9 rounded-sm flex items-center justify-center shrink-0 border ${destructive ? "bg-red-950/30 border-red-900/40 text-red-300" : "bg-primary/10 border-primary/30 text-primary"}`}
           >
             <AlertTriangle className="h-4.5 w-4.5" />
           </span>
@@ -63,7 +63,7 @@ export default function ConfirmDialog({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-1.5 text-xs font-medium uppercase tracking-widest text-muted hover:text-text rounded-sm border border-border hover:border-accent transition-all cursor-pointer"
+            className="px-4 py-1.5 text-xs font-medium uppercase tracking-widest text-muted hover:text-text rounded-sm border border-border hover:border-primary transition-all cursor-pointer"
           >
             {cancelLabel}
           </button>
@@ -71,7 +71,7 @@ export default function ConfirmDialog({
             type="button"
             ref={confirmRef}
             onClick={onConfirm}
-            className={`px-4 py-1.5 text-xs font-medium uppercase tracking-widest rounded-sm transition-all cursor-pointer ${destructive ? "bg-red-500 hover:bg-red-400 text-text" : "bg-accent text-black"}`}
+            className={`px-4 py-1.5 text-xs font-medium uppercase tracking-widest rounded-sm transition-all cursor-pointer ${destructive ? "bg-red-500 hover:bg-red-400 text-text" : "bg-primary text-white"}`}
           >
             {confirmLabel}
           </button>

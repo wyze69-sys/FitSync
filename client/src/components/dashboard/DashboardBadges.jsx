@@ -1,4 +1,4 @@
-import { Trophy, Sparkle } from "lucide-react";
+import { Code2, Sparkle } from "lucide-react";
 
 /**
  * Achievement (badge) grid. Badges come from the backend so unlock state
@@ -14,7 +14,7 @@ export default function DashboardBadges({ badges = [] }) {
           </span>
           <h3 className="text-sm font-semibold text-text mt-0.5">Achievements</h3>
         </div>
-        <Trophy className="h-5 w-5 text-accent" aria-hidden="true" />
+        <Code2 className="size-5 text-primary" aria-hidden="true" />
       </div>
 
       <div className="grid grid-cols-2 gap-2">
@@ -23,7 +23,7 @@ export default function DashboardBadges({ badges = [] }) {
             key={badge.code}
             className={`p-3 rounded-sm border flex flex-col justify-between space-y-2 transition-all ${
               badge.isUnlocked
-                ? "border-accent/40 bg-accent/5 text-text"
+                ? "border-primary/40 bg-primary/5 text-text"
                 : "border-border bg-bg/30 text-muted"
             }`}
           >
@@ -31,14 +31,14 @@ export default function DashboardBadges({ badges = [] }) {
               <span
                 className={`text-[8px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded-sm font-bold border ${
                   badge.isUnlocked
-                    ? "bg-accent/10 text-accent border-accent/30"
+                    ? "bg-primary/10 text-primary border-primary/30"
                     : "bg-bg text-muted border-border"
                 }`}
               >
                 {badge.requirement}
               </span>
               <Sparkle
-                className={`h-3 w-3 ${badge.isUnlocked ? "text-accent" : "text-border"}`}
+                className={`h-3 w-3 ${badge.isUnlocked ? "text-primary" : "text-border"}`}
                 aria-hidden="true"
               />
             </div>

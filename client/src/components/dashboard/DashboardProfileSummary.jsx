@@ -7,7 +7,7 @@ import ErrorBanner from "../common/ErrorBanner.jsx";
 const LABEL =
   "block text-[9px] font-mono font-semibold text-muted uppercase tracking-widest mb-1";
 const INPUT =
-  "block w-full px-3 py-2 text-xs bg-bg border border-border focus:border-accent rounded-sm text-text focus:outline-none";
+  "block w-full px-3 py-2 text-xs bg-bg border border-border focus:border-primary rounded-sm text-text focus:outline-none";
 
 /**
  * Athlete profile card with an inline view/edit toggle. Persists target weight
@@ -253,7 +253,7 @@ export default function DashboardProfileSummary({ user, onProfileUpdated, onToas
           <button
             type="submit"
             disabled={saving}
-            className="w-full py-2 bg-accent text-black font-medium text-xs rounded-sm uppercase tracking-widest transition-all cursor-pointer disabled:opacity-50"
+            className="w-full py-2 bg-primary text-white font-medium text-xs rounded-sm uppercase tracking-widest transition-all cursor-pointer disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link, useOutletContext } from "react-router-dom";
-import { CalendarDays, Dumbbell, Flame, Timer, Zap } from "lucide-react";
+import { CalendarDays, Dumbbell, Flame, Terminal, Timer } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import PageHeader from "../components/common/PageHeader.jsx";
 import StatCard from "../components/common/StatCard.jsx";
@@ -55,7 +55,7 @@ export default function Dashboard() {
         title={`${getTimeOfDay()}, ${userName} 👋`}
         description="Your streak, XP, weekly effort, and next quick action are ready."
         action={
-          <Link to="/log" className="inline-flex rounded-2xl bg-emerald-500 px-5 py-3 text-sm font-bold text-zinc-950 shadow-lg shadow-emerald-950/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-bg">
+          <Link to="/log" className="inline-flex rounded-2xl bg-primary px-5 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg">
             Quick Log
           </Link>
         }
@@ -71,15 +71,15 @@ export default function Dashboard() {
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Weekly summary">
         <StatCard icon={Dumbbell} label="Workouts" value={n(gamification.totalWorkoutsThisWeek)} helper="This week" />
         <StatCard icon={Timer} label="Minutes" value={`${n(gamification.totalMinutesThisWeek)}m`} helper="This week" />
-        <StatCard icon={Flame} label="Calories" value={n(gamification.totalCaloriesThisWeek)} helper="Backend totals" />
-        <StatCard icon={Zap} label="Total XP" value={totalXp.toLocaleString()} helper="Lifetime" />
+        <StatCard icon={Flame} label="Calories" iconClassName="text-streak bg-streak/10" value={n(gamification.totalCaloriesThisWeek)} helper="Backend totals" />
+        <StatCard icon={Terminal} label="Dev XP" iconClassName="text-xp bg-xp/10" value={totalXp.toLocaleString()} helper="Lifetime" />
       </section>
 
       <section className="grid gap-4 lg:grid-cols-3">
         <article className="rounded-2xl border border-border bg-surface p-5 shadow-lg shadow-black/10 lg:col-span-2">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Recent</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Recent</p>
               <h2 className="mt-1 text-lg font-semibold text-text">Last 3 workouts</h2>
             </div>
             <CalendarDays className="h-5 w-5 text-muted" aria-hidden="true" />
@@ -103,18 +103,18 @@ export default function Dashboard() {
               icon={Dumbbell}
               title="No workouts yet — log your first in 10s"
               description="Quick Log keeps the first workout fast and typing-free."
-              action={<Link to="/log" className="inline-flex rounded-2xl bg-emerald-500 px-4 py-2 text-sm font-bold text-zinc-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">Quick Log</Link>}
+              action={<Link to="/log" className="inline-flex rounded-2xl bg-primary px-4 py-2 text-sm font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">Quick Log</Link>}
             />
           )}
         </article>
 
-        <article className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-5 shadow-lg shadow-black/10">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-300">AI insight</p>
+        <article className="rounded-3xl bg-surface border border-border p-6 shadow-lg shadow-black/10">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Insight</p>
           <h2 className="mt-2 text-lg font-semibold text-text">{currentStreak > 0 ? "Keep the chain alive" : "Start with a 30-minute base"}</h2>
           <p className="mt-3 text-sm leading-relaxed text-muted">
             {recentWorkouts.length > 0
               ? `Your latest sessions total ${recentWorkouts.reduce((sum, item) => sum + item.minutes, 0)} minutes. A similar quick log today can protect your streak and push XP forward.`
-              : "A low-friction 30-minute session is enough to generate backend calories, XP, and streak progress."}
+              : "Log 3 more workouts to unlock your personalized insight"}
           </p>
           {badges.length > 0 && (
             <div className="mt-4 grid gap-3">
@@ -129,9 +129,9 @@ export default function Dashboard() {
 
 function ErrorPanel({ message, onRetry }) {
   return (
-    <section role="alert" className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100">
+    <section role="alert" className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-text">
       <p>{message}</p>
-      <button type="button" onClick={onRetry} className="mt-4 rounded-2xl border border-red-400/40 px-4 py-2 font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+      <button type="button" onClick={onRetry} className="mt-4 rounded-2xl border border-red-400/40 px-4 py-2 font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
         Retry
       </button>
     </section>

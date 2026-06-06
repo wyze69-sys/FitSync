@@ -40,7 +40,7 @@ function StatCard({ label, value, icon: Icon, hint }) {
       </strong>
       {hint && (
         <span className="text-[10px] text-white/40 mt-1.5 flex items-center gap-1">
-          <Icon className="h-3 w-3 text-accent" aria-hidden="true" /> {hint}
+          <Icon className="h-3 w-3 text-primary" aria-hidden="true" /> {hint}
         </span>
       )}
     </div>
@@ -210,7 +210,7 @@ export default function AdminPortalView() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-surface p-6 rounded-sm border border-border ">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-accent" aria-hidden="true" />
+            <ShieldCheck className="h-5 w-5 text-primary" aria-hidden="true" />
             <h1 className="text-base  text-white font-bold">
               Administration Portal
             </h1>
@@ -333,7 +333,7 @@ export default function AdminPortalView() {
                           </td>
                           <td className="py-3 px-4 font-mono text-white">{row.usageCount}</td>
                           <td className="py-3 px-4 font-mono text-white/60">{row.totalMinutes}m</td>
-                          <td className="py-3 px-5 font-mono text-accent">
+                          <td className="py-3 px-5 font-mono text-primary">
                             {row.totalCalories}
                           </td>
                         </tr>
@@ -367,7 +367,7 @@ export default function AdminPortalView() {
                         setCatDesc("");
                         setCatError(null);
                       }}
-                      className="px-3 py-1.5 bg-accent text-black text-xs font-medium uppercase tracking-widest rounded-sm flex items-center gap-1 cursor-pointer transition-all"
+                      className="px-3 py-1.5 bg-primary text-white text-xs font-medium uppercase tracking-widest rounded-sm flex items-center gap-1 cursor-pointer transition-all"
                     >
                       <Plus className="h-3 w-3" /> Add
                     </button>
@@ -396,7 +396,7 @@ export default function AdminPortalView() {
                             type="button"
                             onClick={() => startEditCategory(category)}
                             aria-label={`Edit ${category.name}`}
-                            className="text-white/40 hover:text-accent p-1.5 transition-all cursor-pointer"
+                            className="text-white/40 hover:text-primary p-1.5 transition-all cursor-pointer"
                           >
                             <Edit2 className="h-3.5 w-3.5" />
                           </button>
@@ -476,7 +476,7 @@ export default function AdminPortalView() {
                     </div>
                     <button
                       type="submit"
-                      className="w-full py-2 bg-accent text-black font-medium uppercase tracking-widest text-xs rounded-sm transition-all cursor-pointer"
+                      className="w-full py-2 bg-primary text-white font-medium uppercase tracking-widest text-xs rounded-sm transition-all cursor-pointer"
                     >
                       {editingCatId ? "Save changes" : "Create category"}
                     </button>
@@ -490,7 +490,7 @@ export default function AdminPortalView() {
                     <button
                       type="button"
                       onClick={() => setIsAddingCat(true)}
-                      className="mx-auto py-1 px-3 bg-accent text-black transition-all font-medium uppercase tracking-widest rounded-sm text-xs cursor-pointer block"
+                      className="mx-auto py-1 px-3 bg-primary text-white transition-all font-medium uppercase tracking-widest rounded-sm text-xs cursor-pointer block"
                     >
                       New category
                     </button>
@@ -571,7 +571,7 @@ export default function AdminPortalView() {
                             </td>
                             <td className="py-3 px-4">
                               <span
-                                className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${item.isActive ? "bg-accent/10 text-accent border border-accent/30" : "bg-rose-950/20 text-rose-400 border border-rose-900/30"}`}
+                                className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${item.isActive ? "bg-primary/10 text-primary border border-primary/30" : "bg-rose-950/20 text-rose-400 border border-rose-900/30"}`}
                               >
                                 {item.isActive ? "Active" : "Inactive"}
                               </span>
@@ -606,7 +606,7 @@ export default function AdminPortalView() {
                                       onClick={() => toggleStatus(item)}
                                       aria-label="Toggle status"
                                       title={item.isActive ? "Deactivate" : "Activate"}
-                                      className={`p-1.5 transition-all cursor-pointer ${item.isActive ? "text-white/40 hover:text-rose-400" : "text-white/40 hover:text-accent"}`}
+                                      className={`p-1.5 transition-all cursor-pointer ${item.isActive ? "text-white/40 hover:text-rose-400" : "text-white/40 hover:text-primary"}`}
                                     >
                                       {item.isActive ? (
                                         <UserX className="h-3.5 w-3.5" />

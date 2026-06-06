@@ -1,39 +1,39 @@
 import { createContext, useContext, useState, useCallback, useRef } from "react";
-import { Flame, Trophy, Check, Zap } from "lucide-react";
+import { Flame, Code2, Check, Terminal } from "lucide-react";
 
 const ToastContext = createContext(null);
 
 const TOAST_META = {
-  streak: { label: "Streak", border: "rgba(245, 158, 11, 0.4)" },
-  milestone: { label: "Badge unlocked", border: "rgba(234, 179, 8, 0.4)" },
-  info: { label: "Notice", border: "#2A2E37" },
-  success: { label: "Success", border: "#10B981" }
+  streak: { label: "Commit Streak", border: "#EF4444" },
+  milestone: { label: "Badge unlocked", border: "#777C6D" },
+  info: { label: "Notice", border: "#CBCBCB" },
+  success: { label: "Success", border: "#22C55E" }
 };
 
 function ToastIcon({ type }) {
   if (type === "streak") {
     return (
-      <span className="h-9 w-9 bg-amber-950/20 text-amber-500 rounded-2xl flex items-center justify-center border border-amber-900/40">
-        <Flame className="h-5 w-5 fill-current" />
+      <span className="h-9 w-9 bg-streak/10 text-streak rounded-2xl flex items-center justify-center border border-streak/30">
+        <Flame className="size-5 text-streak" />
       </span>
     );
   }
   if (type === "milestone") {
     return (
-      <span className="h-9 w-9 bg-yellow-950/20 text-yellow-500 rounded-2xl flex items-center justify-center border border-yellow-900/40">
-        <Trophy className="h-5 w-5 fill-current" />
+      <span className="h-9 w-9 bg-primary/10 text-primary rounded-2xl flex items-center justify-center border border-primary/30">
+        <Code2 className="size-5 text-primary" />
       </span>
     );
   }
   if (type === "info") {
     return (
       <span className="h-9 w-9 bg-bg text-muted rounded-2xl flex items-center justify-center border border-border">
-        <Zap className="h-4 w-4" />
+        <Terminal className="h-4 w-4" />
       </span>
     );
   }
   return (
-    <span className="h-9 w-9 bg-accent/10 text-accent rounded-2xl flex items-center justify-center border border-accent/30">
+    <span className="h-9 w-9 bg-primary/10 text-primary rounded-2xl flex items-center justify-center border border-primary/30">
       <Check className="h-5 w-5 stroke-[3]" />
     </span>
   );

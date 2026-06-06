@@ -153,13 +153,13 @@ export default function WorkoutForm({
     >
       <div className="border-b border-border pb-3 flex items-center justify-between">
         <h3 className="text-sm font-semibold text-text flex items-center gap-2">
-          <Dumbbell className="h-5 w-5 text-accent" aria-hidden="true" />
+          <Dumbbell className="h-5 w-5 text-primary" aria-hidden="true" />
           {isEditing ? "Edit Workout" : "New Workout Session"}
         </h3>
         <button
           type="button"
           onClick={onCancel}
-          className="text-xs text-muted hover:text-accent underline decoration-border underline-offset-4 cursor-pointer transition-all"
+          className="text-xs text-muted hover:text-primary underline decoration-border underline-offset-4 cursor-pointer transition-all"
         >
           Discard
         </button>
@@ -186,7 +186,7 @@ export default function WorkoutForm({
               required
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="block w-full pl-9 pr-3 py-2 bg-bg border border-border rounded-sm text-xs text-text focus:border-accent focus:outline-none transition-all"
+              className="block w-full pl-9 pr-3 py-2 bg-bg border border-border rounded-sm text-xs text-text focus:border-primary focus:outline-none transition-all"
             />
           </div>
         </div>
@@ -204,7 +204,7 @@ export default function WorkoutForm({
             placeholder="e.g. Upper Body Push, Evening Run"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="block w-full px-3.5 py-2 bg-bg border border-border rounded-sm text-xs text-text focus:border-accent focus:outline-none transition-all"
+            className="block w-full px-3.5 py-2 bg-bg border border-border rounded-sm text-xs text-text focus:border-primary focus:outline-none transition-all"
           />
         </div>
       </div>
@@ -222,7 +222,7 @@ export default function WorkoutForm({
           placeholder="e.g. Felt strong, hit a personal best on rows."
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="block w-full px-3.5 py-2 bg-bg border border-border rounded-sm text-xs text-text focus:border-accent focus:outline-none transition-all"
+          className="block w-full px-3.5 py-2 bg-bg border border-border rounded-sm text-xs text-text focus:border-primary focus:outline-none transition-all"
         />
       </div>
 
@@ -234,7 +234,7 @@ export default function WorkoutForm({
           <button
             type="button"
             onClick={addExercise}
-            className="py-1 px-3 border border-border hover:border-accent bg-transparent rounded-sm text-xs font-medium text-text flex items-center gap-1.5 cursor-pointer transition-all"
+            className="py-1 px-3 border border-border hover:border-primary bg-transparent rounded-sm text-xs font-medium text-text flex items-center gap-1.5 cursor-pointer transition-all"
           >
             <Plus className="h-3.5 w-3.5" /> Add exercise
           </button>
@@ -267,7 +267,7 @@ export default function WorkoutForm({
                     <select
                       value={exercise.categoryId}
                       onChange={(e) => updateExercise(exIdx, "categoryId", e.target.value)}
-                      className="block w-full px-2 py-2 bg-bg border border-border rounded-sm text-xs text-text focus:border-accent focus:outline-none cursor-pointer transition-all"
+                      className="block w-full px-2 py-2 bg-bg border border-border rounded-sm text-xs text-text focus:border-primary focus:outline-none cursor-pointer transition-all"
                     >
                       {categories.map((category) => (
                         <option key={category.id} value={category.id}>
@@ -286,7 +286,7 @@ export default function WorkoutForm({
                       placeholder="e.g. Barbell Squats"
                       value={exercise.exerciseName}
                       onChange={(e) => updateExercise(exIdx, "exerciseName", e.target.value)}
-                      className="block w-full px-2.5 py-2 bg-bg border border-border rounded-sm text-xs text-text focus:border-accent focus:outline-none transition-all"
+                      className="block w-full px-2.5 py-2 bg-bg border border-border rounded-sm text-xs text-text focus:border-primary focus:outline-none transition-all"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -328,7 +328,7 @@ export default function WorkoutForm({
                     <button
                       type="button"
                       onClick={() => addSet(exIdx)}
-                      className="text-[10px] text-accent font-semibold cursor-pointer transition-all"
+                      className="text-[10px] text-primary font-semibold cursor-pointer transition-all"
                     >
                       + Add set
                     </button>
@@ -349,7 +349,7 @@ export default function WorkoutForm({
                           placeholder="reps"
                           value={set.reps}
                           onChange={(e) => updateSet(exIdx, setIdx, "reps", e.target.value)}
-                          className="w-11 px-1 py-0.5 bg-bg border border-border rounded-sm text-center text-xs text-text font-mono tabular-nums focus:border-accent focus:outline-none"
+                          className="w-11 px-1 py-0.5 bg-bg border border-border rounded-sm text-center text-xs text-text font-mono tabular-nums focus:border-primary focus:outline-none"
                           aria-label="Reps"
                         />
                         <span className="text-muted text-[10px]">reps</span>
@@ -361,7 +361,7 @@ export default function WorkoutForm({
                           placeholder="kg"
                           value={set.weight}
                           onChange={(e) => updateSet(exIdx, setIdx, "weight", e.target.value)}
-                          className="w-11 px-1 py-0.5 bg-bg border border-border rounded-sm text-center text-xs text-text font-mono tabular-nums focus:border-accent focus:outline-none"
+                          className="w-11 px-1 py-0.5 bg-bg border border-border rounded-sm text-center text-xs text-text font-mono tabular-nums focus:border-primary focus:outline-none"
                           aria-label="Weight in kg"
                         />
                         <span className="text-muted text-[10px]">kg</span>
@@ -388,7 +388,7 @@ export default function WorkoutForm({
       <button
         type="submit"
         disabled={submitting}
-        className="w-full py-2.5 bg-accent text-black font-medium uppercase tracking-widest rounded-sm text-xs transition-all cursor-pointer disabled:opacity-50"
+        className="w-full py-2.5 bg-primary text-white font-medium uppercase tracking-widest rounded-sm text-xs transition-all cursor-pointer disabled:opacity-50"
       >
         {submitting ? "Saving..." : isEditing ? "Update Workout" : "Log Workout"}
       </button>

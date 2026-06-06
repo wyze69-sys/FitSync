@@ -35,9 +35,9 @@ export function resolveBmiCategory(bmi) {
     return {
       label: "Healthy Weight",
       description: "Within the standard healthy range.",
-      colorClass: "text-accent",
-      barClass: "bg-accent",
-      badgeClass: "bg-accent/10 text-accent border border-accent/30"
+      colorClass: "text-primary",
+      barClass: "bg-primary",
+      badgeClass: "bg-primary/10 text-primary border border-primary/30"
     };
   }
   if (bmi < 30) {

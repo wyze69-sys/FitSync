@@ -210,7 +210,7 @@ export default function Log() {
                       store(LAST_CATEGORY_KEY, { categorySlug: category.slug, subtypeSlug: subtype.slug, duration: minutes });
                     }}
                     aria-pressed={duration === minutes}
-                    className={`min-h-[44px] min-w-[44px] rounded-full px-4 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${duration === minutes ? "bg-emerald-500 text-zinc-950" : "bg-bg text-text"}`}
+                    className={`min-h-[44px] min-w-[44px] rounded-full px-4 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${duration === minutes ? "bg-primary text-white" : "bg-bg text-text"}`}
                   >
                     {minutes}m
                   </button>
@@ -223,7 +223,7 @@ export default function Log() {
           <button
             type="button"
             onClick={() => setShowDetails((value) => !value)}
-            className="mt-4 text-sm font-semibold text-emerald-400 underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+            className="mt-4 text-sm font-semibold text-primary underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             aria-expanded={showDetails}
           >
             Add details
@@ -233,15 +233,15 @@ export default function Log() {
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <label className="text-sm text-text">
                 Date
-                <input type="date" value={details.date} onChange={(e) => setDetails((current) => ({ ...current, date: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" />
+                <input type="date" value={details.date} onChange={(e) => setDetails((current) => ({ ...current, date: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
               </label>
               <label className="text-sm text-text">
                 Distance (km, optional)
-                <input type="number" min="0" step="0.1" inputMode="decimal" value={details.distance} onChange={(e) => setDetails((current) => ({ ...current, distance: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" />
+                <input type="number" min="0" step="0.1" inputMode="decimal" value={details.distance} onChange={(e) => setDetails((current) => ({ ...current, distance: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
               </label>
               <label className="text-sm text-text">
                 Intensity
-                <select value={details.intensity} onChange={(e) => setDetails((current) => ({ ...current, intensity: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+                <select value={details.intensity} onChange={(e) => setDetails((current) => ({ ...current, intensity: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                   <option value="low">Low</option>
                   <option value="med">Medium</option>
                   <option value="high">High</option>
@@ -249,7 +249,7 @@ export default function Log() {
               </label>
               <label className="text-sm text-text sm:col-span-2">
                 Notes
-                <textarea value={details.notes} onChange={(e) => setDetails((current) => ({ ...current, notes: e.target.value }))} rows="3" className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" />
+                <textarea value={details.notes} onChange={(e) => setDetails((current) => ({ ...current, notes: e.target.value }))} rows="3" className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
               </label>
             </div>
           )}
@@ -258,7 +258,7 @@ export default function Log() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded-2xl bg-emerald-500 px-5 py-4 text-base font-bold text-zinc-950 shadow-lg shadow-emerald-950/20 transition hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-2xl bg-primary px-5 py-4 text-base font-bold text-white shadow-lg shadow-primary/20 transition hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:cursor-not-allowed disabled:opacity-60"
         >
           {submitting ? "Logging…" : `Log ${subtype.name}`}
         </button>
@@ -275,7 +275,7 @@ function PageError({ message, onRetry }) {
   return (
     <main className="space-y-4 text-text">
       <InlineError message={message} />
-      <button type="button" onClick={onRetry} className="rounded-2xl border border-border px-4 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+      <button type="button" onClick={onRetry} className="rounded-2xl border border-border px-4 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
         Retry
       </button>
     </main>

@@ -7,13 +7,15 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: "#0F1115",
-        surface: "#181A20",
-        text: "#F7F7F5",
-        muted: "#9AA0A6",
-        accent: "#10B981",
-        primary: "#10B981",
-        border: "#2A2E37",
+        bg: "#EEEEEE",
+        surface: "#FFFFFF",
+        border: "#CBCBCB",
+        text: "#2F332C",
+        muted: "#777C6D",
+        primary: "#777C6D",
+        secondary: "#B7B89F",
+        streak: "#EF4444",
+        xp: "#22C55E",
       },
       fontFamily: {
         sans: ['General Sans', 'system-ui', 'sans-serif'],

@@ -12,8 +12,8 @@ export default function QuickLogGrid({ categories = WORKOUT_MAP, selectedSlug, o
             onClick={() => onSelect(category)}
             aria-pressed={active}
             aria-label={`Choose ${category.name}`}
-            className={`min-h-[44px] min-w-[44px] rounded-2xl border p-4 text-left shadow-lg shadow-black/10 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
-              active ? "border-emerald-500 bg-emerald-500/15" : "border-border bg-surface hover:border-emerald-500/60"
+            className={`min-h-[44px] min-w-[44px] rounded-2xl border p-4 text-left shadow-lg shadow-black/10 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+              active ? "border-primary bg-primary/15" : "border-border bg-surface hover:border-primary/60"
             }`}
           >
             <span className="text-2xl" aria-hidden="true">{category.icon}</span>
