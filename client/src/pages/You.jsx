@@ -20,7 +20,7 @@ export default function You() {
   }
 
   return (
-    <div className="space-y-6 text-left max-w-2xl mx-auto">
+    <div className="space-y-6 text-left max-w-2xl mx-auto animate-fade-in">
       <div className="flex items-center gap-2">
         <UserCog className="h-5 w-5 text-primary" aria-hidden="true" />
         <h1 className="text-xl font-semibold tracking-tight text-text">You</h1>
@@ -31,7 +31,7 @@ export default function You() {
 
       <DashboardProfileSummary user={user} onProfileUpdated={handleProfileUpdated} onToast={push} />
 
-      <div className="bg-surface p-5 rounded-2xl border border-border text-xs text-muted space-y-4">
+      <div className="bg-surface p-5 rounded-2xl border border-border text-xs text-muted space-y-4 card-hover-effect transition-all duration-300">
         <div>
           <div className="font-mono uppercase tracking-widest text-[10px] text-muted">Account</div>
           <div className="text-text mt-1">{user.email}</div>
