@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useOutletContext } from "react-router-dom";
 import { Dumbbell } from "lucide-react";
 import PageHeader from "../components/common/PageHeader.jsx";
@@ -18,6 +18,44 @@ const DEFAULT_DURATION = 30;
 
 function normalize(value) {
   return String(value || "").trim().toLowerCase();
+}
+
+function useMergedCategories(apiCategories = []) {
+  return useMemo(() => {
+    if (!apiCategories.length) return WORKOUT_MAP;
+
+    return apiCategories.map((apiCat) => {
+      const coreMatch = WORKOUT_MAP.find(
+        (c) => c.slug === apiCat.slug || normalize(c.name) === normalize(apiCat.name)
+      );
+
+      if (coreMatch) {
+        return {
+          ...coreMatch,
+          id: apiCat.id,
+          name: apiCat.name,
+          description: apiCat.description,
+          slug: apiCat.slug || coreMatch.slug,
+          isCustom: apiCat.isCustom,
+          subtypes: coreMatch.subtypes.map((s) => ({ ...s, categoryId: apiCat.id }))
+        };
+      }
+
+      const defaultSlug = apiCat.slug || normalize(apiCat.name).replace(/\s+/g, "-");
+      return {
+        ...apiCat,
+        slug: defaultSlug,
+        icon: "🔥",
+        subtypes: [
+          {
+            name: apiCat.name,
+            slug: defaultSlug,
+            categoryId: apiCat.id
+          }
+        ]
+      };
+    });
+  }, [apiCategories]);
 }
 
 function findCategoryMeta(apiCategories, category, subtype) {
@@ -52,7 +90,8 @@ function realNumber(result, names) {
 }
 
 export default function Log() {
-  const { user, categories = [], loading, error, refreshAll, push } = useOutletContext();
+  const { user, categories: apiCategories = [], loading, error, refreshAll, push } = useOutletContext();
+  const finalCategories = useMergedCategories(apiCategories);
   const [category, setCategory] = useState(null);
   const [subtype, setSubtype] = useState(null);
   const [duration, setDuration] = useState(DEFAULT_DURATION);
@@ -64,17 +103,23 @@ export default function Log() {
   const [announcement, setAnnouncement] = useState("");
   const [savedTotals, setSavedTotals] = useState(null);
 
+  const isInitialized = useRef(false);
+
   useEffect(() => {
+    if (isInitialized.current || !finalCategories.length) return;
+    isInitialized.current = true;
+
     const saved = getStored(LAST_CATEGORY_KEY);
-    const savedCategory = WORKOUT_MAP.find((item) => item.slug === saved?.categorySlug) || WORKOUT_MAP[0];
-    const savedSubtype = savedCategory.subtypes.find((item) => item.slug === saved?.subtypeSlug) || savedCategory.subtypes[0];
+    const savedCategory = finalCategories.find((item) => item.slug === saved?.categorySlug) || finalCategories[0];
+    const savedSubtype = savedCategory?.subtypes?.find((item) => item.slug === saved?.subtypeSlug) || savedCategory?.subtypes?.[0];
+    
     setCategory(savedCategory);
     setSubtype(savedSubtype);
     setDuration(Number(saved?.duration || DEFAULT_DURATION));
     setLastWorkout(getStored(LAST_WORKOUT_KEY));
-  }, []);
+  }, [finalCategories]);
 
-  const categoryMeta = useMemo(() => findCategoryMeta(categories, category, subtype), [categories, category, subtype]);
+  const categoryMeta = useMemo(() => findCategoryMeta(finalCategories, category, subtype), [finalCategories, category, subtype]);
   const subtypeForPreview = useMemo(() => ({
     ...subtype,
     categorySlug: categoryMeta?.slug || category?.slug,
@@ -106,8 +151,8 @@ export default function Log() {
   }, [category?.slug, duration]);
 
   const handleRepeat = useCallback((workout) => {
-    const nextCategory = WORKOUT_MAP.find((item) => item.slug === workout.categorySlug) || WORKOUT_MAP[0];
-    const nextSubtype = nextCategory.subtypes.find((item) => item.slug === workout.subtypeSlug) || nextCategory.subtypes[0];
+    const nextCategory = finalCategories.find((item) => item.slug === workout.categorySlug) || finalCategories[0];
+    const nextSubtype = nextCategory?.subtypes?.find((item) => item.slug === workout.subtypeSlug) || nextCategory?.subtypes?.[0];
     setSavedTotals(null);
     setCategory(nextCategory);
     setSubtype(nextSubtype);
@@ -127,7 +172,7 @@ export default function Log() {
     event.preventDefault();
     if (!category || !subtype || submitting) return;
 
-    const meta = findCategoryMeta(categories, category, subtype);
+    const meta = findCategoryMeta(finalCategories, category, subtype);
     const categorySlug = meta?.slug || category.slug;
     const categoryId = meta?.id || subtype.categoryId || category.id;
     const title = subtype.name;
@@ -186,7 +231,7 @@ export default function Log() {
     } finally {
       setSubmitting(false);
     }
-  }, [categories, category, details, duration, isCardio, isStrength, preview.xp, push, refreshAll, submitting, subtype]);
+  }, [finalCategories, category, details, duration, isCardio, isStrength, preview.xp, push, refreshAll, submitting, subtype]);
 
   if (loading) return <LoadingSpinner label="Loading workout logger" />;
 
@@ -212,7 +257,7 @@ export default function Log() {
       <RepeatLast workout={lastWorkout} onRepeat={handleRepeat} />
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        <QuickLogGrid selectedSlug={category.slug} onSelect={handleCategorySelect} />
+        <QuickLogGrid categories={finalCategories} selectedSlug={category.slug} onSelect={handleCategorySelect} />
         <SubtypePicker category={category} selectedSubtype={subtype} onSelect={handleSubtypeSelect} />
 
         <section className="rounded-2xl border border-border bg-surface p-4 shadow-lg shadow-black/10">

@@ -79,12 +79,19 @@ async function countRows(sql, params = []) {
 }
 
 async function getSystemStats() {
-  const [totalUsers, totalWorkouts, totalWeightEntries, totalInsightsGenerated] = await Promise.all(
+  const [totalUsers, totalWorkouts, totalWeightEntries, totalInsightsGenerated, recentWorkoutsRows] = await Promise.all(
     [
       countRows("SELECT COUNT(*) AS total FROM users WHERE role <> 'admin'"),
       countRows("SELECT COUNT(*) AS total FROM workouts"),
       countRows("SELECT COUNT(*) AS total FROM weight_logs"),
-      countRows("SELECT COUNT(*) AS total FROM ai_insights")
+      countRows("SELECT COUNT(*) AS total FROM ai_insights"),
+      pool.execute(`
+        SELECT w.id, w.date, w.title, w.duration_total, u.name as user_name
+        FROM workouts w
+        JOIN users u ON u.id = w.user_id
+        ORDER BY w.created_at DESC
+        LIMIT 5
+      `).then(res => res[0])
     ]
   );
 
@@ -92,7 +99,14 @@ async function getSystemStats() {
     totalUsers,
     totalWorkouts,
     totalWeightEntries,
-    totalInsightsGenerated
+    totalInsightsGenerated,
+    recentWorkouts: recentWorkoutsRows.map(row => ({
+      id: row.id,
+      user: row.user_name,
+      title: row.title,
+      dur: Number(row.duration_total),
+      date: String(row.date).slice(0, 10)
+    }))
   };
 }
 
