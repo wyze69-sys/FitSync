@@ -2,10 +2,6 @@ import { Terminal } from "lucide-react";
 import { RankMedal } from "./AchievementBadge.jsx";
 
 export default function XPProgressBar({ totalXp = 0, nextLevelXp = 0, level = 1, title = "Starter", activeBadge }) {
-  const previousLevelXp = 0;
-  const target = Number(nextLevelXp || totalXp || 1);
-  const progress = target <= previousLevelXp ? 100 : Math.min(100, Math.round(((Number(totalXp) - previousLevelXp) / (target - previousLevelXp || 1)) * 100));
-
   return (
     <section className="rounded-3xl bg-surface border border-border p-6 shadow-lg shadow-black/10" aria-label="XP progress">
       <div className="flex flex-col md:flex-row items-center justify-between gap-6">
@@ -22,15 +18,15 @@ export default function XPProgressBar({ totalXp = 0, nextLevelXp = 0, level = 1,
             <div className="flex items-center gap-1.5 text-xp mt-1 md:mt-0">
               <Terminal className="size-4 text-xp" aria-hidden="true" />
               <p className="font-mono text-xs text-muted">
-                {Number(totalXp).toLocaleString()} / {Number(nextLevelXp || totalXp).toLocaleString()} XP
+                Total XP: {totalXp}
               </p>
             </div>
           </div>
 
-          <div className="mt-4 h-4 overflow-hidden rounded-full bg-bg" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progress}>
+          <div className="mt-4 h-4 overflow-hidden rounded-full bg-bg" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={100}>
             <div 
               className="h-full rounded-full bg-xp" 
-              style={{ width: `${progress}%`, transition: "width 800ms cubic-bezier(0.4, 0, 0.2, 1)" }} 
+              style={{ width: "100%", opacity: 0.6, transition: "width 800ms cubic-bezier(0.4, 0, 0.2, 1)" }} 
             />
           </div>
         </div>
