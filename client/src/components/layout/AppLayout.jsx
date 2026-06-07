@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Outlet, NavLink, Navigate } from "react-router-dom";
-import { Dumbbell, Home, Scale, UserCog } from "lucide-react";
+import { Dumbbell, Home, Scale, UserCog, Clock } from "lucide-react";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
 import Navbar from "../common/Navbar.jsx";
@@ -11,6 +11,7 @@ import gamificationService from "../../services/gamificationService.js";
 const MOBILE_LINKS = [
   { to: "/", label: "Home", icon: Home },
   { to: "/log", label: "Log", icon: Dumbbell },
+  { to: "/workouts", label: "History", icon: Clock },
   { to: "/progress", label: "Progress", icon: Scale },
   { to: "/you", label: "You", icon: UserCog }
 ];
