@@ -1,7 +1,7 @@
 import { useId } from "react";
 
 export function getRankTier(level) {
-  const numericLevel = Number(level || 1);
+  const numericLevel = Number(level || 0);
   if (numericLevel >= 11) return "legendary";
   if (numericLevel >= 8) return "platinum";
   if (numericLevel >= 5) return "gold";
@@ -17,7 +17,7 @@ const SIZE_CLASSES = {
 };
 
 export function RankMedal({ level, title, size = "md" }) {
-  const displayLevel = Number(level || 1);
+  const displayLevel = level;
   const tier = getRankTier(displayLevel);
   const sizeClass = SIZE_CLASSES[size] || SIZE_CLASSES.md;
   const gradientId = useId();
@@ -59,7 +59,9 @@ export function RankMedal({ level, title, size = "md" }) {
         <circle className="rank-medal-face" cx="50" cy="48" r="33" />
         <path className="rank-medal-spark" d="M50 20 L56 39 L76 39 L60 51 L66 70 L50 58 L34 70 L40 51 L24 39 L44 39 Z" />
       </svg>
-      <span className="rank-medal-level">{displayLevel}</span>
+      {displayLevel !== undefined && displayLevel !== null && (
+        <span className="rank-medal-level">{displayLevel}</span>
+      )}
     </div>
   );
 }
@@ -70,15 +72,22 @@ export function RankMedal({ level, title, size = "md" }) {
  * Never pass the user's current level as a prop — each badge has its own level.
  */
 export default function AchievementBadge({ title, size = "md", badge }) {
-  const displayLevel = Number(badge?.level_number || badge?.level || 1);
+  const badgeLevel = badge?.level_number ?? badge?.level;
+  const hasLevel = badgeLevel !== undefined && badgeLevel !== null;
   const displayTitle = badge?.name || title || "Starter";
+  const hasProgress = badge && typeof badge.value === "number" && !isNaN(badge.value) && typeof badge.requirement === "number" && !isNaN(badge.requirement);
 
   return (
-    <article className="animate-badge-pop rounded-3xl border border-border bg-surface p-5 text-center shadow-md" aria-label={`${displayTitle}, level ${displayLevel}`}>
-      <RankMedal level={displayLevel} title={displayTitle} size={size} />
-      <h3 className="mt-4 text-sm font-bold text-text">Level {displayLevel}</h3>
+    <article className="animate-badge-pop rounded-3xl border border-border bg-surface p-5 text-center shadow-md" aria-label={hasLevel ? `${displayTitle}, level ${badgeLevel}` : displayTitle}>
+      <RankMedal level={badgeLevel} title={displayTitle} size={size} />
+      {hasLevel && (
+        <h3 className="mt-4 text-sm font-bold text-text">Level {badgeLevel}</h3>
+      )}
       <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-primary">{displayTitle}</p>
       {badge?.description && <p className="mt-2 text-xs text-muted">{badge.description}</p>}
+      {hasProgress && (
+        <p className="mt-2 text-xs font-mono text-muted">{badge.value}/{badge.requirement}</p>
+      )}
     </article>
   );
 }
