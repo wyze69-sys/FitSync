@@ -377,7 +377,7 @@ export default function Dashboard() {
   };
 
   return (
-    <main className="space-y-6 text-text">
+    <main className="space-y-6 text-text animate-fade-in">
       {celebration && <CelebrationModal celebration={celebration} onClose={() => setCelebration(null)} />}
 
       <PageHeader
@@ -408,7 +408,7 @@ export default function Dashboard() {
       </section>
 
       <section className="grid gap-4 lg:grid-cols-3">
-        <article className="rounded-2xl border border-border bg-surface p-5 shadow-lg shadow-black/10 lg:col-span-2">
+        <article className="rounded-2xl border border-border bg-surface p-5 shadow-lg shadow-black/10 lg:col-span-2 card-hover-effect transition-all duration-300">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Recent</p>
@@ -447,7 +447,7 @@ export default function Dashboard() {
           )}
         </article>
 
-        <article className="rounded-3xl bg-surface border border-border p-6 shadow-lg shadow-black/10">
+        <article className="rounded-3xl bg-surface border border-border p-6 shadow-lg shadow-black/10 card-hover-effect transition-all duration-300">
           <div className="flex items-center justify-between gap-2">
             <p className="text-[10px] font-bold uppercase tracking-widest text-primary">This Week's AI Insight</p>
             <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
