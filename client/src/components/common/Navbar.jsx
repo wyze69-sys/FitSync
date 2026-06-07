@@ -8,6 +8,7 @@ import {
   Users,
   Layers,
   BarChart3,
+  Clock,
   LogOut,
   Menu,
   X,
@@ -18,6 +19,7 @@ import { useAuth } from "../../context/AuthContext.jsx";
 const USER_LINKS = [
   { to: "/", label: "Home", icon: Home, end: true },
   { to: "/log", label: "Log", icon: Dumbbell },
+  { to: "/workouts", label: "History", icon: Clock },
   { to: "/progress", label: "Progress", icon: Scale },
   { to: "/you", label: "You", icon: UserCog }
 ];
