@@ -12,7 +12,7 @@ The app uses a React + Vite client, an Express backend, a MySQL database, JWT au
 - Weight tracking with BMI calculation and progress chart
 - Daily wellness check-ins, activity streaks, and achievement badges
 - Weekly AI insights generated on the backend with Google Gemini
-- Admin portal for dashboard metrics, users, categories, and statistics
+- Admin portal for platform activity, user account management, workout category management, and category usage analytics.
 - Responsive React UI with Tailwind CSS and Lucide icons
 - MySQL-backed persistence with startup database bootstrap and seed data
 
@@ -209,7 +209,9 @@ Frontend routes:
 | `/log` | Workout logging |
 | `/progress` | Weight and progress tracking |
 | `/you` | User profile |
-| `/admin/:section` | Admin portal sections |
+| `/admin/dashboard` | Admin platform activity overview |
+| `/admin/users` | Admin user account management |
+| `/admin/categories` | Admin workout category management and category usage analytics |
 
 API routes:
 
@@ -223,7 +225,7 @@ API routes:
 | Categories | `GET /api/categories` |
 | Gamification | `GET /api/gamification/summary`, `POST /api/gamification/checkin` |
 | AI Insights | `GET /api/ai/insights`, `POST /api/ai/generate-weekly-insight` |
-| Admin | `/api/admin/*` admin-only dashboard, user, category, and statistics routes |
+| Admin | `/api/admin/*` admin-only platform stats, user management, category management, and category analytics routes |
 
 Workout list filters include `category`, `search`, `from`, `to`, `sort`, `page`, and `limit`.
 
