@@ -76,9 +76,9 @@ export default function AuthScreen({ defaultMode = "login", onAuthSuccess }) {
         {error && (
           <div
             role="alert"
-            className="bg-red-950/45 border border-red-900/40 text-red-200 text-xs text-left p-3.5 rounded-2xl font-medium flex items-start gap-2"
+            className="bg-red-800/45 border border-red-800/40 text-red-100 text-xs text-left p-3.5 rounded-2xl font-medium flex items-center gap-2"
           >
-            <span className="font-bold uppercase tracking-wider font-mono text-[10px]">Error:</span>
+            <span className="font-bold uppercase tracking-wider text-[10px]">Error:</span>
             <span>{error}</span>
           </div>
         )}
