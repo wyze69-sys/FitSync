@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard.jsx";
 import Log from "./pages/Log.jsx";
 import Progress from "./pages/Progress.jsx";
 import You from "./pages/You.jsx";
+import Workouts from "./pages/Workouts.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
@@ -27,6 +28,7 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/log" element={<Log />} />
+          <Route path="/workouts" element={<Workouts />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/you" element={<You />} />
         </Route>
