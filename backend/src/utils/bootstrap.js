@@ -203,6 +203,15 @@ async function createTables() {
       weekly_freezes_used INT NOT NULL DEFAULT 0,
       streak_freeze_used BOOLEAN NOT NULL DEFAULT FALSE,
       last_freeze_week VARCHAR(16),
+      weekly_streak INT NOT NULL DEFAULT 0,
+      weekly_longest_streak INT NOT NULL DEFAULT 0,
+      streak_freezes TINYINT NOT NULL DEFAULT 2,
+      paid_restores_this_month TINYINT NOT NULL DEFAULT 0,
+      last_freeze_reset DATE NULL,
+      last_counted_week_start DATE NULL,
+      at_risk_week_start DATE NULL,
+      restore_deadline DATETIME NULL,
+      streak_status ENUM('active', 'at_risk', 'broken') NOT NULL DEFAULT 'active',
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )
@@ -298,6 +307,26 @@ async function applySchemaUpgrades() {
   await ensureColumn("user_gamification", "weekly_freezes_used", "weekly_freezes_used INT NOT NULL DEFAULT 0");
   await ensureColumn("user_gamification", "streak_freeze_used", "streak_freeze_used BOOLEAN NOT NULL DEFAULT FALSE");
   await ensureColumn("user_gamification", "last_freeze_week", "last_freeze_week VARCHAR(16)");
+  await ensureColumn("user_gamification", "weekly_streak", "weekly_streak INT NOT NULL DEFAULT 0");
+  await ensureColumn("user_gamification", "weekly_longest_streak", "weekly_longest_streak INT NOT NULL DEFAULT 0");
+  await ensureColumn("user_gamification", "streak_freezes", "streak_freezes TINYINT NOT NULL DEFAULT 2");
+  await ensureColumn("user_gamification", "paid_restores_this_month", "paid_restores_this_month TINYINT NOT NULL DEFAULT 0");
+  await ensureColumn("user_gamification", "last_freeze_reset", "last_freeze_reset DATE NULL");
+  await ensureColumn("user_gamification", "last_counted_week_start", "last_counted_week_start DATE NULL");
+  await ensureColumn("user_gamification", "at_risk_week_start", "at_risk_week_start DATE NULL");
+  await ensureColumn("user_gamification", "restore_deadline", "restore_deadline DATETIME NULL");
+  await ensureColumn("user_gamification", "streak_status", "streak_status ENUM('active', 'at_risk', 'broken') NOT NULL DEFAULT 'active'");
+
+  await pool.query(`
+    UPDATE user_gamification
+    SET 
+      weekly_streak = IF(COALESCE(weekly_streak, 0) = 0, COALESCE(current_streak, 0), weekly_streak),
+      weekly_longest_streak = IF(COALESCE(weekly_longest_streak, 0) = 0, COALESCE(longest_streak, 0), weekly_longest_streak),
+      streak_freezes = COALESCE(streak_freezes, 2),
+      paid_restores_this_month = COALESCE(paid_restores_this_month, 0),
+      streak_status = COALESCE(streak_status, 'active')
+  `);
+
   await ensureColumn(
     "workouts",
     "updated_at",

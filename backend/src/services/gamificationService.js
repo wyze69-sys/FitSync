@@ -19,6 +19,103 @@ function getTodayLocal() {
   return `${get('year')}-${get('month')}-${get('day')}`;
 }
 
+/**
+ * Helper to get Cambodia timezone local components.
+ */
+function getCambodiaParts(date) {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Phnom_Penh',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+  const parts = formatter.formatToParts(date);
+  const get = (type) => parts.find((p) => p.type === type)?.value;
+  
+  let hour = parseInt(get('hour'), 10);
+  if (hour === 24) hour = 0;
+
+  return {
+    year: parseInt(get('year'), 10),
+    month: parseInt(get('month'), 10),
+    day: parseInt(get('day'), 10),
+    hour: hour,
+    minute: parseInt(get('minute'), 10),
+    second: parseInt(get('second'), 10)
+  };
+}
+
+/**
+ * Helper to construct Date object from Cambodia local components.
+ */
+function fromCambodiaParts(year, month, day, hour = 0, minute = 0, second = 0) {
+  return new Date(Date.UTC(year, month - 1, day, hour - 7, minute, second));
+}
+
+/**
+ * Helper to get Cambodia day of week (0 = Sunday, 1 = Monday, ..., 6 = Saturday).
+ */
+function getCambodiaDayOfWeek(date) {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Phnom_Penh',
+    weekday: 'long'
+  });
+  const dayName = formatter.format(date);
+  const days = {
+    'Sunday': 0,
+    'Monday': 1,
+    'Tuesday': 2,
+    'Wednesday': 3,
+    'Thursday': 4,
+    'Friday': 5,
+    'Saturday': 6
+  };
+  return days[dayName];
+}
+
+/**
+ * Format Date to YYYY-MM-DD in Cambodia timezone.
+ */
+function toCambodiaDateStr(date) {
+  const parts = getCambodiaParts(date);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${parts.year}-${pad(parts.month)}-${pad(parts.day)}`;
+}
+
+/**
+ * Format Date to YYYY-MM-DD HH:mm:ss in UTC for MySQL datetime.
+ */
+function toMysqlDateTime(date) {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
+/**
+ * Calculate week start (Monday) and end (Sunday) strings, and the restore deadline.
+ */
+function getCambodiaWeekInfo(date) {
+  const parts = getCambodiaParts(date);
+  const localMidnight = fromCambodiaParts(parts.year, parts.month, parts.day, 0, 0, 0);
+  const dayOfWeek = getCambodiaDayOfWeek(date);
+  const daysToMonday = (dayOfWeek === 0) ? -6 : (1 - dayOfWeek);
+  const mondayDate = new Date(localMidnight.getTime() + daysToMonday * 24 * 60 * 60 * 1000);
+  const sundayDate = new Date(mondayDate.getTime() + 6 * 24 * 60 * 60 * 1000);
+  
+  // Deadline is Sunday 23:59:59 Cambodia local time
+  const sundayDeadline = new Date(mondayDate.getTime() + (7 * 24 * 60 * 60 * 1000) - 1000);
+  
+  return {
+    mondayStr: toCambodiaDateStr(mondayDate),
+    sundayStr: toCambodiaDateStr(sundayDate),
+    mondayDate,
+    sundayDate,
+    sundayDeadline
+  };
+}
+
 const {
   CATEGORY_PROFILES,
   calculateCalories,
@@ -285,18 +382,408 @@ async function getWeeklyStats(userId) {
  * @param {string} userId User id.
  * @returns {Promise<object>}
  */
+/**
+ * Count workouts logged in the current week (Monday to Sunday).
+ */
+async function getCurrentWeekProgress(userId, executor = pool) {
+  const weekInfo = getCambodiaWeekInfo(new Date());
+  const [rows] = await executor.execute(
+    `SELECT COUNT(DISTINCT date) AS active_days, COUNT(*) AS workout_count
+     FROM workouts
+     WHERE user_id = ? AND date >= ? AND date <= ?`,
+    [userId, weekInfo.mondayStr, weekInfo.sundayStr]
+  );
+  return {
+    activeDays: Number(rows[0]?.active_days || 0),
+    workoutCount: Number(rows[0]?.workout_count || 0)
+  };
+}
+
+/**
+ * Check if the restore deadline has passed for an at-risk streak.
+ */
+async function expireMissedRestoreIfNeeded(userId, executor = pool) {
+  const [rows] = await executor.execute(
+    `SELECT 
+       streak_status, 
+       DATE_FORMAT(restore_deadline, '%Y-%m-%dT%H:%i:%sZ') AS restore_deadline
+     FROM user_gamification
+     WHERE user_id = ?`,
+    [userId]
+  );
+  if (!rows[0]) return;
+
+  const { streak_status, restore_deadline } = rows[0];
+  if (streak_status === 'at_risk' && restore_deadline) {
+    const deadlineDate = new Date(restore_deadline);
+    const now = new Date();
+    if (now > deadlineDate) {
+      // Deadline passed! Reset streak to 0 and set status to broken
+      await executor.execute(
+        `UPDATE user_gamification
+         SET 
+           weekly_streak = 0,
+           streak_status = 'broken',
+           restore_deadline = NULL,
+           at_risk_week_start = NULL
+         WHERE user_id = ?`,
+        [userId]
+      );
+    }
+  }
+}
+
+/**
+ * Reset streak freezes to 2 and paid restores to 0 if the month has changed.
+ */
+async function resetMonthlyRestoreCounters(userId, executor = pool) {
+  const [rows] = await executor.execute(
+    `SELECT DATE_FORMAT(last_freeze_reset, '%Y-%m-%d') AS last_freeze_reset FROM user_gamification WHERE user_id = ?`,
+    [userId]
+  );
+  if (!rows[0]) return;
+
+  const lastReset = rows[0].last_freeze_reset;
+  const now = new Date();
+  const nowStr = toCambodiaDateStr(now);
+  const currentMonth = nowStr.slice(0, 7);
+
+  if (!lastReset || !lastReset.startsWith(currentMonth)) {
+    await executor.execute(
+      `UPDATE user_gamification
+       SET 
+         streak_freezes = 2,
+         paid_restores_this_month = 0,
+         last_freeze_reset = ?
+       WHERE user_id = ?`,
+      [nowStr, userId]
+    );
+  }
+}
+
+/**
+ * Evaluate if the previous completed week was successful or missed.
+ */
+async function processPreviousCompletedWeek(userId, executor = pool) {
+  const currentWeekInfo = getCambodiaWeekInfo(new Date());
+  const currentWeekStart = currentWeekInfo.mondayStr;
+  
+  const previousWeekMondayDate = new Date(currentWeekInfo.mondayDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const previousWeekStart = toCambodiaDateStr(previousWeekMondayDate);
+  const previousWeekSunday = toCambodiaDateStr(new Date(previousWeekMondayDate.getTime() + 6 * 24 * 60 * 60 * 1000));
+  
+  const [gamification] = await executor.execute(
+    `SELECT 
+       weekly_streak, 
+       weekly_longest_streak, 
+       DATE_FORMAT(last_counted_week_start, '%Y-%m-%d') AS last_counted_week_start, 
+       streak_status
+     FROM user_gamification
+     WHERE user_id = ?`,
+    [userId]
+  );
+  if (!gamification[0]) return;
+
+  let {
+    weekly_streak,
+    weekly_longest_streak,
+    last_counted_week_start,
+    streak_status
+  } = gamification[0];
+
+  if (streak_status === 'broken' || streak_status === 'at_risk') {
+    return;
+  }
+
+  if (last_counted_week_start === previousWeekStart) {
+    return;
+  }
+
+  // Count workouts in the previous week
+  const [countRows] = await executor.execute(
+    `SELECT COUNT(*) AS workout_count
+     FROM workouts
+     WHERE user_id = ? AND date >= ? AND date <= ?`,
+    [userId, previousWeekStart, previousWeekSunday]
+  );
+  const workoutCount = Number(countRows[0]?.workout_count || 0);
+
+  if (last_counted_week_start === null) {
+    if (workoutCount >= 3) {
+      const newStreak = 1;
+      const newLongest = Math.max(weekly_longest_streak, newStreak);
+      await executor.execute(
+        `UPDATE user_gamification
+         SET 
+           weekly_streak = ?,
+           weekly_longest_streak = ?,
+           last_counted_week_start = ?,
+           streak_status = 'active'
+         WHERE user_id = ?`,
+        [newStreak, newLongest, previousWeekStart, userId]
+      );
+    } else {
+      await executor.execute(
+        `UPDATE user_gamification
+         SET 
+           last_counted_week_start = ?,
+           streak_status = 'active'
+         WHERE user_id = ?`,
+        [previousWeekStart, userId]
+      );
+    }
+    return;
+  }
+
+  const weekBeforePreviousMondayDate = new Date(previousWeekMondayDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const weekBeforePreviousStart = toCambodiaDateStr(weekBeforePreviousMondayDate);
+
+  if (last_counted_week_start === weekBeforePreviousStart) {
+    if (workoutCount >= 3) {
+      const newStreak = weekly_streak + 1;
+      const newLongest = Math.max(weekly_longest_streak, newStreak);
+      await executor.execute(
+        `UPDATE user_gamification
+         SET 
+           weekly_streak = ?,
+           weekly_longest_streak = ?,
+           last_counted_week_start = ?,
+           streak_status = 'active'
+         WHERE user_id = ?`,
+        [newStreak, newLongest, previousWeekStart, userId]
+      );
+    } else {
+      if (weekly_streak > 0) {
+        const deadline = toMysqlDateTime(currentWeekInfo.sundayDeadline);
+        await executor.execute(
+          `UPDATE user_gamification
+           SET 
+             streak_status = 'at_risk',
+             at_risk_week_start = ?,
+             restore_deadline = ?
+           WHERE user_id = ?`,
+          [previousWeekStart, deadline, userId]
+        );
+      } else {
+        await executor.execute(
+          `UPDATE user_gamification
+           SET 
+             last_counted_week_start = ?,
+             streak_status = 'active'
+           WHERE user_id = ?`,
+          [previousWeekStart, userId]
+        );
+      }
+    }
+  } else {
+    // Gap > 7 days, break streak
+    await executor.execute(
+      `UPDATE user_gamification
+       SET 
+         weekly_streak = 0,
+         streak_status = 'broken',
+         restore_deadline = NULL,
+         at_risk_week_start = NULL
+       WHERE user_id = ?`,
+      [userId]
+    );
+  }
+}
+
+/**
+ * Load the current weekly streak status after executing the pipeline.
+ */
+async function getWeeklyStreakStatus(userId, executor = pool) {
+  await resetMonthlyRestoreCounters(userId, executor);
+  await expireMissedRestoreIfNeeded(userId, executor);
+  await processPreviousCompletedWeek(userId, executor);
+
+  const [rows] = await executor.execute(
+    `SELECT 
+       weekly_streak,
+       weekly_longest_streak,
+       streak_status,
+       streak_freezes,
+       paid_restores_this_month,
+       DATE_FORMAT(last_counted_week_start, '%Y-%m-%d') AS last_counted_week_start,
+       DATE_FORMAT(at_risk_week_start, '%Y-%m-%d') AS at_risk_week_start,
+       DATE_FORMAT(restore_deadline, '%Y-%m-%dT%H:%i:%sZ') AS restore_deadline,
+       total_xp
+     FROM user_gamification
+     WHERE user_id = ?`,
+    [userId]
+  );
+  if (!rows[0]) {
+    throw httpError("User gamification profile not found.", 404);
+  }
+  const statusData = rows[0];
+
+  const weekInfo = getCambodiaWeekInfo(new Date());
+  const progress = await getCurrentWeekProgress(userId, executor);
+
+  const restoreCost = Math.min(150, 50 + 10 * statusData.weekly_streak);
+  let restoreType = null;
+  let canRestore = false;
+
+  if (statusData.streak_status === 'at_risk') {
+    if (statusData.streak_freezes > 0) {
+      restoreType = 'freeze';
+      canRestore = true;
+    } else if (statusData.paid_restores_this_month < 2) {
+      restoreType = 'xp';
+      canRestore = statusData.total_xp >= restoreCost;
+    } else {
+      restoreType = 'limit_reached';
+      canRestore = false;
+    }
+  }
+
+  return {
+    weeklyStreak: statusData.weekly_streak,
+    weeklyLongestStreak: statusData.weekly_longest_streak,
+    streakStatus: statusData.streak_status,
+    streakFreezes: statusData.streak_freezes,
+    paidRestoresThisMonth: statusData.paid_restores_this_month,
+    lastCountedWeekStart: statusData.last_counted_week_start,
+    atRiskWeekStart: statusData.at_risk_week_start,
+    restoreDeadline: statusData.restore_deadline,
+    currentWeekWorkoutCount: progress.workoutCount,
+    currentWeekActiveDays: progress.activeDays,
+    currentWeekMonday: weekInfo.mondayStr,
+    currentWeekSunday: weekInfo.sundayStr,
+    canRestore,
+    restoreType,
+    restoreCost,
+    totalXp: statusData.total_xp
+  };
+}
+
+/**
+ * Restores an at-risk streak using a free freeze or XP.
+ */
+async function restoreStreak(userId) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    const status = await getWeeklyStreakStatus(userId, connection);
+    if (!status.canRestore) {
+      throw httpError("Cannot restore streak: requirements not met or limit reached.", 400);
+    }
+
+    if (status.restoreType === 'freeze') {
+      await connection.execute(
+        `UPDATE user_gamification
+         SET 
+           streak_freezes = streak_freezes - 1,
+           streak_status = 'active',
+           last_counted_week_start = ?,
+           at_risk_week_start = NULL,
+           restore_deadline = NULL
+         WHERE user_id = ?`,
+        [status.atRiskWeekStart, userId]
+      );
+    } else if (status.restoreType === 'xp') {
+      const cost = status.restoreCost;
+      await connection.execute(
+        `UPDATE users 
+         SET total_xp = GREATEST(0, CAST(total_xp AS SIGNED) - ?) 
+         WHERE id = ?`,
+        [cost, userId]
+      );
+      await connection.execute(
+        `UPDATE user_gamification 
+         SET 
+           total_xp = GREATEST(0, CAST(total_xp AS SIGNED) - ?),
+           paid_restores_this_month = paid_restores_this_month + 1,
+           streak_status = 'active',
+           last_counted_week_start = ?,
+           at_risk_week_start = NULL,
+           restore_deadline = NULL
+         WHERE user_id = ?`,
+        [cost, status.atRiskWeekStart, userId]
+      );
+
+      // Fetch new XP and update level
+      const [userRow] = await connection.execute("SELECT total_xp FROM users WHERE id = ?", [userId]);
+      const totalXp = Number(userRow[0].total_xp);
+      const newLevel = await getCurrentLevel(totalXp, connection);
+      const nextLevel = await getNextLevel(newLevel.levelNumber, connection);
+
+      await connection.execute(
+        `UPDATE user_gamification 
+         SET level = ?, next_level_xp = ? 
+         WHERE user_id = ?`,
+        [newLevel.levelNumber, nextLevel?.xpRequired || totalXp, userId]
+      );
+
+      // Log XP deduction
+      await connection.execute(
+        `INSERT INTO xp_logs (id, user_id, xp_earned, reason, breakdown)
+         VALUES (?, ?, ?, ?, ?)`,
+        [
+          createId("xp"),
+          userId,
+          -cost,
+          "Weekly streak restore deduction",
+          JSON.stringify({ restoreCost: cost, weeklyStreak: status.weeklyStreak })
+        ]
+      );
+    }
+
+    await connection.commit();
+    return await getWeeklyStreakStatus(userId);
+  } catch (err) {
+    await connection.rollback();
+    throw err;
+  } finally {
+    connection.release();
+  }
+}
+
+/**
+ * Clears a broken streak and starts a new one.
+ */
+async function startNewStreak(userId) {
+  const currentWeekInfo = getCambodiaWeekInfo(new Date());
+  const previousWeekMondayDate = new Date(currentWeekInfo.mondayDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const previousWeekStart = toCambodiaDateStr(previousWeekMondayDate);
+
+  await pool.execute(
+    `UPDATE user_gamification
+     SET 
+       weekly_streak = 0,
+       streak_status = 'active',
+       last_counted_week_start = ?,
+       at_risk_week_start = NULL,
+       restore_deadline = NULL
+     WHERE user_id = ?`,
+    [previousWeekStart, userId]
+  );
+
+  return await getWeeklyStreakStatus(userId);
+}
+
+/**
+ * Builds the authenticated user's gamification summary.
+ * @param {string} userId User id.
+ * @returns {Promise<object>}
+ */
 async function buildSummary(userId) {
+  const weeklyStatus = await getWeeklyStreakStatus(userId);
+
   const activeDates = await gamificationRepository.getActivityDates(userId);
   const stats = computeStreakStats(activeDates);
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   const weekly = await gamificationRepository.getWeeklyWorkoutTotals(userId, toDateStr(sevenDaysAgo));
 
+  // Sync to user_streaks table for admin stats and compatibility
   await gamificationRepository.upsertStreak(
     userId,
-    stats.currentStreak,
-    stats.longestStreak,
-    stats.lastActiveDate
+    weeklyStatus.weeklyStreak,
+    weeklyStatus.weeklyLongestStreak,
+    weeklyStatus.lastCountedWeekStart
   );
 
   const [[userRow]] = await pool.execute("SELECT COALESCE(total_xp, 0) AS total_xp FROM users WHERE id = ?", [
@@ -310,12 +797,12 @@ async function buildSummary(userId) {
   const todayData = await getTodaySummary(userId);
 
   return {
-    currentStreak: stats.currentStreak,
-    longestStreak: stats.longestStreak,
+    currentStreak: weeklyStatus.weeklyStreak,
+    longestStreak: weeklyStatus.weeklyLongestStreak,
     weeklyConsistency: stats.weeklyConsistency,
     activeDaysInLast7: stats.activeDaysInLast7,
-    lastActiveDate: stats.lastActiveDate,
-    totalWorkoutsThisWeek: weekly.workoutCount,
+    lastActiveDate: weeklyStatus.lastCountedWeekStart || stats.lastActiveDate,
+    totalWorkoutsThisWeek: weeklyStatus.currentWeekWorkoutCount,
     totalMinutesThisWeek: weekly.totalMinutes,
     totalCaloriesThisWeek: weekly.totalCalories,
     todayWorkouts: todayData.todayWorkouts,
@@ -328,7 +815,7 @@ async function buildSummary(userId) {
     title: level.title,
     nextLevelXp: nextLevel?.xpRequired || totalXp,
     next_level_xp: nextLevel?.xpRequired || totalXp,
-    streakMessage: streakMessage(stats.currentStreak),
+    streakMessage: streakMessage(weeklyStatus.weeklyStreak),
     badges: catalog.map((achievement) => ({
       code: achievement.code,
       name: achievement.name,
@@ -441,6 +928,9 @@ const gamificationService = {
   addUserXp,
   getTodaySummary,
   getWeeklyStats,
+  getWeeklyStreakStatus,
+  restoreStreak,
+  startNewStreak,
 
   async getSummary(userId) {
     return buildSummary(userId);
@@ -482,5 +972,9 @@ module.exports = {
   getWeeklyStats,
   calculateXP,
   calculateCalories,
-  CATEGORY_MET_DATA: CATEGORY_PROFILES
+  CATEGORY_MET_DATA: CATEGORY_PROFILES,
+  getCambodiaWeekInfo,
+  getCambodiaDayOfWeek,
+  toCambodiaDateStr,
+  fromCambodiaParts
 };

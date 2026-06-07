@@ -18,6 +18,33 @@ const gamificationController = {
     } catch (err) {
       next(err);
     }
+  },
+
+  async getStreakStatus(req, res, next) {
+    try {
+      const status = await gamificationService.getWeeklyStreakStatus(req.user.id);
+      res.json(status);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async restoreStreak(req, res, next) {
+    try {
+      const status = await gamificationService.restoreStreak(req.user.id);
+      res.json(status);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async startNewStreak(req, res, next) {
+    try {
+      const status = await gamificationService.startNewStreak(req.user.id);
+      res.json(status);
+    } catch (err) {
+      next(err);
+    }
   }
 };
 

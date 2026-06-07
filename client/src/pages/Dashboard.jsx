@@ -10,6 +10,7 @@ import StreakCard from "../components/gamification/StreakCard.jsx";
 import XPProgressBar from "../components/gamification/XPProgressBar.jsx";
 import AchievementBadge from "../components/gamification/AchievementBadge.jsx";
 import insightService from "../services/insightService.js";
+import gamificationService from "../services/gamificationService.js";
 
 function n(value) {
   return Number(value || 0);
@@ -48,7 +49,23 @@ export default function Dashboard() {
   const context = useOutletContext();
   const gamification = context.gamification || {};
   const recentWorkouts = useMemo(() => context.workouts.slice(0, 3).map(formatWorkout), [context.workouts]);
-  const badges = useMemo(() => (gamification.badges || []).filter((badge) => badge.isUnlocked).slice(0, 3), [gamification.badges]);
+  const activeBadge = useMemo(() => {
+    const allBadges = gamification.badges || [];
+    const levelTitle = gamification.title;
+    const match = allBadges.find((b) => b.isUnlocked && b.name === levelTitle);
+    if (match) return match;
+    const firstUnlocked = allBadges.find((b) => b.isUnlocked);
+    if (firstUnlocked) return firstUnlocked;
+    return null;
+  }, [gamification.badges, gamification.title]);
+
+  const badges = useMemo(() => {
+    const allBadges = gamification.badges || [];
+    const displayedBadgeCode = activeBadge?.code;
+    return allBadges
+      .filter((badge) => badge.isUnlocked && badge.code !== displayedBadgeCode)
+      .slice(0, 3);
+  }, [gamification.badges, activeBadge]);
   const userName = authUser?.name || context.user?.name || "there";
   const totalXp = n(gamification.totalXp ?? gamification.total_xp);
   const nextLevelXp = n(gamification.nextLevelXp ?? gamification.next_level_xp);
@@ -65,6 +82,53 @@ export default function Dashboard() {
   const previousLevelRef = useRef(null);
   const shownStreakMilestonesRef = useRef(new Set());
   const shownUnlockRef = useRef(new Set());
+
+  const [streakStatus, setStreakStatus] = useState(null);
+  const [streakLoading, setStreakLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const fetchStreakStatus = async () => {
+    try {
+      const res = await gamificationService.getStreakStatus();
+      setStreakStatus(res);
+    } catch (err) {
+      console.error("Failed to fetch streak status", err);
+    } finally {
+      setStreakLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStreakStatus();
+  }, [gamification]);
+
+  const handleRestoreStreak = async () => {
+    setActionLoading(true);
+    try {
+      const res = await gamificationService.restoreStreak();
+      setStreakStatus(res);
+      context.push("Streak successfully restored! 🎉", "success");
+      await context.refreshAll();
+    } catch (err) {
+      context.push(err.message || "Failed to restore streak.", "error");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleStartNewStreak = async () => {
+    setActionLoading(true);
+    try {
+      const res = await gamificationService.startNewStreak();
+      setStreakStatus(res);
+      context.push("New weekly streak started! Let's go! 💪", "success");
+      await context.refreshAll();
+    } catch (err) {
+      context.push(err.message || "Failed to start new streak.", "error");
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   // Fetch latest AI insight on mount
   useEffect(() => {
@@ -119,9 +183,203 @@ export default function Dashboard() {
 
   if (context.error) return <ErrorPanel message={context.error} onRetry={context.refreshAll} />;
 
+  const renderWeeklyStreakBanner = () => {
+    if (streakLoading || !streakStatus) return null;
+
+    const {
+      weeklyStreak,
+      streakStatus: status,
+      restoreType,
+      restoreCost,
+      currentWeekWorkoutCount,
+      streakFreezes,
+      paidRestoresThisMonth,
+      totalXp
+    } = streakStatus;
+
+    // 1. Secured state
+    if (status === 'active' && currentWeekWorkoutCount >= 3) {
+      return (
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 shadow-md shadow-emerald-500/5 transition duration-300">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
+              <Flame className="h-6 w-6 fill-current animate-pulse" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-emerald-400">Weekly Streak Secured! 🎉</h3>
+              <p className="text-sm text-muted mt-0.5">
+                You logged {currentWeekWorkoutCount} workouts this week. Your {weeklyStreak} week streak is safe.
+              </p>
+            </div>
+          </div>
+          <div className="rounded-full bg-emerald-500/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wide text-emerald-500">
+            Secured
+          </div>
+        </div>
+      );
+    }
+
+    // 2. Normal Progress
+    if (status === 'active' && currentWeekWorkoutCount < 3) {
+      const remaining = 3 - currentWeekWorkoutCount;
+      return (
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-5 rounded-2xl border border-primary/20 bg-primary/5 shadow-md shadow-primary/5 transition duration-300">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Flame className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-text">Weekly Streak Progress</h3>
+              <p className="text-sm text-muted mt-0.5">
+                Log {remaining} more workout{remaining > 1 ? 's' : ''} by Sunday 23:59:59 (local time) to maintain your {weeklyStreak} week streak.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-primary">{currentWeekWorkoutCount} / 3</span>
+            <div className="h-2 w-20 rounded-full bg-border overflow-hidden">
+              <div 
+                className="h-full bg-primary transition-all duration-500" 
+                style={{ width: `${(currentWeekWorkoutCount / 3) * 100}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // 3. At Risk - Free Freeze Available
+    if (status === 'at_risk' && restoreType === 'freeze') {
+      return (
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-5 rounded-2xl border border-amber-500/25 bg-amber-500/5 shadow-md shadow-amber-500/5 transition duration-300">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500">
+              <Sparkles className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-amber-400">Weekly Streak At Risk! ⚠️</h3>
+              <p className="text-sm text-muted mt-0.5">
+                You missed last week. Restore your {weeklyStreak} week streak now using a free freeze.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleRestoreStreak}
+            disabled={actionLoading}
+            className="w-full md:w-auto inline-flex items-center justify-center rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-black shadow-md shadow-amber-500/10 transition hover:bg-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 disabled:opacity-50 font-bold"
+          >
+            {actionLoading ? "Restoring..." : `Restore with Free Freeze (${streakFreezes} left)`}
+          </button>
+        </div>
+      );
+    }
+
+    // 4. At Risk - Paid Restore Available
+    if (status === 'at_risk' && restoreType === 'xp') {
+      return (
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-5 rounded-2xl border border-orange-500/25 bg-orange-500/5 shadow-md shadow-orange-500/5 transition duration-300">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-500/10 text-orange-500">
+              <Flame className="h-6 w-6 animate-pulse" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-orange-400">Weekly Streak At Risk! ⚠️</h3>
+              <p className="text-sm text-muted mt-0.5">
+                You missed last week and have no freezes left. Restore your {weeklyStreak} week streak for {restoreCost} XP.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleRestoreStreak}
+            disabled={actionLoading}
+            className="w-full md:w-auto inline-flex items-center justify-center rounded-xl bg-orange-500 px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-white shadow-md shadow-orange-500/10 transition hover:bg-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 disabled:opacity-50 font-bold"
+          >
+            {actionLoading ? "Restoring..." : `Restore for ${restoreCost} XP`}
+          </button>
+        </div>
+      );
+    }
+
+    // 5. At Risk - Insufficient XP
+    if (status === 'at_risk' && streakFreezes === 0 && paidRestoresThisMonth < 2 && totalXp < restoreCost) {
+      return (
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-5 rounded-2xl border border-red-500/25 bg-red-500/5 shadow-md shadow-red-500/5 transition duration-300">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-500">
+              <Flame className="h-6 w-6 text-red-400/50" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-red-400">Weekly Streak At Risk! ⚠️</h3>
+              <p className="text-sm text-muted mt-0.5">
+                You missed last week. You need {restoreCost} XP to restore your streak, but you only have {totalXp} XP.
+              </p>
+            </div>
+          </div>
+          <div className="rounded-full bg-red-500/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wide text-red-400">
+            Insufficient XP
+          </div>
+        </div>
+      );
+    }
+
+    // 6. At Risk - Restore Limit Reached
+    if (status === 'at_risk' && restoreType === 'limit_reached') {
+      return (
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-5 rounded-2xl border border-red-500/25 bg-red-500/5 shadow-md shadow-red-500/5 transition duration-300">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-500">
+              <Flame className="h-6 w-6 text-red-400/50" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-red-400">Weekly Streak At Risk! ⚠️</h3>
+              <p className="text-sm text-muted mt-0.5">
+                You missed last week and have reached the monthly limit of 2 paid restores.
+              </p>
+            </div>
+          </div>
+          <div className="rounded-full bg-red-500/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wide text-red-400">
+            Limit Reached
+          </div>
+        </div>
+      );
+    }
+
+    // 7. Broken
+    if (status === 'broken') {
+      return (
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-5 rounded-2xl border border-gray-600/20 bg-gray-800/5 shadow-md shadow-black/5 transition duration-300">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gray-500/10 text-gray-400">
+              <Flame className="h-6 w-6 text-gray-500" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-400">Weekly Streak Broken 💔</h3>
+              <p className="text-sm text-muted mt-0.5">
+                Your weekly consistency streak has ended. Start a new streak to begin building again!
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleStartNewStreak}
+            disabled={actionLoading}
+            className="w-full md:w-auto inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-white shadow-md shadow-primary/10 transition hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
+          >
+            {actionLoading ? "Starting..." : "Start New Streak"}
+          </button>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <main className="space-y-6 text-text">
       {celebration && <CelebrationModal celebration={celebration} onClose={() => setCelebration(null)} />}
+
       <PageHeader
         eyebrow="Dashboard"
         title={`${getTimeOfDay()}, ${userName} 👋`}
@@ -133,10 +391,12 @@ export default function Dashboard() {
         }
       />
 
+      {renderWeeklyStreakBanner()}
+
       <div className="grid gap-4 lg:grid-cols-3">
         <StreakCard current={currentStreak} longest={longestStreak} />
         <div className="lg:col-span-2">
-          <XPProgressBar totalXp={totalXp} nextLevelXp={nextLevelXp} level={level} title={gamification.title} />
+          <XPProgressBar totalXp={totalXp} nextLevelXp={nextLevelXp} level={level} title={gamification.title} activeBadge={activeBadge} />
         </div>
       </div>
 
