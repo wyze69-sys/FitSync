@@ -158,9 +158,10 @@ export default function Log() {
 
     try {
       const result = await workoutService.log(payload);
-      const realXp = realNumber(result, ["xp_earned", "xp", "xpEarned"]);
-      const realCalories = realNumber(result, ["calories", "caloriesTotal", "calories_total", "caloriesBurned"]);
-      setSavedTotals({ xp: realXp, calories: realCalories });
+      const data = result || {};
+      const xp = data.xp_earned ?? data.xpEarned ?? data.xp;
+      const calories = data.calories ?? data.caloriesTotal ?? data.calories_total ?? data.caloriesBurned;
+      setSavedTotals({ xp, calories });
       const storedWorkout = {
         categorySlug: category.slug,
         categoryName: category.name,
@@ -176,8 +177,8 @@ export default function Log() {
       store(LAST_WORKOUT_KEY, storedWorkout);
       store(LAST_CATEGORY_KEY, storedWorkout);
       setLastWorkout(storedWorkout);
-      push(`Nice! You earned +${realXp} XP • ${realCalories} cal`, "success");
-      setAnnouncement(`Workout logged. Backend awarded ${realXp} XP and ${realCalories} calories.`);
+      push(`Nice! You earned +${xp} XP • ${calories} cal`, "success");
+      setAnnouncement(`Workout logged. Backend awarded ${xp} XP and ${calories} calories.`);
       await refreshAll();
     } catch (err) {
       setFormError(err.message || "Could not log workout.");
@@ -198,7 +199,7 @@ export default function Log() {
   }
 
   return (
-    <main className="space-y-6 text-text">
+    <main className="space-y-6 text-text animate-fade-in">
       <PageHeader
         eyebrow="Quick log"
         title="Log a workout in 3 taps"
