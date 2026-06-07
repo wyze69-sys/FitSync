@@ -15,7 +15,7 @@ function formatDate(date) {
 
 function StatSurface({ label, value, helper, icon: Icon }) {
   return (
-    <article className="rounded-2xl border border-border bg-surface p-5 shadow-md">
+    <article className="rounded-2xl border border-border bg-surface p-5 shadow-md card-hover-effect transition-all duration-300">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted">{label}</p>
@@ -44,7 +44,7 @@ function TargetProgress({ latestWeight, startingWeight, targetWeight }) {
   const direction = latestWeight > targetWeight ? "to go" : latestWeight < targetWeight ? "below target" : "at target";
 
   return (
-    <div className="space-y-4 rounded-2xl border border-border bg-surface p-5 shadow-md">
+    <div className="space-y-4 rounded-2xl border border-border bg-surface p-5 shadow-md card-hover-effect transition-all duration-300">
       <div className="flex items-center justify-between">
         <div>
           <span className="text-[10px] font-bold uppercase tracking-widest text-muted">Target weight</span>
@@ -75,7 +75,7 @@ function BmiCard({ height, latestWeight }) {
   const bmiMeta = resolveBmiCategory(bmi);
 
   return (
-    <article className="space-y-3 rounded-2xl border border-border bg-surface p-5 shadow-md">
+    <article className="space-y-3 rounded-2xl border border-border bg-surface p-5 shadow-md card-hover-effect transition-all duration-300">
       <div className="flex items-center justify-between">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted">BMI</p>
         <Scale className="size-5 text-primary" aria-hidden="true" />
@@ -114,7 +114,7 @@ export default function Progress() {
   }
 
   return (
-    <main className="space-y-6 bg-bg text-left text-text">
+    <main className="space-y-6 bg-bg text-left text-text animate-fade-in">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-text">Progress</h1>
         <p className="text-sm text-muted">Weight trend, BMI, and target progress in one simple view.</p>
@@ -129,7 +129,7 @@ export default function Progress() {
         <StatSurface label="Change since last" value={previousWeight ? `${changeSinceLast > 0 ? "+" : ""}${changeSinceLast.toFixed(1)} kg` : "—"} helper={previousWeight ? "Compared with prior log" : "Add another log"} icon={TrendingDown} />
       </section>
 
-      <section className="rounded-2xl border border-border bg-surface p-5 shadow-md">
+      <section className="rounded-2xl border border-border bg-surface p-5 shadow-md card-hover-effect transition-all duration-300">
         <div className="mb-5 flex items-center justify-between gap-3">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted">Weight trend</span>
