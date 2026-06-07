@@ -27,19 +27,19 @@ import ErrorBanner from "./common/ErrorBanner.jsx";
 import ConfirmDialog from "./modals/ConfirmDialog.jsx";
 
 const INPUT =
-  "px-3 py-2 bg-bg border border-border rounded-sm text-xs text-white focus:bg-black focus:border-white focus:outline-none transition-all";
+  "px-3 py-2 bg-surface border border-border rounded-sm text-xs text-text focus:bg-bg focus:border-primary focus:outline-none transition-all";
 
 function StatCard({ label, value, icon: Icon, hint }) {
   return (
-    <div className="bg-surface p-5 border border-border rounded-sm hover:border-white/20 hover:bg-white/[0.01] transition-all duration-200">
-      <span className="text-white/30 font-mono text-[9px] uppercase tracking-widest block">
+    <div className="bg-surface p-5 border border-border rounded-sm hover:border-primary/30 hover:bg-bg/50 transition-all duration-200">
+      <span className="text-muted/70 font-mono text-[9px] uppercase tracking-widest block">
         {label}
       </span>
-      <strong className="text-2xl font-black text-white mt-1 block font-mono">
+      <strong className="text-2xl font-black text-text mt-1 block font-mono">
         {value ?? "--"}
       </strong>
       {hint && (
-        <span className="text-[10px] text-white/40 mt-1.5 flex items-center gap-1">
+        <span className="text-[10px] text-muted mt-1.5 flex items-center gap-1">
           <Icon className="h-3 w-3 text-primary" aria-hidden="true" /> {hint}
         </span>
       )}
@@ -211,14 +211,14 @@ export default function AdminPortalView() {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5 text-primary" aria-hidden="true" />
-            <h1 className="text-base text-white font-bold tracking-tight">
+            <h1 className="text-base text-text font-bold tracking-tight">
               Platform Health Admin
             </h1>
           </div>
-          <p className="text-xs text-white/40 leading-relaxed">
+          <p className="text-xs text-muted leading-relaxed">
             Monitor system activity, manage user accounts, and maintain workout categories so FitSync stays simple and useful for students.
           </p>
-          <p className="text-xs text-white/30 mt-1">
+          <p className="text-xs text-muted/70 mt-1">
             Admin role: platform quality, account control, and category maintenance — not personal coaching.
           </p>
         </div>
@@ -226,7 +226,7 @@ export default function AdminPortalView() {
           type="button"
           onClick={loadCoreData}
           disabled={loading}
-          className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 text-xs font-mono rounded-sm border border-border cursor-pointer flex items-center gap-1.5 transition-all text-white/80"
+          className="px-3.5 py-1.5 bg-bg hover:bg-border/40 text-xs font-mono rounded-sm border border-border cursor-pointer flex items-center gap-1.5 transition-all text-text"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh
         </button>
@@ -235,58 +235,58 @@ export default function AdminPortalView() {
       <ErrorBanner message={error} onRetry={loadCoreData} />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-surface p-5 border border-border rounded-sm flex flex-col justify-between hover:border-white/20 hover:bg-white/[0.01] transition-all duration-200">
+        <div className="bg-surface p-5 border border-border rounded-sm flex flex-col justify-between hover:border-primary/30 hover:bg-bg/50 transition-all duration-200">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-primary" aria-hidden="true" />
-              <h3 className="text-sm font-bold text-white">Monitor platform activity</h3>
+              <h3 className="text-sm font-bold text-text">Monitor platform activity</h3>
             </div>
-            <p className="text-xs text-white/40 leading-relaxed">
+            <p className="text-xs text-muted leading-relaxed">
               Review users, workouts, weight logs, insights, streaks, and check-ins to understand system engagement.
             </p>
           </div>
           <button
             type="button"
             onClick={() => navigate("/admin/dashboard")}
-            className="mt-4 w-full py-2 bg-white/5 hover:bg-white/10 text-xs font-mono rounded-sm border border-border cursor-pointer transition-all text-white/80 text-center font-semibold uppercase tracking-wider text-[11px]"
+            className="mt-4 w-full py-2 bg-bg hover:bg-border/40 text-xs font-mono rounded-sm border border-border cursor-pointer transition-all text-text text-center font-semibold uppercase tracking-wider text-[11px]"
           >
             View Platform Stats
           </button>
         </div>
 
-        <div className="bg-surface p-5 border border-border rounded-sm flex flex-col justify-between hover:border-white/20 hover:bg-white/[0.01] transition-all duration-200">
+        <div className="bg-surface p-5 border border-border rounded-sm flex flex-col justify-between hover:border-primary/30 hover:bg-bg/50 transition-all duration-200">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-primary" aria-hidden="true" />
-              <h3 className="text-sm font-bold text-white">Manage user accounts</h3>
+              <h3 className="text-sm font-bold text-text">Manage user accounts</h3>
             </div>
-            <p className="text-xs text-white/40 leading-relaxed">
+            <p className="text-xs text-muted leading-relaxed">
               Search users, view account activity, update roles, and activate or deactivate accounts.
             </p>
           </div>
           <button
             type="button"
             onClick={() => navigate("/admin/users")}
-            className="mt-4 w-full py-2 bg-white/5 hover:bg-white/10 text-xs font-mono rounded-sm border border-border cursor-pointer transition-all text-white/80 text-center font-semibold uppercase tracking-wider text-[11px]"
+            className="mt-4 w-full py-2 bg-bg hover:bg-border/40 text-xs font-mono rounded-sm border border-border cursor-pointer transition-all text-text text-center font-semibold uppercase tracking-wider text-[11px]"
           >
             View Users
           </button>
         </div>
 
-        <div className="bg-surface p-5 border border-border rounded-sm flex flex-col justify-between hover:border-white/20 hover:bg-white/[0.01] transition-all duration-200">
+        <div className="bg-surface p-5 border border-border rounded-sm flex flex-col justify-between hover:border-primary/30 hover:bg-bg/50 transition-all duration-200">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Layers className="h-4 w-4 text-primary" aria-hidden="true" />
-              <h3 className="text-sm font-bold text-white">Maintain workout categories</h3>
+              <h3 className="text-sm font-bold text-text">Maintain workout categories</h3>
             </div>
-            <p className="text-xs text-white/40 leading-relaxed">
+            <p className="text-xs text-muted leading-relaxed">
               Add, edit, or remove custom categories so students can log workouts clearly.
             </p>
           </div>
           <button
             type="button"
             onClick={() => navigate("/admin/categories")}
-            className="mt-4 w-full py-2 bg-white/5 hover:bg-white/10 text-xs font-mono rounded-sm border border-border cursor-pointer transition-all text-white/80 text-center font-semibold uppercase tracking-wider text-[11px]"
+            className="mt-4 w-full py-2 bg-bg hover:bg-border/40 text-xs font-mono rounded-sm border border-border cursor-pointer transition-all text-text text-center font-semibold uppercase tracking-wider text-[11px]"
           >
             View Categories
           </button>
@@ -301,8 +301,8 @@ export default function AdminPortalView() {
             onClick={() => navigate(tab.path)}
             className={`py-2 px-4 font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
               activeTab === tab.key
-                ? "border-white text-white"
-                : "border-transparent text-white/40 hover:text-white/70"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted hover:text-text"
             }`}
           >
             <tab.icon className="h-4 w-4" aria-hidden="true" /> {tab.label}
@@ -317,8 +317,8 @@ export default function AdminPortalView() {
           {activeTab === "stats" && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-base text-white font-bold">Platform activity overview</h2>
-                <p className="text-xs text-white/40 leading-relaxed mt-1">
+                <h2 className="text-base text-text font-bold">Platform activity overview</h2>
+                <p className="text-xs text-muted leading-relaxed mt-1">
                   These metrics help the admin understand whether students are actively using FitSync.
                 </p>
               </div>
@@ -374,28 +374,28 @@ export default function AdminPortalView() {
               <div className="bg-surface p-5 border border-border rounded-sm space-y-3">
                 <div className="flex items-center gap-2">
                   <Info className="h-4 w-4 text-primary" aria-hidden="true" />
-                  <h3 className="text-sm font-bold text-white">What admin should look for</h3>
+                  <h3 className="text-sm font-bold text-text">What admin should look for</h3>
                 </div>
-                <ul className="list-disc pl-5 text-xs text-white/50 space-y-1.5 leading-relaxed">
+                <ul className="list-disc pl-5 text-xs text-muted space-y-1.5 leading-relaxed">
                   <li>Low workout activity may mean users are not reaching the Log page easily.</li>
                   <li>Low check-ins may mean the daily action is not visible enough.</li>
                   <li>Low category usage may mean a workout type is unclear or hidden.</li>
                 </ul>
               </div>
 
-              <div className="bg-surface rounded-sm border border-border  overflow-hidden">
+              <div className="bg-surface rounded-sm border border-border overflow-hidden">
                 <div className="p-5 border-b border-border">
-                  <h2 className="text-sm font-bold text-white">Category usage and logging quality</h2>
-                  <p className="text-xs text-white/40 leading-relaxed mt-1">
+                  <h2 className="text-sm font-bold text-text">Category usage and logging quality</h2>
+                  <p className="text-xs text-muted leading-relaxed mt-1">
                     Category usage helps the admin understand which workout options students actually use. Low usage may signal unclear naming, poor placement, or low relevance.
                   </p>
-                  <p className="text-[11px] text-white/30 mt-1">
+                  <p className="text-[11px] text-muted mt-1">
                     Admin job: keep categories simple, clear, and useful for quick logging.
                   </p>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-bg border-b border-border font-mono text-[9px] uppercase tracking-widest font-semibold text-white/40">
+                    <thead className="bg-bg border-b border-border font-mono text-[9px] uppercase tracking-widest font-semibold text-muted">
                       <tr>
                         <th className="py-2.5 px-5">Category</th>
                         <th className="py-2.5 px-4">Type</th>
@@ -404,20 +404,20 @@ export default function AdminPortalView() {
                         <th className="py-2.5 px-5">Total calories recorded</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5 text-white/80">
+                    <tbody className="divide-y divide-border text-text">
                       {analytics.map((row) => (
                         <tr key={row.id} className="hover:bg-bg transition-all">
-                          <td className="py-3 px-5 font-semibold text-white">{row.name}</td>
+                          <td className="py-3 px-5 font-semibold text-text">{row.name}</td>
                           <td className="py-3 px-4">
                             <span
-                              className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${row.isCustom ? "bg-indigo-950/20 text-indigo-400 border border-indigo-900/30" : "bg-white/5 text-white/50 border border-border"}`}
+                              className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${row.isCustom ? "bg-indigo-50 text-indigo-600 border border-indigo-100" : "bg-bg text-muted border border-border"}`}
                             >
                               {row.isCustom ? "Custom" : "Core"}
                             </span>
                           </td>
-                          <td className="py-3 px-4 font-mono text-white">{row.usageCount}</td>
-                          <td className="py-3 px-4 font-mono text-white/60">{row.totalMinutes}m</td>
-                          <td className="py-3 px-5 font-mono text-primary">
+                          <td className="py-3 px-4 font-mono text-text">{row.usageCount}</td>
+                          <td className="py-3 px-4 font-mono text-muted">{row.totalMinutes}m</td>
+                          <td className="py-3 px-5 font-mono text-primary font-semibold">
                             {row.totalCalories}
                           </td>
                         </tr>
@@ -434,10 +434,10 @@ export default function AdminPortalView() {
               <div className="lg:col-span-2 bg-surface rounded-sm border border-border overflow-hidden">
                 <div className="p-5 border-b border-border flex items-center justify-between">
                   <div>
-                    <h2 className="text-base text-white font-bold">
+                    <h2 className="text-base text-text font-bold">
                       Workout category management
                     </h2>
-                    <p className="text-xs text-white/40 leading-relaxed mt-1">
+                    <p className="text-xs text-muted leading-relaxed mt-1">
                       Maintain the workout options students choose from when logging activity.
                     </p>
                   </div>
@@ -457,7 +457,7 @@ export default function AdminPortalView() {
                     </button>
                   )}
                 </div>
-                <div className="divide-y divide-white/5">
+                <div className="divide-y divide-border">
                   {categories.map((category) => (
                     <div
                       key={category.id}
@@ -465,14 +465,14 @@ export default function AdminPortalView() {
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-white">{category.name}</span>
+                          <span className="font-bold text-text">{category.name}</span>
                           <span
-                            className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${category.isCustom ? "bg-indigo-950/20 text-indigo-400 border border-indigo-900/30" : "bg-white/5 text-white/50 border border-border"}`}
+                            className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${category.isCustom ? "bg-indigo-50 text-indigo-600 border border-indigo-100" : "bg-bg text-muted border border-border"}`}
                           >
                             {category.isCustom ? "Custom" : "Core"}
                           </span>
                         </div>
-                        <p className="text-white/40 leading-relaxed">{category.description}</p>
+                        <p className="text-muted leading-relaxed">{category.description}</p>
                       </div>
                       {category.isCustom && (
                         <div className="flex items-center gap-2 shrink-0">
@@ -480,7 +480,7 @@ export default function AdminPortalView() {
                             type="button"
                             onClick={() => startEditCategory(category)}
                             aria-label={`Edit ${category.name}`}
-                            className="text-white/40 hover:text-primary p-1.5 transition-all cursor-pointer"
+                            className="text-muted hover:text-primary p-1.5 transition-all cursor-pointer"
                           >
                             <Edit2 className="h-3.5 w-3.5" />
                           </button>
@@ -488,7 +488,7 @@ export default function AdminPortalView() {
                             type="button"
                             onClick={() => setPendingDeleteCat(category.id)}
                             aria-label={`Delete ${category.name}`}
-                            className="text-white/40 hover:text-red-400 p-1.5 transition-all cursor-pointer"
+                            className="text-muted hover:text-red-500 p-1.5 transition-all cursor-pointer"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
@@ -503,16 +503,16 @@ export default function AdminPortalView() {
                 {isAddingCat ? (
                   <form
                     onSubmit={handleSaveCategory}
-                    className="bg-surface p-5 rounded-sm border border-border  space-y-4"
+                    className="bg-surface p-5 rounded-sm border border-border space-y-4"
                   >
                     <div className="border-b border-border pb-2.5 flex justify-between items-center">
-                      <h3 className="text-xs font-mono font-semibold text-white uppercase tracking-widest">
+                      <h3 className="text-xs font-mono font-semibold text-text uppercase tracking-widest">
                         {editingCatId ? "Edit category" : "Add category"}
                       </h3>
                       <button
                         type="button"
                         onClick={() => setIsAddingCat(false)}
-                        className="text-xs text-white/45 hover:text-white underline decoration-white/20 underline-offset-4 cursor-pointer "
+                        className="text-xs text-muted hover:text-text underline decoration-muted/20 underline-offset-4 cursor-pointer "
                       >
                         Cancel
                       </button>
@@ -521,7 +521,7 @@ export default function AdminPortalView() {
                     <div>
                       <label
                         htmlFor="cat-name"
-                        className="block text-[10px] font-mono font-semibold text-white/40 uppercase tracking-widest mb-1.5"
+                        className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5"
                       >
                         Name
                       </label>
@@ -536,7 +536,7 @@ export default function AdminPortalView() {
                         className={`${INPUT} w-full disabled:opacity-60`}
                       />
                       {editingCatId && (
-                        <span className="text-[10px] text-white/30 mt-1 block">
+                        <span className="text-[10px] text-muted mt-1 block">
                           Category names are locked once created.
                         </span>
                       )}
@@ -544,7 +544,7 @@ export default function AdminPortalView() {
                     <div>
                       <label
                         htmlFor="cat-desc"
-                        className="block text-[10px] font-mono font-semibold text-white/40 uppercase tracking-widest mb-1.5"
+                        className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5"
                       >
                         Description
                       </label>
@@ -566,9 +566,9 @@ export default function AdminPortalView() {
                     </button>
                   </form>
                 ) : (
-                  <div className="p-5 bg-bg rounded-sm border border-dashed border-border text-center space-y-3 hover:border-white/20 transition-all duration-200">
-                    <Layers className="h-8 w-8 text-white/25 mx-auto" aria-hidden="true" />
-                    <p className="text-xs text-white/40 leading-relaxed">
+                  <div className="p-5 bg-bg rounded-sm border border-dashed border-border text-center space-y-3 hover:border-primary/20 transition-all duration-200">
+                    <Layers className="h-8 w-8 text-muted/40 mx-auto" aria-hidden="true" />
+                    <p className="text-xs text-muted leading-relaxed">
                       Add a custom exercise category to make workout logging clearer for students.
                     </p>
                     <button
@@ -584,9 +584,9 @@ export default function AdminPortalView() {
                 <div className="bg-surface p-5 border border-border rounded-sm mt-6 space-y-2">
                   <div className="flex items-center gap-2">
                     <Info className="h-4 w-4 text-primary" aria-hidden="true" />
-                    <h4 className="text-xs font-mono uppercase tracking-widest font-semibold text-white">Admin responsibility</h4>
+                    <h4 className="text-xs font-mono uppercase tracking-widest font-semibold text-text">Admin responsibility</h4>
                   </div>
-                  <p className="text-xs text-white/50 leading-relaxed">
+                  <p className="text-xs text-muted leading-relaxed">
                     Core categories stay protected to keep the system stable. Custom categories can be adjusted when students need clearer workout options.
                   </p>
                 </div>
@@ -597,15 +597,15 @@ export default function AdminPortalView() {
           {activeTab === "users" && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-base text-white font-bold">User account management</h2>
-                <p className="text-xs text-white/40 leading-relaxed mt-1">
+                <h2 className="text-base text-text font-bold">User account management</h2>
+                <p className="text-xs text-muted leading-relaxed mt-1">
                   Search, filter, and review user accounts. Admin actions here control access and roles, not personal fitness plans.
                 </p>
               </div>
               <div className="bg-surface border border-border rounded-sm p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="relative">
                   <Search
-                    className="absolute left-3 top-2.5 h-4 w-4 text-white/30"
+                    className="absolute left-3 top-2.5 h-4 w-4 text-muted/40"
                     aria-hidden="true"
                   />
                   <input
@@ -642,7 +642,7 @@ export default function AdminPortalView() {
               <div className="bg-surface rounded-sm border border-border overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-bg border-b border-border font-mono text-[9px] uppercase tracking-widest font-semibold text-white/40">
+                    <thead className="bg-bg border-b border-border font-mono text-[9px] uppercase tracking-widest font-semibold text-muted">
                       <tr>
                         <th className="py-2.5 px-5">User</th>
                         <th className="py-2.5 px-4">Role</th>
@@ -651,32 +651,32 @@ export default function AdminPortalView() {
                         <th className="py-2.5 px-5 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5 text-white/80">
+                    <tbody className="divide-y divide-border text-text">
                       {users.map((item) => {
                         const isSelf = item.id === currentUser.id;
                         return (
                           <tr key={item.id} className="hover:bg-bg transition-all">
                             <td className="py-3.5 px-5">
-                              <div className="font-semibold text-white">{item.name}</div>
-                              <div className="font-mono text-white/40 text-[11px]">
+                              <div className="font-semibold text-text">{item.name}</div>
+                              <div className="font-mono text-muted text-[11px]">
                                 {item.email}
                               </div>
                             </td>
                             <td className="py-3 px-4">
                               <span
-                                className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${item.role === "admin" ? "bg-blue-950/30 text-blue-300 border border-blue-900/40" : "bg-white/5 text-white/60 border border-border"}`}
+                                className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${item.role === "admin" ? "bg-blue-50 text-blue-700 border border-blue-100" : "bg-bg text-muted border border-border"}`}
                               >
                                 {item.role}
                               </span>
                             </td>
                             <td className="py-3 px-4">
                               <span
-                                className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${item.isActive ? "bg-primary/10 text-primary border border-primary/30" : "bg-rose-950/20 text-rose-400 border border-rose-900/30"}`}
+                                className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${item.isActive ? "bg-primary/10 text-primary border border-primary/30" : "bg-rose-50 text-rose-700 border border-rose-100"}`}
                               >
                                 {item.isActive ? "Active" : "Inactive"}
                               </span>
                             </td>
-                            <td className="py-3 px-4 font-mono text-white/50 text-[11px]">
+                            <td className="py-3 px-4 font-mono text-muted text-[11px]">
                               {item.workoutCount}w · {item.weightCount}wt
                             </td>
                             <td className="py-3 px-5">
@@ -686,7 +686,7 @@ export default function AdminPortalView() {
                                   onClick={() => openUserDetail(item.id)}
                                   aria-label={`View ${item.name}`}
                                   title="View account activity"
-                                  className="text-white/40 hover:text-white p-1.5 transition-all cursor-pointer"
+                                  className="text-muted hover:text-text p-1.5 transition-all cursor-pointer"
                                 >
                                   <Eye className="h-3.5 w-3.5" />
                                 </button>
@@ -697,7 +697,7 @@ export default function AdminPortalView() {
                                       onClick={() => toggleRole(item)}
                                       aria-label="Toggle role"
                                       title={item.role === "admin" ? "Make user" : "Make admin"}
-                                      className="text-white/40 hover:text-blue-300 p-1.5 transition-all cursor-pointer"
+                                      className="text-muted hover:text-blue-600 p-1.5 transition-all cursor-pointer"
                                     >
                                       <ShieldCheck className="h-3.5 w-3.5" />
                                     </button>
@@ -706,7 +706,7 @@ export default function AdminPortalView() {
                                       onClick={() => toggleStatus(item)}
                                       aria-label="Toggle status"
                                       title={item.isActive ? "Deactivate" : "Activate"}
-                                      className={`p-1.5 transition-all cursor-pointer ${item.isActive ? "text-white/40 hover:text-rose-400" : "text-white/40 hover:text-primary"}`}
+                                      className={`p-1.5 transition-all cursor-pointer ${item.isActive ? "text-muted hover:text-rose-600" : "text-muted hover:text-primary"}`}
                                     >
                                       {item.isActive ? (
                                         <UserX className="h-3.5 w-3.5" />
@@ -723,7 +723,7 @@ export default function AdminPortalView() {
                       })}
                       {users.length === 0 && (
                         <tr>
-                          <td colSpan={5} className="py-10 text-center text-white/40 text-xs">
+                          <td colSpan={5} className="py-10 text-center text-muted text-xs">
                             No users match these filters. Try clearing search, role, or status.
                           </td>
                         </tr>
@@ -739,22 +739,22 @@ export default function AdminPortalView() {
 
       {detail && (
         <div
-          className="fixed inset-0 bg-black/80 z-[70] flex items-center justify-center p-4  animate-fade-in"
+          className="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-4 animate-fade-in"
           role="dialog"
           aria-modal="true"
           onClick={() => setDetail(null)}
         >
           <div
-            className="bg-surface w-full max-w-lg rounded-sm border border-border p-6 space-y-5  animate-slide-up"
+            className="bg-surface w-full max-w-lg rounded-sm border border-border p-6 space-y-5 animate-slide-up"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between border-b border-border pb-3">
               <div>
-                <h2 className="text-base text-white font-bold">
+                <h2 className="text-base text-text font-bold">
                   {detail.user.name}
                 </h2>
-                <p className="text-xs text-white/40 font-mono">{detail.user.email}</p>
-                <p className="text-xs text-white/30 mt-1">
+                <p className="text-xs text-muted font-mono">{detail.user.email}</p>
+                <p className="text-xs text-muted/70 mt-1">
                   Account activity summary for admin review. This is not health advice.
                 </p>
               </div>
@@ -776,11 +776,11 @@ export default function AdminPortalView() {
               <Metric label="Role" value={detail.user.role} />
             </div>
             <div>
-              <h3 className="text-[10px] font-mono uppercase tracking-widest text-white/40 mb-2">
+              <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted mb-2">
                 Recent workouts
               </h3>
               {detail.recentWorkouts.length === 0 ? (
-                <p className="text-xs text-white/30">No workouts logged yet.</p>
+                <p className="text-xs text-muted">No workouts logged yet.</p>
               ) : (
                 <div className="space-y-1.5">
                   {detail.recentWorkouts.map((workout) => (
@@ -788,8 +788,8 @@ export default function AdminPortalView() {
                       key={workout.id}
                       className="flex items-center justify-between text-xs bg-bg border border-border rounded-sm px-3 py-2"
                     >
-                      <span className="text-white/80">{workout.title}</span>
-                      <span className="font-mono text-white/40">
+                      <span className="text-text font-semibold">{workout.title}</span>
+                      <span className="font-mono text-muted">
                         {workout.date} · {workout.caloriesTotal} kcal
                       </span>
                     </div>
@@ -816,8 +816,8 @@ export default function AdminPortalView() {
 function Metric({ label, value }) {
   return (
     <div className="bg-bg border border-border rounded-sm p-3">
-      <div className="text-sm font-black text-white capitalize">{value}</div>
-      <div className="text-[8px] font-mono uppercase tracking-wider text-white/40 mt-0.5">
+      <div className="text-sm font-black text-text capitalize">{value}</div>
+      <div className="text-[8px] font-mono uppercase tracking-wider text-muted mt-0.5">
         {label}
       </div>
     </div>
