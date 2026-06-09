@@ -1,42 +1,48 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Navigate } from "react-router-dom";
 import {
-  ShieldCheck, Trash2, Plus, Users, Layers, BarChart3, FileCheck, Scale, Edit2,
-  RefreshCw, Info, Flame, Search, Eye, UserCheck, UserX, X, LayoutDashboard,
-  BrainCircuit, Settings, Lock, ChevronRight, Activity
+  ShieldCheck,
+  Trash2,
+  Plus,
+  Users,
+  Layers,
+  BarChart3,
+  FileCheck,
+  Scale,
+  Edit2,
+  RefreshCw,
+  Flame,
+  Search,
+  Eye,
+  UserCheck,
+  UserX,
+  X
 } from "lucide-react";
 import adminService from "../services/adminService.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useToast } from "../context/ToastContext.jsx";
 import Spinner from "./common/Spinner.jsx";
 import ErrorBanner from "./common/ErrorBanner.jsx";
+import ConfirmDialog from "./modals/ConfirmDialog.jsx";
 
-const INPUT = "px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 focus:bg-white focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all";
+// Fixed: Inputs now utilize text matching light-mode layout standards
+const INPUT =
+  "px-3 py-2 bg-bg border border-border rounded-sm text-xs text-text focus:bg-surface focus:border-primary focus:outline-none transition-all";
 
 function StatCard({ label, value, icon: Icon, hint }) {
   return (
-    <div className="bg-white p-6 border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-gray-500 font-semibold text-xs uppercase tracking-wider">{label}</span>
-        <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
-          <Icon className="h-5 w-5" aria-hidden="true" />
-        </div>
-      </div>
-      <strong className="text-3xl font-black text-gray-900 block font-sans tracking-tight">{value ?? "--"}</strong>
+    <div className="bg-surface p-5 border border-border rounded-sm">
+      <span className="text-muted/60 font-mono text-[9px] uppercase tracking-widest block">
+        {label}
+      </span>
+      <strong className="text-2xl font-black text-text mt-1 block font-mono">
+        {value ?? "--"}
+      </strong>
       {hint && (
-        <span className="text-xs text-emerald-600 mt-2 block font-medium bg-emerald-50 inline-block px-2 py-0.5 rounded-md">
-          {hint}
+        <span className="text-[10px] text-muted mt-1.5 flex items-center gap-1">
+          <Icon className="h-3 w-3 text-primary" aria-hidden="true" /> {hint}
         </span>
       )}
-    </div>
-  );
-}
-
-function Metric({ label, value }) {
-  return (
-    <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-      <div className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold mb-1">{label}</div>
-      <div className="text-sm font-bold text-gray-900">{value}</div>
     </div>
   );
 }
@@ -48,12 +54,10 @@ export default function AdminPortalView() {
   const navigate = useNavigate();
 
   const SECTION_TO_TAB = {
-    dashboard: "dashboard",
+    dashboard: "stats",
+    statistics: "stats",
     users: "users",
-    categories: "categories",
-    statistics: "statistics",
-    insights: "insights",
-    settings: "settings"
+    categories: "categories"
   };
   const activeTab = SECTION_TO_TAB[section];
 
@@ -72,7 +76,7 @@ export default function AdminPortalView() {
   const [editingCatId, setEditingCatId] = useState(null);
   const [isAddingCat, setIsAddingCat] = useState(false);
   const [catError, setCatError] = useState(null);
-  const [selectedPreviewCat, setSelectedPreviewCat] = useState(null);
+  const [pendingDeleteCat, setPendingDeleteCat] = useState(null);
 
   const loadCoreData = useCallback(async () => {
     setLoading(true);
@@ -86,15 +90,12 @@ export default function AdminPortalView() {
       setStats(statsData);
       setCategories(catData);
       setAnalytics(analyticsData);
-      if (catData.length > 0 && !selectedPreviewCat) {
-        setSelectedPreviewCat(catData[0]);
-      }
     } catch (err) {
       setError(err.message || "Failed to load admin data.");
     } finally {
       setLoading(false);
     }
-  }, [selectedPreviewCat]);
+  }, []);
 
   const loadUsers = useCallback(async () => {
     try {
@@ -127,11 +128,10 @@ export default function AdminPortalView() {
           name: catName.trim(),
           description: catDesc.trim()
         });
-        push("Category updated across FitSync.", "success");
+        push("Category updated.", "success");
       } else {
-        const newCat = await adminService.createCategory({ name: catName.trim(), description: catDesc.trim() });
-        setSelectedPreviewCat(newCat);
-        push("Category added. Users can now choose it when logging workouts.", "success");
+        await adminService.createCategory({ name: catName.trim(), description: catDesc.trim() });
+        push("Category created.", "success");
       }
       setCatName("");
       setCatDesc("");
@@ -143,12 +143,12 @@ export default function AdminPortalView() {
     }
   }
 
-  async function deleteCategory(id) {
-    if (!window.confirm("Are you sure you want to delete this category?")) return;
+  async function confirmDeleteCategory() {
+    const id = pendingDeleteCat;
+    setPendingDeleteCat(null);
     try {
       await adminService.deleteCategory(id);
-      push("Category removed from user workout logging.", "info");
-      if (selectedPreviewCat?.id === id) setSelectedPreviewCat(null);
+      push("Category removed.", "info");
       loadCoreData();
     } catch (err) {
       push(err.message || "Failed to delete category.", "info");
@@ -193,12 +193,9 @@ export default function AdminPortalView() {
   }
 
   const TABS = [
-    { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
-    { key: "users", label: "Users", icon: Users, path: "/admin/users" },
+    { key: "stats", label: "Platform Stats", icon: BarChart3, path: "/admin/dashboard" },
     { key: "categories", label: "Categories", icon: Layers, path: "/admin/categories" },
-    { key: "statistics", label: "Statistics", icon: BarChart3, path: "/admin/statistics" },
-    { key: "insights", label: "AI Insights", icon: BrainCircuit, path: "/admin/insights" },
-    { key: "settings", label: "Settings", icon: Settings, path: "/admin/settings" }
+    { key: "users", label: "Users", icon: Users, path: "/admin/users" }
   ];
 
   if (!activeTab) {
@@ -206,338 +203,414 @@ export default function AdminPortalView() {
   }
 
   return (
-    <div className="flex flex-col md:flex-row min-h-[80vh] gap-8 bg-gray-50/50 rounded-2xl p-4 md:p-6 text-gray-800 font-sans">
-      
-      {/* Sidebar */}
-      <div className="w-full md:w-64 shrink-0 space-y-6">
-        <div className="px-4">
-          <div className="flex items-center gap-2 text-emerald-600 mb-1">
-            <ShieldCheck className="h-6 w-6" />
-            <h1 className="text-lg font-bold tracking-tight">Admin Console</h1>
+    <div className="space-y-6 text-left text-text">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-surface p-6 rounded-sm border border-border">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-primary" aria-hidden="true" />
+            <h1 className="text-base text-text font-bold">
+              Administration Portal
+            </h1>
           </div>
-          <p className="text-xs text-gray-500 font-medium">FitSync Backend Management</p>
+          <p className="text-xs text-muted">
+            Manage categories, review platform activity, and administer user accounts.
+          </p>
         </div>
-
-        <nav className="space-y-1">
-          {TABS.map((tab) => {
-            const isActive = activeTab === tab.key;
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => navigate(tab.path)}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer font-semibold text-sm ${
-                  isActive
-                    ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
-                    : "text-gray-600 hover:bg-white hover:text-emerald-600"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <tab.icon className={`h-5 w-5 ${isActive ? "text-emerald-100" : "text-gray-400"}`} />
-                  {tab.label}
-                </div>
-                {isActive && <ChevronRight className="h-4 w-4 opacity-70" />}
-              </button>
-            );
-          })}
-        </nav>
+        <button
+          type="button"
+          onClick={loadCoreData}
+          disabled={loading}
+          className="px-3.5 py-1.5 bg-bg hover:bg-border/40 text-xs font-mono rounded-sm border border-border cursor-pointer flex items-center gap-1.5 transition-all text-text"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh
+        </button>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 min-w-0">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
-            {TABS.find(t => t.key === activeTab)?.label}
-          </h2>
+      <ErrorBanner message={error} onRetry={loadCoreData} />
+
+      <div className="flex items-center gap-2.5 border-b border-border pb-1 text-xs">
+        {TABS.map((tab) => (
           <button
+            key={tab.key}
             type="button"
-            onClick={loadCoreData}
-            disabled={loading}
-            className="px-4 py-2 bg-white text-gray-600 hover:text-emerald-600 text-sm font-semibold rounded-lg border border-gray-200 shadow-sm cursor-pointer flex items-center gap-2 transition-all"
+            onClick={() => navigate(tab.path)}
+            className={`py-2 px-4 font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+              activeTab === tab.key
+                ? "border-primary text-text"
+                : "border-transparent text-muted hover:text-text"
+            }`}
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh Data
+            <tab.icon className="h-4 w-4" aria-hidden="true" /> {tab.label}
           </button>
-        </div>
+        ))}
+      </div>
 
-        <ErrorBanner message={error} onRetry={loadCoreData} />
-
-        {loading && !stats ? (
-          <Spinner label="Loading backend data..." className="py-24" />
-        ) : (
-          <div className="animate-fade-in space-y-8">
-            
-            {/* Dashboard Tab */}
-            {activeTab === "dashboard" && (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  <StatCard label="Total Users" value={stats?.totalUsers ?? 42} icon={Users} hint="Registered accounts" />
-                  <StatCard label="Active Today" value={stats?.gamification?.activeUsersLast7Days ?? 18} icon={Flame} hint="Daily active users" />
-                  <StatCard label="Workouts Logged" value={stats?.totalWorkouts ?? 126} icon={FileCheck} hint="Lifetime sessions" />
-                  <StatCard label="Categories" value={categories?.length ?? 6} icon={Layers} hint="Available workout types" />
-                  <StatCard label="AI Insights" value={stats?.totalInsightsGenerated ?? 12} icon={BrainCircuit} hint="Generated reports" />
-                  <StatCard label="System Status" value="Healthy" icon={Activity} hint="All services operational" />
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                      <h3 className="font-bold text-gray-900">Recent Users</h3>
-                      <button onClick={() => navigate('/admin/users')} className="text-xs text-emerald-600 font-semibold hover:underline cursor-pointer">View All</button>
-                    </div>
-                    <table className="w-full text-left text-sm">
-                      <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider font-semibold">
-                        <tr>
-                          <th className="px-6 py-3">User</th>
-                          <th className="px-6 py-3">Status</th>
-                          <th className="px-6 py-3">Joined</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100 text-gray-700">
-                        {users.slice(0, 5).map(u => (
-                          <tr key={u.id}>
-                            <td className="px-6 py-3">
-                              <div className="font-semibold text-gray-900">{u.name}</div>
-                              <div className="text-xs text-gray-500">{u.email}</div>
-                            </td>
-                            <td className="px-6 py-3">
-                              <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${u.isActive ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
-                                {u.isActive ? "Active" : "Inactive"}
-                              </span>
-                            </td>
-                            <td className="px-6 py-3 text-xs text-gray-500">{u.createdAt.slice(0, 10)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-100">
-                      <h3 className="font-bold text-gray-900">Recent Workouts</h3>
-                    </div>
-                    <div className="p-2">
-                      {(stats?.recentWorkouts?.length ? stats.recentWorkouts : [
-                        { id: 1, user: "Alex Chen", title: "Strength", dur: 45, date: "Today" },
-                        { id: 2, user: "Maria Garcia", title: "Cardio", dur: 30, date: "Today" },
-                        { id: 3, user: "Sam Smith", title: "HIIT", dur: 20, date: "Yesterday" },
-                        { id: 4, user: "Emma Wilson", title: "Yoga", dur: 60, date: "Yesterday" },
-                        { id: 5, user: "David Lee", title: "Sports", dur: 90, date: "2 days ago" }
-                      ]).map(w => (
-                        <div key={w.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                          <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">
-                              {w.user?.charAt(0)}
-                            </div>
-                            <div>
-                              <div className="font-semibold text-gray-900 text-sm">{w.user} logged {w.title}</div>
-                              <div className="text-xs text-gray-500">{w.dur} mins</div>
-                            </div>
-                          </div>
-                          <div className="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-1 rounded-md">{w.date}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Categories Tab */}
-            {activeTab === "categories" && (
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div className="xl:col-span-2 space-y-6">
-                  
-                  {isAddingCat ? (
-                    <form onSubmit={handleSaveCategory} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-5">
-                      <div className="border-b border-gray-100 pb-4 flex justify-between items-center">
-                        <h3 className="font-bold text-gray-900 text-lg">
-                          {editingCatId ? "Edit Category" : "New Category"}
-                        </h3>
-                        <button type="button" onClick={() => setIsAddingCat(false)} className="text-sm text-gray-500 hover:text-gray-900 font-semibold cursor-pointer">
-                          Cancel
-                        </button>
-                      </div>
-                      <ErrorBanner message={catError} />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div className="md:col-span-2">
-                          <label htmlFor="cat-name" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Category Name</label>
-                          <input id="cat-name" type="text" required disabled={Boolean(editingCatId)} placeholder="e.g. Badminton" value={catName} onChange={(e) => setCatName(e.target.value)} className={`${INPUT} w-full disabled:bg-gray-50 disabled:text-gray-500`} />
-                        </div>
-                        <div className="md:col-span-2">
-                          <label htmlFor="cat-desc" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Description</label>
-                          <textarea id="cat-desc" required rows={3} placeholder="What does this cover?" value={catDesc} onChange={(e) => setCatDesc(e.target.value)} className={`${INPUT} w-full`} />
-                        </div>
-                      </div>
-                      <div className="pt-2">
-                        <button type="submit" className="px-6 py-2.5 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition-colors cursor-pointer shadow-sm shadow-emerald-600/20">
-                          {editingCatId ? "Save Changes" : "Add Category"}
-                        </button>
-                      </div>
-                    </form>
-                  ) : (
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
-                      <div>
-                        <h3 className="font-bold text-gray-900 text-lg">Category Management</h3>
-                        <p className="text-sm text-gray-500 mt-1">Add or modify the workout types users can log.</p>
-                      </div>
-                      <button onClick={() => { setIsAddingCat(true); setEditingCatId(null); setCatName(""); setCatDesc(""); }} className="px-5 py-2.5 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition-colors cursor-pointer flex items-center gap-2 shadow-sm shadow-emerald-600/20">
-                        <Plus className="h-4 w-4" /> Add Category
-                      </button>
-                    </div>
-                  )}
-
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-100">
-                      <h3 className="font-bold text-gray-900">All Categories</h3>
-                    </div>
-                    <table className="w-full text-left text-sm">
-                      <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider font-semibold">
-                        <tr>
-                          <th className="px-6 py-3">Category</th>
-                          <th className="px-6 py-3">Status</th>
-                          <th className="px-6 py-3">Usage</th>
-                          <th className="px-6 py-3 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {categories.map((cat) => {
-                          const isSelected = selectedPreviewCat?.id === cat.id;
-                          const statRow = analytics.find(a => a.id === cat.id);
-                          return (
-                            <tr key={cat.id} onClick={() => setSelectedPreviewCat(cat)} className={`cursor-pointer transition-colors ${isSelected ? "bg-emerald-50" : "hover:bg-gray-50"}`}>
-                              <td className="px-6 py-4">
-                                <div className="font-bold text-gray-900">{cat.name}</div>
-                                <div className="text-xs text-gray-500 mt-0.5 line-clamp-1">{cat.description}</div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase flex items-center gap-1 w-max ${cat.isCustom ? "bg-indigo-50 text-indigo-700" : "bg-gray-100 text-gray-600"}`}>
-                                  {!cat.isCustom && <Lock className="h-3 w-3" />}
-                                  {cat.isCustom ? "Custom" : "Default"}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 text-gray-600 font-medium">
-                                {statRow?.usageCount || 0} workouts
-                              </td>
-                              <td className="px-6 py-4 text-right">
-                                {cat.isCustom ? (
-                                  <div className="flex items-center justify-end gap-2">
-                                    <button onClick={(e) => { e.stopPropagation(); startEditCategory(cat); }} className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"><Edit2 className="h-4 w-4" /></button>
-                                    <button onClick={(e) => { e.stopPropagation(); deleteCategory(cat.id); }} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="h-4 w-4" /></button>
-                                  </div>
-                                ) : (
-                                  <span className="text-xs text-gray-400 italic">Protected</span>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                <div className="xl:col-span-1">
-                  <div className="bg-white rounded-xl shadow-sm border border-emerald-200 overflow-hidden sticky top-6">
-                    <div className="bg-emerald-600 px-6 py-4 text-white">
-                      <h3 className="font-bold flex items-center gap-2"><Eye className="h-5 w-5" /> User Log Preview</h3>
-                      <p className="text-emerald-100 text-xs mt-1">How this category appears to users</p>
-                    </div>
-                    {selectedPreviewCat ? (
-                      <div className="p-6 space-y-6">
-                        <div>
-                          <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">1. Select Category</div>
-                          <div className="p-4 border-2 border-emerald-500 bg-emerald-50 rounded-2xl flex flex-col items-center justify-center text-center">
-                            <span className="text-3xl mb-2">{selectedPreviewCat.isCustom ? "🔥" : "🏃"}</span>
-                            <span className="font-bold text-emerald-900">{selectedPreviewCat.name}</span>
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">2. Select Subtype</div>
-                          <div className="flex gap-2 overflow-hidden">
-                            <div className="px-4 py-2 bg-gray-900 text-white rounded-full text-sm font-bold whitespace-nowrap">{selectedPreviewCat.name}</div>
-                            {!selectedPreviewCat.isCustom && <div className="px-4 py-2 bg-gray-100 text-gray-500 rounded-full text-sm font-bold opacity-50 whitespace-nowrap">Variant 2</div>}
-                          </div>
-                        </div>
-                        <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 text-sm text-gray-600">
-                          <strong>Admin connection:</strong> Adding or editing <span className="font-bold text-gray-900">"{selectedPreviewCat.name}"</span> updates the real user workout API instantly.
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="p-10 text-center text-gray-400">
-                        <Layers className="h-10 w-10 mx-auto mb-3 opacity-20" />
-                        <p className="text-sm">Select a category to preview</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
+      {loading && !stats ? (
+        <Spinner label="Loading admin data..." className="py-16" />
+      ) : (
+        <>
+          {activeTab === "stats" && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <StatCard
+                  label="Platform users"
+                  value={stats?.totalUsers}
+                  icon={Users}
+                  hint="Excluding admins"
+                />
+                <StatCard
+                  label="Workouts logged"
+                  value={stats?.totalWorkouts}
+                  icon={FileCheck}
+                  hint="All sessions"
+                />
+                <StatCard
+                  label="Weight entries"
+                  value={stats?.totalWeightEntries}
+                  icon={Scale}
+                  hint="Body weight logs"
+                />
+                <StatCard
+                  label="Weekly insights"
+                  value={stats?.totalInsightsGenerated}
+                  icon={ShieldCheck}
+                  hint="Gemini reports"
+                />
               </div>
-            )}
 
-            {/* Users Tab */}
-            {activeTab === "users" && (
-              <div className="space-y-6">
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-4 items-center justify-between">
-                  <div className="relative w-full sm:w-96">
-                    <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                    <input type="search" placeholder="Search by name or email..." value={userFilters.search} onChange={(e) => setUserFilters((f) => ({ ...f, search: e.target.value }))} className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all outline-none" />
-                  </div>
-                  <div className="flex gap-3 w-full sm:w-auto">
-                    <select value={userFilters.role} onChange={(e) => setUserFilters((f) => ({ ...f, role: e.target.value }))} className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 outline-none focus:border-emerald-500">
-                      <option value="">All Roles</option>
-                      <option value="user">Users</option>
-                      <option value="admin">Admins</option>
-                    </select>
-                    <select value={userFilters.status} onChange={(e) => setUserFilters((f) => ({ ...f, status: e.target.value }))} className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 outline-none focus:border-emerald-500">
-                      <option value="">All Status</option>
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                    </select>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <StatCard
+                  label="Active (7 days)"
+                  value={stats?.gamification?.activeUsersLast7Days}
+                  icon={Flame}
+                  hint="Users with recent activity"
+                />
+                <StatCard
+                  label="Avg current streak"
+                  value={stats?.gamification?.averageCurrentStreak}
+                  icon={Flame}
+                  hint="Across all users"
+                />
+                <StatCard
+                  label="Total check-ins"
+                  value={stats?.gamification?.totalCheckins}
+                  icon={UserCheck}
+                  hint="Wellness check-ins"
+                />
+              </div>
+
+              <div className="bg-surface rounded-sm border border-border overflow-hidden">
+                <div className="p-5 border-b border-border">
+                  <h2 className="text-sm font-bold text-text">Category usage analytics</h2>
+                  <p className="text-xs text-muted">
+                    How often each exercise category is logged across all users.
+                  </p>
                 </div>
-
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
-                  <table className="w-full text-left text-sm whitespace-nowrap">
-                    <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider font-semibold border-b border-gray-100">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-bg border-b border-border font-mono text-[9px] uppercase tracking-widest font-semibold text-muted">
                       <tr>
-                        <th className="px-6 py-4">Name / Email</th>
-                        <th className="px-6 py-4">Role</th>
-                        <th className="px-6 py-4">Level & XP</th>
-                        <th className="px-6 py-4">Streak</th>
-                        <th className="px-6 py-4">Last Active</th>
-                        <th className="px-6 py-4">Status</th>
-                        <th className="px-6 py-4 text-right">Actions</th>
+                        <th className="py-2.5 px-5">Category</th>
+                        <th className="py-2.5 px-4">Type</th>
+                        <th className="py-2.5 px-4">Times logged</th>
+                        <th className="py-2.5 px-4">Minutes</th>
+                        <th className="py-2.5 px-5">Calories</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-border/40 text-text">
+                      {analytics.map((row) => (
+                        <tr key={row.id} className="hover:bg-bg transition-all">
+                          <td className="py-3 px-5 font-semibold text-text">{row.name}</td>
+                          <td className="py-3 px-4">
+                            <span
+                              className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${row.isCustom ? "bg-secondary/20 text-primary border border-secondary" : "bg-bg text-muted border border-border"}`}
+                            >
+                              {row.isCustom ? "Custom" : "Core"}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 font-mono text-text">{row.usageCount}</td>
+                          <td className="py-3 px-4 font-mono text-muted">{row.totalMinutes}m</td>
+                          <td className="py-3 px-5 font-mono font-bold text-text">
+                            {row.totalCalories}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "categories" && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 bg-surface rounded-sm border border-border overflow-hidden">
+                <div className="p-5 border-b border-border flex items-center justify-between">
+                  <div>
+                    <h2 className="text-base text-text font-bold">
+                      Exercise categories
+                    </h2>
+                    <p className="text-xs text-muted">
+                      Core categories are protected; custom ones can be edited or removed.
+                    </p>
+                  </div>
+                  {!isAddingCat && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsAddingCat(true);
+                        setEditingCatId(null);
+                        setCatName("");
+                        setCatDesc("");
+                        setCatError(null);
+                      }}
+                      className="px-3 py-1.5 bg-primary hover:bg-muted text-white text-xs font-medium uppercase tracking-widest rounded-sm flex items-center gap-1 cursor-pointer transition-all"
+                    >
+                      <Plus className="h-3 w-3" /> Add
+                    </button>
+                  )}
+                </div>
+                <div className="divide-y divide-border/40">
+                  {categories.map((category) => (
+                    <div
+                      key={category.id}
+                      className="p-5 flex items-start justify-between gap-4 hover:bg-bg transition-all text-xs"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-text">{category.name}</span>
+                          <span
+                            className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${category.isCustom ? "bg-secondary/20 text-primary border border-secondary" : "bg-bg text-muted border border-border"}`}
+                          >
+                            {category.isCustom ? "Custom" : "Core"}
+                          </span>
+                        </div>
+                        <p className="text-muted leading-relaxed">{category.description}</p>
+                      </div>
+                      {category.isCustom && (
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => startEditCategory(category)}
+                            aria-label={`Edit ${category.name}`}
+                            className="text-muted hover:text-primary p-1.5 transition-all cursor-pointer"
+                          >
+                            <Edit2 className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPendingDeleteCat(category.id)}
+                            aria-label={`Delete ${category.name}`}
+                            className="text-muted hover:text-streak p-1.5 transition-all cursor-pointer"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                {isAddingCat ? (
+                  <form
+                    onSubmit={handleSaveCategory}
+                    className="bg-surface p-5 rounded-sm border border-border space-y-4"
+                  >
+                    <div className="border-b border-border pb-2.5 flex justify-between items-center">
+                      <h3 className="text-xs font-mono font-semibold text-text uppercase tracking-widest">
+                        {editingCatId ? "Edit category" : "Add category"}
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => setIsAddingCat(false)}
+                        className="text-xs text-muted hover:text-text underline decoration-muted/40 underline-offset-4 cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    <ErrorBanner message={catError} />
+                    <div>
+                      <label
+                        htmlFor="cat-name"
+                        className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5"
+                      >
+                        Name
+                      </label>
+                      <input
+                        id="cat-name"
+                        type="text"
+                        required
+                        disabled={Boolean(editingCatId)}
+                        placeholder="e.g. Swimming"
+                        value={catName}
+                        onChange={(e) => setCatName(e.target.value)}
+                        className={`${INPUT} w-full disabled:opacity-60`}
+                      />
+                      {editingCatId && (
+                        <span className="text-[10px] text-muted mt-1 block">
+                          Category names are locked once created.
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="cat-desc"
+                        className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5"
+                      >
+                        Description
+                      </label>
+                      <textarea
+                        id="cat-desc"
+                        required
+                        rows={3}
+                        placeholder="What this category covers."
+                        value={catDesc}
+                        onChange={(e) => setCatDesc(e.target.value)}
+                        className={`${INPUT} w-full`}
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="w-full py-2 bg-primary hover:bg-muted text-white font-medium uppercase tracking-widest text-xs rounded-sm transition-all cursor-pointer"
+                    >
+                      {editingCatId ? "Save changes" : "Create category"}
+                    </button>
+                  </form>
+                ) : (
+                  <div className="p-5 bg-surface rounded-sm border border-dashed border-border text-center space-y-3">
+                    <Layers className="h-8 w-8 text-muted/40 mx-auto" aria-hidden="true" />
+                    <p className="text-xs text-muted leading-relaxed">
+                      Add a custom exercise category for users to log against.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setIsAddingCat(true)}
+                      className="mx-auto py-1 px-3 bg-primary hover:bg-muted text-white transition-all font-medium uppercase tracking-widest rounded-sm text-xs cursor-pointer block"
+                    >
+                      New category
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "users" && (
+            <div className="space-y-4">
+              <div className="bg-surface border border-border rounded-sm p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="relative">
+                  <Search
+                    className="absolute left-3 top-2.5 h-4 w-4 text-muted/50"
+                    aria-hidden="true"
+                  />
+                  <input
+                    type="search"
+                    aria-label="Search users"
+                    placeholder="Search name or email"
+                    value={userFilters.search}
+                    onChange={(e) => setUserFilters((f) => ({ ...f, search: e.target.value }))}
+                    className={`${INPUT} w-full pl-9`}
+                  />
+                </div>
+                <select
+                  aria-label="Filter by role"
+                  value={userFilters.role}
+                  onChange={(e) => setUserFilters((f) => ({ ...f, role: e.target.value }))}
+                  className={`${INPUT} cursor-pointer`}
+                >
+                  <option value="">All roles</option>
+                  <option value="user">Users</option>
+                  <option value="admin">Admins</option>
+                </select>
+                <select
+                  aria-label="Filter by status"
+                  value={userFilters.status}
+                  onChange={(e) => setUserFilters((f) => ({ ...f, status: e.target.value }))}
+                  className={`${INPUT} cursor-pointer`}
+                >
+                  <option value="">All statuses</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+
+              <div className="bg-surface rounded-sm border border-border overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-bg border-b border-border font-mono text-[9px] uppercase tracking-widest font-semibold text-muted">
+                      <tr>
+                        <th className="py-2.5 px-5">User</th>
+                        <th className="py-2.5 px-4">Role</th>
+                        <th className="py-2.5 px-4">Status</th>
+                        <th className="py-2.5 px-4">Activity</th>
+                        <th className="py-2.5 px-5 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/40 text-text">
                       {users.map((item) => {
                         const isSelf = item.id === currentUser.id;
                         return (
-                          <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-6 py-4">
-                              <div className="font-bold text-gray-900">{item.name}</div>
-                              <div className="text-xs text-gray-500">{item.email}</div>
+                          <tr key={item.id} className="hover:bg-bg transition-all">
+                            <td className="py-3.5 px-5">
+                              <div className="font-semibold text-text">{item.name}</div>
+                              <div className="font-mono text-muted text-[11px]">
+                                {item.email}
+                              </div>
                             </td>
-                            <td className="px-6 py-4">
-                              <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase ${item.role === "admin" ? "bg-purple-50 text-purple-700 border border-purple-100" : "bg-gray-100 text-gray-600 border border-gray-200"}`}>{item.role}</span>
+                            <td className="py-3 px-4">
+                              <span
+                                className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${item.role === "admin" ? "bg-secondary text-text font-bold" : "bg-bg text-muted border border-border"}`}
+                              >
+                                {item.role}
+                              </span>
                             </td>
-                            <td className="px-6 py-4">
-                              <div className="font-bold text-emerald-600">Lv {item.level || 1}</div>
-                              <div className="text-xs text-gray-500">{item.xp || 0} XP</div>
+                            <td className="py-3 px-4">
+                              <span
+                                className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold ${item.isActive ? "bg-xp/10 text-xp border border-xp/30" : "bg-streak/10 text-streak border border-streak/20"}`}
+                              >
+                                {item.isActive ? "Active" : "Inactive"}
+                              </span>
                             </td>
-                            <td className="px-6 py-4">
-                              <div className="font-bold text-orange-500 flex items-center gap-1"><Flame className="h-3 w-3" /> {item.currentStreak || 0}</div>
+                            <td className="py-3 px-4 font-mono text-muted text-[11px]">
+                              {item.workoutCount}w · {item.weightCount}wt
                             </td>
-                            <td className="px-6 py-4 text-gray-600">{item.lastActiveDate || item.createdAt.slice(0, 10)}</td>
-                            <td className="px-6 py-4">
-                              <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase ${item.isActive ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-red-50 text-red-700 border border-red-100"}`}>{item.isActive ? "Active" : "Disabled"}</span>
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <button onClick={() => openUserDetail(item.id)} className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-lg transition-colors cursor-pointer">View</button>
+                            <td className="py-3 px-5">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => openUserDetail(item.id)}
+                                  aria-label={`View ${item.name}`}
+                                  title="View detail"
+                                  className="text-muted hover:text-text p-1.5 transition-all cursor-pointer"
+                                >
+                                  <Eye className="h-3.5 w-3.5" />
+                                </button>
                                 {!isSelf && (
                                   <>
-                                    <button onClick={() => toggleRole(item)} className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-lg transition-colors cursor-pointer">Role</button>
-                                    <button onClick={() => toggleStatus(item)} className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer ${item.isActive ? "bg-red-50 text-red-700 hover:bg-red-100" : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"}`}>{item.isActive ? "Disable" : "Enable"}</button>
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleRole(item)}
+                                      aria-label="Toggle role"
+                                      title={item.role === "admin" ? "Make user" : "Make admin"}
+                                      className="text-muted hover:text-primary p-1.5 transition-all cursor-pointer"
+                                    >
+                                      <ShieldCheck className="h-3.5 w-3.5" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleStatus(item)}
+                                      aria-label="Toggle status"
+                                      title={item.isActive ? "Deactivate" : "Activate"}
+                                      className={`p-1.5 transition-all cursor-pointer ${item.isActive ? "text-muted hover:text-streak" : "text-muted hover:text-xp"}`}
+                                    >
+                                      {item.isActive ? (
+                                        <UserX className="h-3.5 w-3.5" />
+                                      ) : (
+                                        <UserCheck className="h-3.5 w-3.5" />
+                                      )}
+                                    </button>
                                   </>
                                 )}
                               </div>
@@ -546,111 +619,73 @@ export default function AdminPortalView() {
                         );
                       })}
                       {users.length === 0 && (
-                        <tr><td colSpan={7} className="py-12 text-center text-gray-500">No users found.</td></tr>
+                        <tr>
+                          <td colSpan={5} className="py-10 text-center text-muted text-xs">
+                            No users match these filters.
+                          </td>
+                        </tr>
                       )}
                     </tbody>
                   </table>
                 </div>
-                <p className="text-xs text-gray-500 text-center">Note: Admins cannot manually edit user XP, streak, calories, or badges directly from this panel.</p>
               </div>
-            )}
-
-            {/* Statistics Tab */}
-            {activeTab === "statistics" && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <StatCard label="Workouts Per Week" value="1,248" icon={Activity} hint="+12% from last week" />
-                  <StatCard label="Active Users (Weekly)" value="142" icon={Users} hint="34% of total base" />
-                  <StatCard label="Avg Workouts / User" value="3.2" icon={BarChart3} hint="Consistent engagement" />
-                  <StatCard label="Popular Category" value="Strength" icon={Layers} hint="Used in 42% of workouts" />
-                  <StatCard label="Streak Activity" value="86" icon={Flame} hint="Users on 3+ day streak" />
-                  <StatCard label="Badge Unlocks" value="34" icon={ShieldCheck} hint="Achievements this week" />
-                </div>
-                <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center">
-                  <BarChart3 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-bold text-gray-900">Advanced Analytics Hub</h3>
-                  <p className="text-gray-500 max-w-md mx-auto mt-2">Historical trends, retention cohorts, and deep category utilization metrics will be displayed here.</p>
-                </div>
-              </div>
-            )}
-
-            {/* AI Insights Tab */}
-            {activeTab === "insights" && (
-              <div className="space-y-6">
-                <div className="bg-emerald-600 text-white p-6 rounded-xl shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
-                  <div>
-                    <h3 className="text-xl font-bold">AI Insight Generation</h3>
-                    <p className="text-emerald-100 text-sm mt-1">AI insights are generated from weekly workout and progress data.</p>
-                  </div>
-                  <button className="px-6 py-3 bg-white text-emerald-700 font-bold rounded-lg shadow-sm hover:bg-emerald-50 transition-colors">Generate Weekly Insights</button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <StatCard label="Total Insights Generated" value={stats?.totalInsightsGenerated || 12} icon={BrainCircuit} hint="Across all time" />
-                  <StatCard label="Latest Generation" value="Today, 04:00 AM" icon={RefreshCw} hint="System scheduled" />
-                </div>
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                  <div className="px-6 py-4 border-b border-gray-100">
-                    <h3 className="font-bold text-gray-900">Recent Insight Jobs</h3>
-                  </div>
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider font-semibold">
-                      <tr>
-                        <th className="px-6 py-3">Job ID</th>
-                        <th className="px-6 py-3">Date</th>
-                        <th className="px-6 py-3">Users Processed</th>
-                        <th className="px-6 py-3">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 text-gray-700">
-                      <tr><td className="px-6 py-4 font-mono text-xs">job_8f3a9</td><td className="px-6 py-4">Today, 04:00 AM</td><td className="px-6 py-4">142</td><td className="px-6 py-4"><span className="px-2 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-md">Success</span></td></tr>
-                      <tr><td className="px-6 py-4 font-mono text-xs">job_7d2b1</td><td className="px-6 py-4">Last Sunday</td><td className="px-6 py-4">138</td><td className="px-6 py-4"><span className="px-2 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-md">Success</span></td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {/* Settings Tab */}
-            {activeTab === "settings" && (
-              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center">
-                <Settings className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-bold text-gray-900">Platform Settings</h3>
-                <p className="text-gray-500 max-w-md mx-auto mt-2">Global configuration, email templates, and API keys are managed securely in this section.</p>
-              </div>
-            )}
-
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </>
+      )}
 
       {detail && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[70] flex items-center justify-center p-4" onClick={() => setDetail(null)}>
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl p-6 space-y-6" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-start justify-between border-b border-gray-100 pb-4">
+        <div
+          className="fixed inset-0 bg-text/40 z-[70] flex items-center justify-center p-4 animate-fade-in"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setDetail(null)}
+        >
+          <div
+            className="bg-surface w-full max-w-lg rounded-sm border border-border p-6 space-y-5 animate-slide-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between border-b border-border pb-3">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">{detail.user.name}</h2>
-                <p className="text-sm text-gray-500">{detail.user.email}</p>
+                <h2 className="text-base text-text font-bold">
+                  {detail.user.name}
+                </h2>
+                <p className="text-xs text-muted font-mono">{detail.user.email}</p>
               </div>
-              <button onClick={() => setDetail(null)} className="p-2 bg-gray-100 text-gray-500 hover:text-gray-900 rounded-lg"><X className="h-5 w-5" /></button>
+              <button
+                type="button"
+                onClick={() => setDetail(null)}
+                aria-label="Close"
+                className="h-7 w-7 rounded-sm bg-bg border border-border flex items-center justify-center text-muted hover:text-text"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-3 text-center">
               <Metric label="Workouts" value={detail.stats.workoutCount} />
               <Metric label="Calories" value={detail.stats.totalCalories} />
               <Metric label="Minutes" value={detail.stats.totalMinutes} />
-              <Metric label="Weight Logs" value={detail.stats.weightCount} />
+              <Metric label="Weight logs" value={detail.stats.weightCount} />
               <Metric label="Insights" value={detail.stats.insightCount} />
-              <Metric label="Role" value={detail.user.role.toUpperCase()} />
+              <Metric label="Role" value={detail.user.role} />
             </div>
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Recent Workouts</h3>
+              <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted mb-2">
+                Recent workouts
+              </h3>
               {detail.recentWorkouts.length === 0 ? (
-                <p className="text-sm text-gray-500">No workouts logged yet.</p>
+                <p className="text-xs text-muted">No workouts logged.</p>
               ) : (
-                <div className="space-y-2">
-                  {detail.recentWorkouts.map((w) => (
-                    <div key={w.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-100 text-sm">
-                      <span className="font-bold text-gray-900">{w.title}</span>
-                      <span className="text-gray-500">{w.date} · {w.caloriesTotal} kcal</span>
+                <div className="space-y-1.5">
+                  {detail.recentWorkouts.map((workout) => (
+                    <div
+                      key={workout.id}
+                      className="flex items-center justify-between text-xs bg-bg border border-border rounded-sm px-3 py-2"
+                    >
+                      <span className="text-text font-medium">{workout.title}</span>
+                      <span className="font-mono text-muted">
+                        {workout.date} · {workout.caloriesTotal} kcal
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -659,6 +694,26 @@ export default function AdminPortalView() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(pendingDeleteCat)}
+        title="Delete this category?"
+        message="Existing workouts keep their logged data, but this category can no longer be selected."
+        confirmLabel="Delete"
+        onConfirm={confirmDeleteCategory}
+        onCancel={() => setPendingDeleteCat(null)}
+      />
+    </div>
+  );
+}
+
+function Metric({ label, value }) {
+  return (
+    <div className="bg-bg border border-border rounded-sm p-3">
+      <div className="text-sm font-black text-text capitalize">{value}</div>
+      <div className="text-[8px] font-mono uppercase tracking-wider text-muted mt-0.5">
+        {label}
+      </div>
     </div>
   );
 }

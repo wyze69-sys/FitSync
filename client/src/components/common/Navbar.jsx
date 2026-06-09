@@ -38,7 +38,7 @@ export default function Navbar() {
 
   if (!user) return null;
 
-  const links = user.role === "admin" ? ADMIN_LINKS : USER_LINKS;
+  const links = user.role === "admin" ? [] : USER_LINKS;
 
   function handleLogout() {
     logout();
