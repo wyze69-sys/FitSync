@@ -16,7 +16,13 @@ import {
   Eye,
   UserCheck,
   UserX,
-  X
+  X,
+  Award,
+  Megaphone,
+  MessageSquare,
+  TrendingUp,
+  Calendar,
+  Target
 } from "lucide-react";
 import adminService from "../services/adminService.js";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -57,7 +63,13 @@ export default function AdminPortalView() {
     dashboard: "stats",
     statistics: "stats",
     users: "users",
-    categories: "categories"
+    categories: "categories",
+    templates: "templates",
+    badges: "badges",
+    challenges: "challenges",
+    announcements: "announcements",
+    feedback: "feedback",
+    analytics: "analytics"
   };
   const activeTab = SECTION_TO_TAB[section];
 
@@ -77,6 +89,113 @@ export default function AdminPortalView() {
   const [isAddingCat, setIsAddingCat] = useState(false);
   const [catError, setCatError] = useState(null);
   const [pendingDeleteCat, setPendingDeleteCat] = useState(null);
+
+  // Templates state
+  const [templates, setTemplates] = useState([]);
+  const [templatesLoading, setTemplatesLoading] = useState(false);
+  const [templatesError, setTemplatesError] = useState(null);
+  const [isAddingTemplate, setIsAddingTemplate] = useState(false);
+  const [editingTemplateId, setEditingTemplateId] = useState(null);
+  const [pendingDeleteTemplate, setPendingDeleteTemplate] = useState(null);
+
+  // Template Form fields
+  const [tplTitle, setTplTitle] = useState("");
+  const [tplDesc, setTplDesc] = useState("");
+  const [tplCategoryId, setTplCategoryId] = useState("");
+  const [tplCategoryName, setTplCategoryName] = useState("");
+  const [tplSubtype, setTplSubtype] = useState("");
+  const [tplDurationMin, setTplDurationMin] = useState(30);
+  const [tplSortOrder, setTplSortOrder] = useState(0);
+  const [tplIsActive, setTplIsActive] = useState(true);
+  const [tplExercises, setTplExercises] = useState([]);
+
+  // Template Form exercise builder temp fields
+  const [exNameInput, setExNameInput] = useState("");
+  const [exDurationInput, setExDurationInput] = useState(10);
+  const [exCategoryIdInput, setExCategoryIdInput] = useState("");
+  const [exCategoryNameInput, setExCategoryNameInput] = useState("");
+  
+  // Sets builder temp fields inside exercise
+  const [exSets, setExSets] = useState([]);
+  const [setRepsInput, setSetRepsInput] = useState(10);
+  const [setWeightInput, setSetWeightInput] = useState(0);
+
+  // Editor mode: "structured" | "json"
+  const [tplEditorMode, setTplEditorMode] = useState("structured");
+  const [tplJsonInput, setTplJsonInput] = useState("[]");
+  const [tplFormError, setTplFormError] = useState(null);
+
+  // Badges state
+  const [badges, setBadges] = useState([]);
+  const [badgesLoading, setBadgesLoading] = useState(false);
+  const [badgesError, setBadgesError] = useState(null);
+  const [isAddingBadge, setIsAddingBadge] = useState(false);
+  const [editingBadgeCode, setEditingBadgeCode] = useState(null);
+
+  // Badge Form fields
+  const [bdgCode, setBdgCode] = useState("");
+  const [bdgName, setBdgName] = useState("");
+  const [bdgDesc, setBdgDesc] = useState("");
+  const [bdgReqType, setBdgReqType] = useState("streak");
+  const [bdgCustomReqType, setBdgCustomReqType] = useState("");
+  const [bdgReqValue, setBdgReqValue] = useState(0);
+  const [bdgIcon, setBdgIcon] = useState("🏆");
+  const [bdgSortOrder, setBdgSortOrder] = useState(0);
+  const [bdgIsActive, setBdgIsActive] = useState(true);
+  const [bdgFormError, setBdgFormError] = useState(null);
+
+  // Challenges state
+  const [challenges, setChallenges] = useState([]);
+  const [challengesLoading, setChallengesLoading] = useState(false);
+  const [challengesError, setChallengesError] = useState(null);
+  const [isAddingChallenge, setIsAddingChallenge] = useState(false);
+  const [editingChallengeId, setEditingChallengeId] = useState(null);
+
+  // Challenge Form fields
+  const [chTitle, setChTitle] = useState("");
+  const [chDesc, setChDesc] = useState("");
+  const [chType, setChType] = useState("workout_count");
+  const [chTargetValue, setChTargetValue] = useState(1);
+  const [chStartDate, setChStartDate] = useState("");
+  const [chEndDate, setChEndDate] = useState("");
+  const [chRewardXp, setChRewardXp] = useState(100);
+  const [chBadgeCode, setChBadgeCode] = useState("");
+  const [chIsActive, setChIsActive] = useState(true);
+  const [chFormError, setChFormError] = useState(null);
+
+  // Announcements state
+  const [announcements, setAnnouncements] = useState([]);
+  const [announcementsLoading, setAnnouncementsLoading] = useState(false);
+  const [announcementsError, setAnnouncementsError] = useState(null);
+  const [isAddingAnnouncement, setIsAddingAnnouncement] = useState(false);
+  const [editingAnnouncementId, setEditingAnnouncementId] = useState(null);
+
+  // Announcement Form fields
+  const [annTitle, setAnnTitle] = useState("");
+  const [annBody, setAnnBody] = useState("");
+  const [annAudience, setAnnAudience] = useState("all");
+  const [annPlacement, setAnnPlacement] = useState("dashboard");
+  const [annStartAt, setAnnStartAt] = useState("");
+  const [annEndAt, setAnnEndAt] = useState("");
+  const [annIsActive, setAnnIsActive] = useState(true);
+  const [annFormError, setAnnFormError] = useState(null);
+  const [pendingDeleteAnnouncement, setPendingDeleteAnnouncement] = useState(null);
+
+  // Feedback state
+  const [feedbackList, setFeedbackList] = useState([]);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [feedbackError, setFeedbackError] = useState(null);
+  const [feedbackFilters, setFeedbackFilters] = useState({ status: "", type: "" });
+  const [triageId, setTriageId] = useState(null);
+  const [fbNewStatus, setFbNewStatus] = useState("");
+  const [fbAdminNote, setFbAdminNote] = useState("");
+  const [fbSaving, setFbSaving] = useState(false);
+
+  // Analytics state
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [analyticsError, setAnalyticsError] = useState(null);
+
 
   const loadCoreData = useCallback(async () => {
     setLoading(true);
@@ -114,6 +233,633 @@ export default function AdminPortalView() {
     const timer = setTimeout(loadUsers, 250);
     return () => clearTimeout(timer);
   }, [loadUsers]);
+
+  const loadTemplates = useCallback(async () => {
+    setTemplatesLoading(true);
+    setTemplatesError(null);
+    try {
+      const data = await adminService.getTemplates();
+      setTemplates(data);
+    } catch (err) {
+      setTemplatesError(err.message || "Failed to load workout templates.");
+    } finally {
+      setTemplatesLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "templates") {
+      loadTemplates();
+    }
+  }, [activeTab, loadTemplates]);
+
+  const loadBadges = useCallback(async () => {
+    setBadgesLoading(true);
+    setBadgesError(null);
+    try {
+      const data = await adminService.getBadges();
+      setBadges(data);
+    } catch (err) {
+      setBadgesError(err.message || "Failed to load badges.");
+    } finally {
+      setBadgesLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "badges") {
+      loadBadges();
+    }
+  }, [activeTab, loadBadges]);
+
+  const loadChallenges = useCallback(async () => {
+    setChallengesLoading(true);
+    setChallengesError(null);
+    try {
+      const data = await adminService.getChallenges();
+      setChallenges(data);
+    } catch (err) {
+      setChallengesError(err.message || "Failed to load challenges.");
+    } finally {
+      setChallengesLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "challenges") {
+      loadChallenges();
+      loadBadges(); // To populate optional badges dropdown
+    }
+  }, [activeTab, loadChallenges, loadBadges]);
+
+  const loadAnnouncements = useCallback(async () => {
+    setAnnouncementsLoading(true);
+    setAnnouncementsError(null);
+    try {
+      const data = await adminService.getAnnouncements();
+      setAnnouncements(data);
+    } catch (err) {
+      setAnnouncementsError(err.message || "Failed to load announcements.");
+    } finally {
+      setAnnouncementsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "announcements") {
+      loadAnnouncements();
+    }
+  }, [activeTab, loadAnnouncements]);
+
+  const loadFeedback = useCallback(async () => {
+    setFeedbackLoading(true);
+    setFeedbackError(null);
+    try {
+      const data = await adminService.getFeedbackList(feedbackFilters);
+      setFeedbackList(data);
+    } catch (err) {
+      setFeedbackError(err.message || "Failed to load feedback.");
+    } finally {
+      setFeedbackLoading(false);
+    }
+  }, [feedbackFilters]);
+
+  useEffect(() => {
+    if (activeTab === "feedback") {
+      loadFeedback();
+    }
+  }, [activeTab, loadFeedback]);
+
+  const loadAnalytics = useCallback(async () => {
+    setAnalyticsLoading(true);
+    setAnalyticsError(null);
+    try {
+      const data = await adminService.getAnalytics();
+      setAnalyticsData(data);
+    } catch (err) {
+      setAnalyticsError(err.message || "Failed to load analytics.");
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "analytics") {
+      loadAnalytics();
+    }
+  }, [activeTab, loadAnalytics]);
+
+
+  function resetTemplateForm() {
+    setTplTitle("");
+    setTplDesc("");
+    setTplCategoryId("");
+    setTplCategoryName("");
+    setTplSubtype("");
+    setTplDurationMin(30);
+    setTplSortOrder(0);
+    setTplIsActive(true);
+    setTplExercises([]);
+    setExNameInput("");
+    setExDurationInput(10);
+    setExCategoryIdInput("");
+    setExCategoryNameInput("");
+    setExSets([]);
+    setSetRepsInput(10);
+    setSetWeightInput(0);
+    setTplEditorMode("structured");
+    setTplJsonInput("[]");
+    setTplFormError(null);
+    setIsAddingTemplate(false);
+    setEditingTemplateId(null);
+  }
+
+  function startEditTemplate(template) {
+    setTplTitle(template.title);
+    setTplDesc(template.description);
+    setTplCategoryId(template.categoryId || "");
+    setTplCategoryName(template.categoryName || "");
+    setTplSubtype(template.subtype || "");
+    setTplDurationMin(template.durationMin || 30);
+    setTplSortOrder(template.sortOrder || 0);
+    setTplIsActive(template.isActive);
+    setTplExercises(template.exercises || []);
+    setTplJsonInput(JSON.stringify(template.exercises || [], null, 2));
+    setTplEditorMode("structured");
+    setTplFormError(null);
+    setEditingTemplateId(template.id);
+    setIsAddingTemplate(true);
+  }
+
+  async function handleSaveTemplate(event) {
+    if (event) event.preventDefault();
+    setTplFormError(null);
+
+    if (!tplTitle.trim()) {
+      setTplFormError("Title is required.");
+      return;
+    }
+    if (!tplDesc.trim()) {
+      setTplFormError("Description is required.");
+      return;
+    }
+    if (!tplCategoryName) {
+      setTplFormError("Please select a category.");
+      return;
+    }
+
+    let finalExercises = [];
+    if (tplEditorMode === "json") {
+      try {
+        finalExercises = JSON.parse(tplJsonInput);
+        if (!Array.isArray(finalExercises)) {
+          setTplFormError("Exercises must be a JSON array.");
+          return;
+        }
+        if (finalExercises.length === 0) {
+          setTplFormError("Exercises array cannot be empty.");
+          return;
+        }
+      } catch (err) {
+        setTplFormError("Invalid exercises JSON: " + err.message);
+        return;
+      }
+    } else {
+      finalExercises = tplExercises;
+      if (finalExercises.length === 0) {
+        setTplFormError("Please add at least one exercise to the template.");
+        return;
+      }
+    }
+
+    const payload = {
+      title: tplTitle.trim(),
+      description: tplDesc.trim(),
+      categoryId: tplCategoryId || null,
+      categoryName: tplCategoryName,
+      subtype: tplSubtype.trim() || null,
+      durationMin: Number(tplDurationMin) || 30,
+      exercises: finalExercises,
+      sortOrder: Number(tplSortOrder) || 0,
+      isActive: Boolean(tplIsActive)
+    };
+
+    try {
+      if (editingTemplateId) {
+        await adminService.updateTemplate(editingTemplateId, payload);
+        push("Workout template updated successfully.", "success");
+      } else {
+        await adminService.createTemplate(payload);
+        push("Workout template created successfully.", "success");
+      }
+      resetTemplateForm();
+      loadTemplates();
+    } catch (err) {
+      setTplFormError(err.message || "Failed to save workout template.");
+    }
+  }
+
+  async function confirmDeleteTemplate() {
+    const id = pendingDeleteTemplate;
+    setPendingDeleteTemplate(null);
+    try {
+      await adminService.deleteTemplate(id);
+      push("Workout template removed.", "info");
+      loadTemplates();
+    } catch (err) {
+      push(err.message || "Failed to delete workout template.", "info");
+    }
+  }
+
+  async function toggleTemplateStatus(template) {
+    try {
+      const newStatus = !template.isActive;
+      await adminService.updateTemplateStatus(template.id, newStatus);
+      push(`Template "${template.title}" is now ${newStatus ? "active" : "inactive"}.`, "success");
+      setTemplates(prev => prev.map(t => t.id === template.id ? { ...t, isActive: newStatus } : t));
+    } catch (err) {
+      push(err.message || "Failed to update template status.", "info");
+    }
+  }
+
+  function handleAddSet(e) {
+    e.preventDefault();
+    const reps = Number(setRepsInput);
+    const weight = Number(setWeightInput);
+    if (isNaN(reps) || reps <= 0) return;
+    setExSets(prev => [...prev, { reps, weight }]);
+  }
+
+  function handleRemoveSet(index) {
+    setExSets(prev => prev.filter((_, i) => i !== index));
+  }
+
+  function handleAddExercise(e) {
+    e.preventDefault();
+    if (!exNameInput.trim()) {
+      push("Exercise name is required.", "info");
+      return;
+    }
+    const duration = Number(exDurationInput);
+    if (isNaN(duration) || duration <= 0) {
+      push("Exercise duration must be a positive number.", "info");
+      return;
+    }
+
+    let finalCatId = exCategoryIdInput || tplCategoryId || "";
+    let finalCatName = exCategoryNameInput || tplCategoryName || "Strength";
+    
+    if (finalCatId && !exCategoryNameInput) {
+      const catObj = categories.find(c => c.id === finalCatId);
+      if (catObj) finalCatName = catObj.name;
+    }
+
+    const newExercise = {
+      categoryId: finalCatId || undefined,
+      categoryName: finalCatName,
+      exerciseName: exNameInput.trim(),
+      duration: duration,
+      sets: exSets.length > 0 ? exSets : [{ reps: 10, weight: 0 }]
+    };
+
+    setTplExercises(prev => {
+      const updated = [...prev, newExercise];
+      setTplJsonInput(JSON.stringify(updated, null, 2));
+      return updated;
+    });
+
+    setExNameInput("");
+    setExDurationInput(10);
+    setExSets([]);
+    setSetRepsInput(10);
+    setSetWeightInput(0);
+  }
+
+  function handleRemoveExercise(index) {
+    setTplExercises(prev => {
+      const updated = prev.filter((_, i) => i !== index);
+      setTplJsonInput(JSON.stringify(updated, null, 2));
+      return updated;
+    });
+  }
+
+  function resetBadgeForm() {
+    setBdgCode("");
+    setBdgName("");
+    setBdgDesc("");
+    setBdgReqType("streak");
+    setBdgCustomReqType("");
+    setBdgReqValue(0);
+    setBdgIcon("🏆");
+    setBdgSortOrder(0);
+    setBdgIsActive(true);
+    setBdgFormError(null);
+    setIsAddingBadge(false);
+    setEditingBadgeCode(null);
+  }
+
+  function startEditBadge(badge) {
+    setBdgCode(badge.code);
+    setBdgName(badge.name);
+    setBdgDesc(badge.description);
+    
+    const stdTypes = ["streak", "level", "workout"];
+    if (stdTypes.includes(badge.requirement)) {
+      setBdgReqType(badge.requirement);
+      setBdgCustomReqType("");
+    } else {
+      setBdgReqType("custom");
+      setBdgCustomReqType(badge.requirement || "");
+    }
+    
+    setBdgReqValue(badge.value || 0);
+    setBdgIcon(badge.icon || "🏆");
+    setBdgSortOrder(badge.sortOrder || 0);
+    setBdgIsActive(badge.isActive !== false);
+    setBdgFormError(null);
+    setEditingBadgeCode(badge.code);
+    setIsAddingBadge(true);
+  }
+
+  async function handleSaveBadge(event) {
+    if (event) event.preventDefault();
+    setBdgFormError(null);
+
+    if (!editingBadgeCode && !bdgCode.trim()) {
+      setBdgFormError("Badge code is required.");
+      return;
+    }
+    if (!bdgName.trim()) {
+      setBdgFormError("Name is required.");
+      return;
+    }
+    if (!bdgDesc.trim()) {
+      setBdgFormError("Description is required.");
+      return;
+    }
+
+    const finalReqType = bdgReqType === "custom" ? bdgCustomReqType.trim() : bdgReqType;
+    if (!finalReqType) {
+      setBdgFormError("Requirement type is required.");
+      return;
+    }
+
+    const payload = {
+      name: bdgName.trim(),
+      description: bdgDesc.trim(),
+      requirementType: finalReqType,
+      requirementValue: Number(bdgReqValue) || 0,
+      icon: bdgIcon.trim() || null,
+      sortOrder: Number(bdgSortOrder) || 0,
+      isActive: Boolean(bdgIsActive)
+    };
+
+    if (!editingBadgeCode) {
+      payload.code = bdgCode.trim();
+    }
+
+    try {
+      if (editingBadgeCode) {
+        await adminService.updateBadge(editingBadgeCode, payload);
+        push("Achievement badge updated successfully.", "success");
+      } else {
+        await adminService.createBadge(payload);
+        push("Achievement badge created successfully.", "success");
+      }
+      resetBadgeForm();
+      loadBadges();
+    } catch (err) {
+      setBdgFormError(err.message || "Failed to save badge.");
+    }
+  }
+
+  async function toggleBadgeStatus(badge) {
+    try {
+      const newStatus = !badge.isActive;
+      await adminService.updateBadgeStatus(badge.code, newStatus);
+      push(`Badge "${badge.name}" is now ${newStatus ? "active" : "inactive"}.`, "success");
+      setBadges(prev => prev.map(b => b.code === badge.code ? { ...b, isActive: newStatus } : b));
+    } catch (err) {
+      push(err.message || "Failed to update badge status.", "info");
+    }
+  }
+
+  function resetChallengeForm() {
+    setChTitle("");
+    setChDesc("");
+    setChType("workout_count");
+    setChTargetValue(1);
+    setChStartDate("");
+    setChEndDate("");
+    setChRewardXp(100);
+    setChBadgeCode("");
+    setChIsActive(true);
+    setChFormError(null);
+    setIsAddingChallenge(false);
+    setEditingChallengeId(null);
+  }
+
+  function startEditChallenge(challenge) {
+    setChTitle(challenge.title);
+    setChDesc(challenge.description);
+    setChType(challenge.challengeType || "workout_count");
+    setChTargetValue(challenge.targetValue || 1);
+    setChStartDate(challenge.startDate || "");
+    setChEndDate(challenge.endDate || "");
+    setChRewardXp(challenge.rewardXp || 0);
+    setChBadgeCode(challenge.badgeCode || "");
+    setChIsActive(challenge.isActive !== false);
+    setChFormError(null);
+    setEditingChallengeId(challenge.id);
+    setIsAddingChallenge(true);
+  }
+
+  async function handleSaveChallenge(event) {
+    if (event) event.preventDefault();
+    setChFormError(null);
+
+    if (!chTitle.trim()) {
+      setChFormError("Title is required.");
+      return;
+    }
+    if (!chDesc.trim()) {
+      setChFormError("Description is required.");
+      return;
+    }
+    if (!chType.trim()) {
+      setChFormError("Challenge type is required.");
+      return;
+    }
+    if (Number(chTargetValue) < 1) {
+      setChFormError("Target value must be at least 1.");
+      return;
+    }
+    if (!chStartDate) {
+      setChFormError("Start date is required.");
+      return;
+    }
+    if (!chEndDate) {
+      setChFormError("End date is required.");
+      return;
+    }
+    if (Number(chRewardXp) < 0) {
+      setChFormError("Reward XP cannot be negative.");
+      return;
+    }
+
+    const payload = {
+      title: chTitle.trim(),
+      description: chDesc.trim(),
+      challengeType: chType.trim(),
+      targetValue: Number(chTargetValue),
+      startDate: chStartDate,
+      endDate: chEndDate,
+      rewardXp: Number(chRewardXp),
+      badgeCode: chBadgeCode || null,
+      isActive: Boolean(chIsActive)
+    };
+
+    try {
+      if (editingChallengeId) {
+        await adminService.updateChallenge(editingChallengeId, payload);
+        push("Challenge updated successfully.", "success");
+      } else {
+        await adminService.createChallenge(payload);
+        push("Challenge created successfully.", "success");
+      }
+      resetChallengeForm();
+      loadChallenges();
+    } catch (err) {
+      setChFormError(err.message || "Failed to save challenge.");
+    }
+  }
+
+  async function toggleChallengeStatus(challenge) {
+    try {
+      const newStatus = !challenge.isActive;
+      await adminService.updateChallengeStatus(challenge.id, newStatus);
+      push(`Challenge "${challenge.title}" is now ${newStatus ? "active" : "inactive"}.`, "success");
+      setChallenges(prev => prev.map(c => c.id === challenge.id ? { ...c, isActive: newStatus } : c));
+    } catch (err) {
+      push(err.message || "Failed to update challenge status.", "info");
+    }
+  }
+
+  function resetAnnouncementForm() {
+    setAnnTitle("");
+    setAnnBody("");
+    setAnnAudience("all");
+    setAnnPlacement("dashboard");
+    setAnnStartAt("");
+    setAnnEndAt("");
+    setAnnIsActive(true);
+    setAnnFormError(null);
+    setIsAddingAnnouncement(false);
+    setEditingAnnouncementId(null);
+  }
+
+  function formatDateTimeLocal(dateStr) {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "";
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  function startEditAnnouncement(announcement) {
+    setAnnTitle(announcement.title);
+    setAnnBody(announcement.body);
+    setAnnAudience(announcement.audience || "all");
+    setAnnPlacement(announcement.placement || "dashboard");
+    setAnnStartAt(formatDateTimeLocal(announcement.startAt));
+    setAnnEndAt(formatDateTimeLocal(announcement.endAt));
+    setAnnIsActive(announcement.isActive !== false);
+    setAnnFormError(null);
+    setEditingAnnouncementId(announcement.id);
+    setIsAddingAnnouncement(true);
+  }
+
+  async function handleSaveAnnouncement(event) {
+    if (event) event.preventDefault();
+    setAnnFormError(null);
+
+    if (!annTitle.trim()) {
+      setAnnFormError("Title is required.");
+      return;
+    }
+    if (!annBody.trim()) {
+      setAnnFormError("Body is required.");
+      return;
+    }
+    if (!annAudience) {
+      setAnnFormError("Audience is required.");
+      return;
+    }
+    if (!annPlacement.trim()) {
+      setAnnFormError("Placement is required.");
+      return;
+    }
+
+    if (annStartAt && annEndAt) {
+      const start = new Date(annStartAt);
+      const end = new Date(annEndAt);
+      if (start > end) {
+        setAnnFormError("Start date/time must be before or equal to end date/time.");
+        return;
+      }
+    }
+
+    const payload = {
+      title: annTitle.trim(),
+      body: annBody.trim(),
+      audience: annAudience,
+      placement: annPlacement.trim(),
+      startAt: annStartAt || null,
+      endAt: annEndAt || null,
+      isActive: Boolean(annIsActive)
+    };
+
+    try {
+      if (editingAnnouncementId) {
+        await adminService.updateAnnouncement(editingAnnouncementId, payload);
+        push("Announcement updated successfully.", "success");
+      } else {
+        await adminService.createAnnouncement(payload);
+        push("Announcement created successfully.", "success");
+      }
+      resetAnnouncementForm();
+      loadAnnouncements();
+    } catch (err) {
+      setAnnFormError(err.message || "Failed to save announcement.");
+    }
+  }
+
+  async function toggleAnnouncementStatus(announcement) {
+    try {
+      const newStatus = !announcement.isActive;
+      await adminService.updateAnnouncementStatus(announcement.id, newStatus);
+      push(`Announcement "${announcement.title}" is now ${newStatus ? "active" : "inactive"}.`, "success");
+      setAnnouncements(prev => prev.map(a => a.id === announcement.id ? { ...a, isActive: newStatus } : a));
+    } catch (err) {
+      push(err.message || "Failed to update announcement status.", "info");
+    }
+  }
+
+  async function confirmDeleteAnnouncement() {
+    const id = pendingDeleteAnnouncement;
+    setPendingDeleteAnnouncement(null);
+    try {
+      await adminService.deleteAnnouncement(id);
+      push("Announcement deleted successfully.", "success");
+      loadAnnouncements();
+    } catch (err) {
+      push(err.message || "Failed to delete announcement.", "info");
+    }
+  }
 
   async function handleSaveCategory(event) {
     event.preventDefault();
@@ -193,10 +939,24 @@ export default function AdminPortalView() {
   }
 
   const TABS = [
-    { key: "stats", label: "Platform Stats", icon: BarChart3, path: "/admin/dashboard" },
-    { key: "categories", label: "Categories", icon: Layers, path: "/admin/categories" },
-    { key: "users", label: "Users", icon: Users, path: "/admin/users" }
+    { key: "stats", label: "Dashboard", icon: BarChart3, path: "/admin/dashboard" },
+    { key: "users", label: "Users", icon: Users, path: "/admin/users" },
+    { key: "categories", label: "Workout Categories", icon: Layers, path: "/admin/categories" },
+    { key: "templates", label: "Workout Templates", icon: FileCheck, path: "/admin/templates" },
+    { key: "badges_challenges", label: "Badges & Challenges", icon: Award, path: "/admin/badges" },
+    { key: "announcements", label: "Announcements", icon: Megaphone, path: "/admin/announcements" },
+    { key: "feedback", label: "User Feedback", icon: MessageSquare, path: "/admin/feedback" },
+    { key: "analytics", label: "Analytics", icon: TrendingUp, path: "/admin/analytics" }
   ];
+
+  const tabNameMap = {
+    templates: "Workout Templates",
+    badges: "Badges & Challenges",
+    challenges: "Badges & Challenges",
+    announcements: "Announcements",
+    feedback: "User Feedback",
+    analytics: "Analytics"
+  };
 
   if (!activeTab) {
     return <Navigate to="/admin/dashboard" replace />;
@@ -218,32 +978,85 @@ export default function AdminPortalView() {
         </div>
         <button
           type="button"
-          onClick={loadCoreData}
-          disabled={loading}
+          onClick={() => {
+            loadCoreData();
+            if (activeTab === "badges") loadBadges();
+            if (activeTab === "challenges") loadChallenges();
+            if (activeTab === "templates") loadTemplates();
+            if (activeTab === "announcements") loadAnnouncements();
+          }}
+          disabled={loading || badgesLoading || challengesLoading || templatesLoading || announcementsLoading}
           className="px-3.5 py-1.5 bg-bg hover:bg-border/40 text-xs font-mono rounded-sm border border-border cursor-pointer flex items-center gap-1.5 transition-all text-text"
         >
-          <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh
+          <RefreshCw className={`h-3.5 w-3.5 ${loading || badgesLoading || challengesLoading || templatesLoading || announcementsLoading ? "animate-spin" : ""}`} /> Refresh
         </button>
+
       </div>
 
       <ErrorBanner message={error} onRetry={loadCoreData} />
 
-      <div className="flex items-center gap-2.5 border-b border-border pb-1 text-xs">
-        {TABS.map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => navigate(tab.path)}
-            className={`py-2 px-4 font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
-              activeTab === tab.key
-                ? "border-primary text-text"
-                : "border-transparent text-muted hover:text-text"
-            }`}
-          >
-            <tab.icon className="h-4 w-4" aria-hidden="true" /> {tab.label}
-          </button>
-        ))}
-      </div>
+      <div className="flex flex-col lg:flex-row gap-8">
+        <aside className="w-full lg:w-64 shrink-0">
+          <div className="bg-surface border border-border rounded-sm p-4 space-y-1">
+            {TABS.map((tab) => {
+              const isActive =
+                activeTab === tab.key ||
+                (tab.key === "stats" && activeTab === "stats") ||
+                (tab.key === "badges_challenges" && (activeTab === "badges" || activeTab === "challenges"));
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => navigate(tab.path)}
+                  className={`w-full text-left py-2.5 px-4 rounded-sm text-xs font-semibold flex items-center gap-3 transition-all cursor-pointer ${
+                    isActive
+                      ? "bg-primary text-white font-bold"
+                      : "text-muted hover:text-text hover:bg-bg"
+                  }`}
+                >
+                  <tab.icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </aside>
+
+        <div className="flex-grow min-w-0">
+          {(activeTab === "badges" || activeTab === "challenges") && (
+            <div className="flex border-b border-border mb-6">
+              <button
+                type="button"
+                onClick={() => {
+                  resetBadgeForm();
+                  resetChallengeForm();
+                  navigate("/admin/badges");
+                }}
+                className={`py-2 px-4 border-b-2 text-xs font-semibold transition-all cursor-pointer ${
+                  activeTab === "badges"
+                    ? "border-primary text-primary font-bold"
+                    : "border-transparent text-muted hover:text-text"
+                }`}
+              >
+                Achievement Badges
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  resetBadgeForm();
+                  resetChallengeForm();
+                  navigate("/admin/challenges");
+                }}
+                className={`py-2 px-4 border-b-2 text-xs font-semibold transition-all cursor-pointer ${
+                  activeTab === "challenges"
+                    ? "border-primary text-primary font-bold"
+                    : "border-transparent text-muted hover:text-text"
+                }`}
+              >
+                Platform Challenges
+              </button>
+            </div>
+          )}
 
       {loading && !stats ? (
         <Spinner label="Loading admin data..." className="py-16" />
@@ -631,8 +1444,1740 @@ export default function AdminPortalView() {
               </div>
             </div>
           )}
+
+          {activeTab === "templates" && (
+            <div className="space-y-6">
+              {!isAddingTemplate ? (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border pb-4">
+                    <div>
+                      <h2 className="text-base text-text font-bold">Workout Templates</h2>
+                      <p className="text-xs text-muted">
+                        Create and manage structured templates that users can log directly.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        resetTemplateForm();
+                        setIsAddingTemplate(true);
+                      }}
+                      className="px-3.5 py-2 bg-primary hover:bg-muted text-white text-xs font-semibold uppercase tracking-widest rounded-sm flex items-center gap-1 cursor-pointer transition-all"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> Add Template
+                    </button>
+                  </div>
+
+                  {templatesLoading && templates.length === 0 ? (
+                    <Spinner label="Loading templates..." className="py-12" />
+                  ) : templatesError ? (
+                    <ErrorBanner message={templatesError} onRetry={loadTemplates} />
+                  ) : templates.length === 0 ? (
+                    <div className="bg-surface p-12 rounded-sm border border-border text-center space-y-4">
+                      <div className="h-12 w-12 bg-bg border border-border rounded-sm flex items-center justify-center mx-auto text-muted">
+                        <FileCheck className="h-6 w-6 text-primary" aria-hidden="true" />
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="text-sm text-text font-bold">No workout templates</h3>
+                        <p className="text-xs text-muted max-w-sm mx-auto leading-relaxed">
+                          There are no templates configured yet. Create one to help users get started logging workouts quickly.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          resetTemplateForm();
+                          setIsAddingTemplate(true);
+                        }}
+                        className="mx-auto px-4 py-1.5 bg-primary hover:bg-muted text-white text-xs font-semibold uppercase tracking-widest rounded-sm cursor-pointer transition-all"
+                      >
+                        Create First Template
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {templates.map(template => (
+                        <div key={template.id} className="bg-surface rounded-sm border border-border p-5 flex flex-col justify-between hover:border-primary/50 transition-all">
+                          <div className="space-y-3">
+                            <div className="flex items-start justify-between gap-4">
+                              <div>
+                                <h3 className="text-sm font-bold text-text">{template.title}</h3>
+                                {template.subtype && (
+                                  <span className="text-[10px] text-muted font-mono">{template.subtype}</span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold border ${template.isActive ? "bg-xp/10 text-xp border-xp/30" : "bg-streak/10 text-streak border-streak/20"}`}>
+                                  {template.isActive ? "Active" : "Inactive"}
+                                </span>
+                                <span className="px-1.5 py-0.5 rounded-sm text-[9px] font-semibold bg-bg text-muted border border-border">
+                                  Order: {template.sortOrder}
+                                </span>
+                              </div>
+                            </div>
+
+                            <p className="text-xs text-muted line-clamp-2 leading-relaxed">
+                              {template.description}
+                            </p>
+
+                            <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted">
+                              <span className="px-2 py-0.5 bg-bg border border-border rounded-sm font-semibold text-text">
+                                {template.categoryName}
+                              </span>
+                              <span>•</span>
+                              <span>{template.durationMin} mins</span>
+                              <span>•</span>
+                              <span>{template.exercises?.length || 0} exercises</span>
+                            </div>
+
+                            {template.exercises && template.exercises.length > 0 && (
+                              <div className="bg-bg border border-border rounded-sm p-3 text-[11px] space-y-1.5">
+                                <div className="font-mono text-[9px] text-muted uppercase tracking-wider border-b border-border pb-1">
+                                  Exercises Preview
+                                </div>
+                                <div className="space-y-1 max-h-32 overflow-y-auto">
+                                  {template.exercises.map((ex, idx) => (
+                                    <div key={idx} className="flex justify-between text-muted">
+                                      <span className="font-medium text-text">{ex.exerciseName}</span>
+                                      <span>{ex.duration}m · {ex.sets?.length || 0} sets</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex items-center justify-between border-t border-border mt-5 pt-4">
+                            <button
+                              type="button"
+                              onClick={() => toggleTemplateStatus(template)}
+                              className={`text-xs font-mono font-semibold transition-all cursor-pointer ${template.isActive ? "text-muted hover:text-streak" : "text-xp hover:text-primary"}`}
+                            >
+                              {template.isActive ? "Deactivate" : "Activate"}
+                            </button>
+
+                            <div className="flex items-center gap-2.5">
+                              <button
+                                type="button"
+                                onClick={() => startEditTemplate(template)}
+                                className="px-2.5 py-1 bg-bg hover:bg-border/40 border border-border text-muted hover:text-text rounded-sm text-[11px] flex items-center gap-1 cursor-pointer transition-all"
+                              >
+                                <Edit2 className="h-3 w-3" /> Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setPendingDeleteTemplate(template.id)}
+                                className="px-2.5 py-1 bg-bg hover:bg-streak/10 border border-border text-muted hover:text-streak rounded-sm text-[11px] flex items-center gap-1 cursor-pointer transition-all"
+                              >
+                                <Trash2 className="h-3 w-3" /> Delete
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-surface rounded-sm border border-border p-6 space-y-6">
+                  <div className="flex items-center justify-between border-b border-border pb-4">
+                    <div>
+                      <h2 className="text-base text-text font-bold">
+                        {editingTemplateId ? "Edit Workout Template" : "Create Workout Template"}
+                      </h2>
+                      <p className="text-xs text-muted">
+                        {editingTemplateId ? "Update details and exercises for this template." : "Define a new pre-set routine for the library."}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={resetTemplateForm}
+                      className="px-3 py-1.5 bg-bg hover:bg-border/40 border border-border text-xs font-semibold rounded-sm text-text cursor-pointer transition-all"
+                    >
+                      Back to List
+                    </button>
+                  </div>
+
+                  <ErrorBanner message={tplFormError} />
+
+                  <form onSubmit={handleSaveTemplate} className="space-y-6 text-xs" noValidate>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div>
+                          <label htmlFor="tpl-title" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                            Template Title *
+                          </label>
+                          <input
+                            id="tpl-title"
+                            type="text"
+                            required
+                            placeholder="e.g. Upper Body Hypertrophy"
+                            value={tplTitle}
+                            onChange={(e) => setTplTitle(e.target.value)}
+                            className={`${INPUT} w-full`}
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="tpl-desc" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                            Description *
+                          </label>
+                          <textarea
+                            id="tpl-desc"
+                            required
+                            rows={3}
+                            placeholder="Describe the target focus, key muscles, or required equipment."
+                            value={tplDesc}
+                            onChange={(e) => setTplDesc(e.target.value)}
+                            className={`${INPUT} w-full`}
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label htmlFor="tpl-category" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                              Category *
+                            </label>
+                            <select
+                              id="tpl-category"
+                              required
+                              value={tplCategoryId}
+                              onChange={(e) => {
+                                const id = e.target.value;
+                                setTplCategoryId(id);
+                                const catObj = categories.find(c => c.id === id);
+                                setTplCategoryName(catObj ? catObj.name : "");
+                              }}
+                              className={`${INPUT} w-full cursor-pointer`}
+                            >
+                              <option value="">Select Category</option>
+                              {categories.map(cat => (
+                                <option key={cat.id} value={cat.id}>
+                                  {cat.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label htmlFor="tpl-subtype" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                              Subtype / Tag
+                            </label>
+                            <input
+                              id="tpl-subtype"
+                              type="text"
+                              placeholder="e.g. Push, Pull, Legs"
+                              value={tplSubtype}
+                              onChange={(e) => setTplSubtype(e.target.value)}
+                              className={`${INPUT} w-full`}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4">
+                          <div>
+                            <label htmlFor="tpl-duration" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                              Duration (min)
+                            </label>
+                            <input
+                              id="tpl-duration"
+                              type="number"
+                              min={1}
+                              max={1440}
+                              required
+                              value={tplDurationMin}
+                              onChange={(e) => setTplDurationMin(Number(e.target.value) || 0)}
+                              className={`${INPUT} w-full`}
+                            />
+                          </div>
+
+                          <div>
+                            <label htmlFor="tpl-sort" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                              Sort Order
+                            </label>
+                            <input
+                              id="tpl-sort"
+                              type="number"
+                              min={0}
+                              value={tplSortOrder}
+                              onChange={(e) => setTplSortOrder(Number(e.target.value) || 0)}
+                              className={`${INPUT} w-full`}
+                            />
+                          </div>
+
+                          <div className="flex flex-col justify-end pb-2.5">
+                            <label className="flex items-center gap-2.5 font-semibold text-text cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={tplIsActive}
+                                onChange={(e) => setTplIsActive(e.target.checked)}
+                                className="h-4 w-4 bg-bg border border-border text-primary focus:ring-0 rounded-sm cursor-pointer"
+                              />
+                              <span>Active Status</span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center justify-between border-b border-border pb-2 mb-3">
+                            <span className="text-[10px] font-mono font-semibold text-text uppercase tracking-wider">
+                              Exercises Setup
+                            </span>
+                            <div className="flex bg-bg rounded-sm border border-border p-0.5">
+                              <button
+                                type="button"
+                                onClick={() => setTplEditorMode("structured")}
+                                className={`px-2 py-0.5 text-[9px] font-mono rounded-sm cursor-pointer transition-all ${tplEditorMode === "structured" ? "bg-primary text-white font-bold" : "text-muted"}`}
+                              >
+                                Structured
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setTplEditorMode("json");
+                                  setTplJsonInput(JSON.stringify(tplExercises, null, 2));
+                                }}
+                                className={`px-2 py-0.5 text-[9px] font-mono rounded-sm cursor-pointer transition-all ${tplEditorMode === "json" ? "bg-primary text-white font-bold" : "text-muted"}`}
+                              >
+                                JSON Editor
+                              </button>
+                            </div>
+                          </div>
+
+                          {tplEditorMode === "json" ? (
+                            <div className="space-y-2">
+                              <label htmlFor="tpl-json" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                                Raw Exercises JSON Array
+                              </label>
+                              <textarea
+                                id="tpl-json"
+                                rows={10}
+                                value={tplJsonInput}
+                                onChange={(e) => setTplJsonInput(e.target.value)}
+                                className={`${INPUT} w-full font-mono text-[10px]`}
+                              />
+                              <p className="text-[10px] text-muted leading-relaxed">
+                                JSON must be an array of exercise objects. Format: <br />
+                                <code className="bg-bg px-1 rounded-sm text-primary">{"[ { \"exerciseName\": \"Name\", \"duration\": 15, \"sets\": [ { \"reps\": 10, \"weight\": 12 } ] } ]"}</code>
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="space-y-4">
+                              <div className="space-y-2">
+                                <span className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest">
+                                  Current Exercises ({tplExercises.length})
+                                </span>
+                                {tplExercises.length === 0 ? (
+                                  <div className="p-4 bg-bg border border-dashed border-border rounded-sm text-center text-muted text-[11px]">
+                                    No exercises added yet. Use the form below to add.
+                                  </div>
+                                ) : (
+                                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                                    {tplExercises.map((ex, exIdx) => (
+                                      <div key={exIdx} className="bg-bg border border-border rounded-sm p-3 flex items-start justify-between gap-3 text-[11px]">
+                                        <div className="space-y-1">
+                                          <div className="flex items-center gap-2">
+                                            <strong className="text-text">{ex.exerciseName}</strong>
+                                            <span className="px-1.5 py-0.5 bg-surface text-muted border border-border rounded-sm text-[9px]">
+                                              {ex.categoryName}
+                                            </span>
+                                          </div>
+                                          <div className="text-muted">Duration: {ex.duration} min</div>
+                                          {ex.sets && ex.sets.length > 0 && (
+                                            <div className="flex flex-wrap gap-1 mt-1">
+                                              {ex.sets.map((set, setIdx) => (
+                                                <span key={setIdx} className="px-1.5 py-0.5 bg-surface border border-border text-muted rounded-sm text-[9px] font-mono">
+                                                  S{setIdx + 1}: {set.reps}x{set.weight}kg
+                                                </span>
+                                              ))}
+                                            </div>
+                                          )}
+                                        </div>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleRemoveExercise(exIdx)}
+                                          className="text-muted hover:text-streak p-1 transition-all cursor-pointer"
+                                          title="Remove Exercise"
+                                        >
+                                          <X className="h-3.5 w-3.5" />
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="border border-border rounded-sm p-4 bg-bg/40 space-y-4">
+                                <span className="block text-[10px] font-mono font-semibold text-text uppercase tracking-wider">
+                                  Add Exercise to Template
+                                </span>
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div>
+                                    <label htmlFor="ex-name" className="block text-[9px] font-mono font-semibold text-muted uppercase tracking-widest mb-1">
+                                      Exercise Name *
+                                    </label>
+                                    <input
+                                      id="ex-name"
+                                      type="text"
+                                      placeholder="e.g. Incline Bench Press"
+                                      value={exNameInput}
+                                      onChange={(e) => setExNameInput(e.target.value)}
+                                      className={`${INPUT} w-full`}
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label htmlFor="ex-duration" className="block text-[9px] font-mono font-semibold text-muted uppercase tracking-widest mb-1">
+                                      Duration (min) *
+                                    </label>
+                                    <input
+                                      id="ex-duration"
+                                      type="number"
+                                      min={1}
+                                      value={exDurationInput}
+                                      onChange={(e) => setExDurationInput(Number(e.target.value) || 0)}
+                                      className={`${INPUT} w-full`}
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div>
+                                    <label htmlFor="ex-category" className="block text-[9px] font-mono font-semibold text-muted uppercase tracking-widest mb-1">
+                                      Exercise Category
+                                    </label>
+                                    <select
+                                      id="ex-category"
+                                      value={exCategoryIdInput}
+                                      onChange={(e) => {
+                                        const id = e.target.value;
+                                        setExCategoryIdInput(id);
+                                        const catObj = categories.find(c => c.id === id);
+                                        setExCategoryNameInput(catObj ? catObj.name : "");
+                                      }}
+                                      className={`${INPUT} w-full cursor-pointer`}
+                                    >
+                                      <option value="">Same as Template</option>
+                                      {categories.map(cat => (
+                                        <option key={cat.id} value={cat.id}>
+                                          {cat.name}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+
+                                  <div className="flex flex-col justify-end">
+                                    <label className="block text-[9px] font-mono font-semibold text-muted uppercase tracking-widest mb-1">
+                                      Target Sets
+                                    </label>
+                                    <div className="flex items-center gap-1.5">
+                                      <input
+                                        type="number"
+                                        min={1}
+                                        placeholder="Reps"
+                                        value={setRepsInput}
+                                        onChange={(e) => setSetRepsInput(Number(e.target.value) || 0)}
+                                        className={`${INPUT} w-16 text-center`}
+                                        title="Reps"
+                                      />
+                                      <span className="text-muted">x</span>
+                                      <input
+                                        type="number"
+                                        min={0}
+                                        placeholder="Weight"
+                                        value={setWeightInput}
+                                        onChange={(e) => setSetWeightInput(Number(e.target.value) || 0)}
+                                        className={`${INPUT} w-20 text-center`}
+                                        title="Weight"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={handleAddSet}
+                                        className="px-2 py-2 bg-primary hover:bg-muted text-white rounded-sm text-[10px] cursor-pointer transition-all font-bold"
+                                      >
+                                        + Set
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {exSets.length > 0 && (
+                                  <div className="bg-bg border border-border rounded-sm p-2.5">
+                                    <span className="block text-[9px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                                      Added Sets ({exSets.length})
+                                    </span>
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {exSets.map((set, setIdx) => (
+                                        <span key={setIdx} className="px-2 py-1 bg-surface border border-border text-text rounded-sm text-[9px] font-mono flex items-center gap-1.5">
+                                          <span>S{setIdx + 1}: {set.reps}x{set.weight}kg</span>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleRemoveSet(setIdx)}
+                                            className="text-muted hover:text-streak font-sans text-[10px] cursor-pointer leading-none"
+                                          >
+                                            ×
+                                          </button>
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                <button
+                                  type="button"
+                                  onClick={handleAddExercise}
+                                  className="w-full py-1.5 bg-bg border border-border hover:bg-border/30 text-text rounded-sm text-[11px] font-semibold transition-all cursor-pointer flex items-center justify-center gap-1"
+                                >
+                                  <Plus className="h-3 w-3" /> Add Exercise to Template List
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="border-t border-border pt-4 flex gap-3">
+                          <button
+                            type="submit"
+                            className="flex-grow py-2 bg-primary hover:bg-muted text-white font-medium uppercase tracking-widest text-xs rounded-sm transition-all cursor-pointer text-center font-bold text-[11px]"
+                          >
+                            {editingTemplateId ? "Save Template Changes" : "Create Workout Template"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={resetTemplateForm}
+                            className="px-5 py-2 bg-bg hover:bg-border/30 border border-border text-text font-medium uppercase tracking-widest text-xs rounded-sm transition-all cursor-pointer text-center text-[11px]"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "badges" && (
+            <div className="space-y-6">
+              {!isAddingBadge ? (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border pb-4">
+                    <div>
+                      <h2 className="text-base text-text font-bold">Achievement Badges</h2>
+                      <p className="text-xs text-muted">
+                        Create, edit, and toggle active status for gamification achievement badges.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        resetBadgeForm();
+                        setIsAddingBadge(true);
+                      }}
+                      className="px-3.5 py-2 bg-primary hover:bg-muted text-white text-xs font-semibold uppercase tracking-widest rounded-sm flex items-center gap-1 cursor-pointer transition-all"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> Add Badge
+                    </button>
+                  </div>
+
+                  {badgesLoading && badges.length === 0 ? (
+                    <Spinner label="Loading badges..." className="py-12" />
+                  ) : badgesError ? (
+                    <ErrorBanner message={badgesError} onRetry={loadBadges} />
+                  ) : badges.length === 0 ? (
+                    <div className="bg-surface p-12 rounded-sm border border-border text-center space-y-4">
+                      <div className="h-12 w-12 bg-bg border border-border rounded-sm flex items-center justify-center mx-auto text-muted">
+                        <Award className="h-6 w-6 text-primary" aria-hidden="true" />
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="text-sm text-text font-bold">No achievement badges</h3>
+                        <p className="text-xs text-muted max-w-sm mx-auto leading-relaxed">
+                          There are no badges configured yet. Create one to get started with gamification rewards.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          resetBadgeForm();
+                          setIsAddingBadge(true);
+                        }}
+                        className="mx-auto px-4 py-1.5 bg-primary hover:bg-muted text-white text-xs font-semibold uppercase tracking-widest rounded-sm cursor-pointer transition-all"
+                      >
+                        Create First Badge
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {badges.map(badge => (
+                        <div key={badge.code} className="bg-surface rounded-sm border border-border p-5 flex flex-col justify-between hover:border-primary/50 transition-all">
+                          <div className="space-y-3">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex items-center gap-3">
+                                <span className="text-3xl" role="img" aria-label={badge.name}>
+                                  {badge.icon || "🏆"}
+                                </span>
+                                <div>
+                                  <h3 className="text-sm font-bold text-text line-clamp-1">{badge.name}</h3>
+                                  <span className="text-[10px] text-muted font-mono">{badge.code}</span>
+                                </div>
+                              </div>
+                              <span className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold border ${badge.isActive ? "bg-xp/10 text-xp border-xp/30" : "bg-streak/10 text-streak border-streak/20"}`}>
+                                {badge.isActive ? "Active" : "Inactive"}
+                              </span>
+                            </div>
+
+                            <p className="text-xs text-muted line-clamp-2 leading-relaxed">
+                              {badge.description}
+                            </p>
+
+                            <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted pt-1 border-t border-border/40">
+                              <span className="px-2 py-0.5 bg-bg border border-border rounded-sm font-semibold text-text">
+                                Type: {badge.requirement}
+                              </span>
+                              <span>•</span>
+                              <span>Value: <strong className="text-text font-mono">{badge.value}</strong></span>
+                              <span>•</span>
+                              <span>Order: <strong className="text-text font-mono">{badge.sortOrder}</strong></span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between border-t border-border mt-5 pt-4">
+                            <button
+                              type="button"
+                              onClick={() => toggleBadgeStatus(badge)}
+                              className={`text-xs font-mono font-semibold transition-all cursor-pointer ${badge.isActive ? "text-muted hover:text-streak" : "text-xp hover:text-primary"}`}
+                            >
+                              {badge.isActive ? "Deactivate" : "Activate"}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => startEditBadge(badge)}
+                              className="px-2.5 py-1 bg-bg hover:bg-border/40 border border-border text-muted hover:text-text rounded-sm text-[11px] flex items-center gap-1 cursor-pointer transition-all"
+                            >
+                              <Edit2 className="h-3 w-3" /> Edit
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-surface rounded-sm border border-border p-6 space-y-6">
+                  <div className="flex items-center justify-between border-b border-border pb-4">
+                    <div>
+                      <h2 className="text-base text-text font-bold">
+                        {editingBadgeCode ? "Edit Achievement Badge" : "Create Achievement Badge"}
+                      </h2>
+                      <p className="text-xs text-muted">
+                        {editingBadgeCode ? "Update achievement rules, description and icon." : "Define a new badge and unlock condition for gamification."}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={resetBadgeForm}
+                      className="px-3 py-1.5 bg-bg hover:bg-border/40 border border-border text-xs font-semibold rounded-sm text-text cursor-pointer transition-all"
+                    >
+                      Back to List
+                    </button>
+                  </div>
+
+                  <ErrorBanner message={bdgFormError} />
+
+                  <form onSubmit={handleSaveBadge} className="space-y-6 text-xs" noValidate>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div>
+                          <label htmlFor="bdg-code" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                            Badge Code *
+                          </label>
+                          <input
+                            id="bdg-code"
+                            type="text"
+                            required
+                            disabled={Boolean(editingBadgeCode)}
+                            placeholder="e.g. run_100 (unique identifier, lowercase/underscores)"
+                            value={bdgCode}
+                            onChange={(e) => setBdgCode(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                            className={`${INPUT} w-full disabled:opacity-60 disabled:cursor-not-allowed`}
+                          />
+                          {editingBadgeCode && (
+                            <span className="text-[10px] text-muted mt-1 block">
+                              Badge codes cannot be changed after creation.
+                            </span>
+                          )}
+                        </div>
+
+                        <div>
+                          <label htmlFor="bdg-name" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                            Badge Name *
+                          </label>
+                          <input
+                            id="bdg-name"
+                            type="text"
+                            required
+                            placeholder="e.g. Centurion Runner"
+                            value={bdgName}
+                            onChange={(e) => setBdgName(e.target.value)}
+                            className={`${INPUT} w-full`}
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="bdg-desc" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                            Description *
+                          </label>
+                          <textarea
+                            id="bdg-desc"
+                            required
+                            rows={3}
+                            placeholder="Describe how to unlock this badge, e.g. Logged 100 running sessions."
+                            value={bdgDesc}
+                            onChange={(e) => setBdgDesc(e.target.value)}
+                            className={`${INPUT} w-full`}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label htmlFor="bdg-req-type" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                              Requirement Type *
+                            </label>
+                            <select
+                              id="bdg-req-type"
+                              required
+                              value={bdgReqType}
+                              onChange={(e) => setBdgReqType(e.target.value)}
+                              className={`${INPUT} w-full cursor-pointer`}
+                            >
+                              <option value="streak">Streak Days (streak)</option>
+                              <option value="level">User Level (level)</option>
+                              <option value="workout">Workout Count (workout)</option>
+                              <option value="custom">Custom Type</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label htmlFor="bdg-req-value" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                              Requirement Value *
+                            </label>
+                            <input
+                              id="bdg-req-value"
+                              type="number"
+                              min={0}
+                              required
+                              value={bdgReqValue}
+                              onChange={(e) => setBdgReqValue(Number(e.target.value) || 0)}
+                              className={`${INPUT} w-full`}
+                            />
+                          </div>
+                        </div>
+
+                        {bdgReqType === "custom" && (
+                          <div>
+                            <label htmlFor="bdg-custom-req" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                              Custom Requirement Type Slug *
+                            </label>
+                            <input
+                              id="bdg-custom-req"
+                              type="text"
+                              required
+                              placeholder="e.g. calories, water_logs (lowercase slug)"
+                              value={bdgCustomReqType}
+                              onChange={(e) => setBdgCustomReqType(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                              className={`${INPUT} w-full`}
+                            />
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label htmlFor="bdg-sort" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                              Sort Order
+                            </label>
+                            <input
+                              id="bdg-sort"
+                              type="number"
+                              min={0}
+                              value={bdgSortOrder}
+                              onChange={(e) => setBdgSortOrder(Number(e.target.value) || 0)}
+                              className={`${INPUT} w-full`}
+                            />
+                          </div>
+
+                          <div className="flex flex-col justify-end pb-2.5">
+                            <label className="flex items-center gap-2.5 font-semibold text-text cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={bdgIsActive}
+                                onChange={(e) => setBdgIsActive(e.target.checked)}
+                                className="h-4 w-4 bg-bg border border-border text-primary focus:ring-0 rounded-sm cursor-pointer"
+                              />
+                              <span>Active / Visible</span>
+                            </label>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label htmlFor="bdg-icon" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                            Badge Icon (Emoji / Symbol)
+                          </label>
+                          <div className="flex gap-2">
+                            <input
+                              id="bdg-icon"
+                              type="text"
+                              maxLength={80}
+                              placeholder="e.g. 🏆"
+                              value={bdgIcon}
+                              onChange={(e) => setBdgIcon(e.target.value)}
+                              className={`${INPUT} flex-grow`}
+                            />
+                          </div>
+                          <div className="mt-2.5 space-y-1">
+                            <span className="text-[9px] font-mono text-muted uppercase tracking-wider block">Quick Presets:</span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {["🏆", "🥇", "🥈", "🥉", "⭐", "🔥", "⚡", "🏅", "🏃‍♂️", "🏋️‍♂️", "🧘‍♂️", "🚴‍♂️", "🏊‍♂️", "🧗‍♂️", "🥗"].map(emoji => (
+                                <button
+                                  key={emoji}
+                                  type="button"
+                                  onClick={() => setBdgIcon(emoji)}
+                                  className="w-7 h-7 bg-bg hover:bg-border/30 border border-border rounded-sm flex items-center justify-center text-sm cursor-pointer transition-all"
+                                >
+                                  {emoji}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-border pt-4 flex gap-3">
+                      <button
+                        type="submit"
+                        className="flex-grow py-2 bg-primary hover:bg-muted text-white font-medium uppercase tracking-widest text-xs rounded-sm transition-all cursor-pointer text-center font-bold text-[11px]"
+                      >
+                        {editingBadgeCode ? "Save Changes" : "Create Badge"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={resetBadgeForm}
+                        className="px-5 py-2 bg-bg hover:bg-border/30 border border-border text-text font-medium uppercase tracking-widest text-xs rounded-sm transition-all cursor-pointer text-center text-[11px]"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "challenges" && (
+            <div className="space-y-6">
+              {!isAddingChallenge ? (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border pb-4">
+                    <div>
+                      <h2 className="text-base text-text font-bold">Platform Challenges</h2>
+                      <p className="text-xs text-muted">
+                        Create, edit, and toggle active status for platform-wide fitness challenges.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        resetChallengeForm();
+                        setIsAddingChallenge(true);
+                      }}
+                      className="px-3.5 py-2 bg-primary hover:bg-muted text-white text-xs font-semibold uppercase tracking-widest rounded-sm flex items-center gap-1 cursor-pointer transition-all"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> Add Challenge
+                    </button>
+                  </div>
+
+                  {challengesLoading && challenges.length === 0 ? (
+                    <Spinner label="Loading challenges..." className="py-12" />
+                  ) : challengesError ? (
+                    <ErrorBanner message={challengesError} onRetry={loadChallenges} />
+                  ) : challenges.length === 0 ? (
+                    <div className="bg-surface p-12 rounded-sm border border-border text-center space-y-4">
+                      <div className="h-12 w-12 bg-bg border border-border rounded-sm flex items-center justify-center mx-auto text-muted">
+                        <Award className="h-6 w-6 text-primary" aria-hidden="true" />
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="text-sm text-text font-bold">No platform challenges</h3>
+                        <p className="text-xs text-muted max-w-sm mx-auto leading-relaxed">
+                          There are no challenges configured yet. Create one to set weekly targets.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          resetChallengeForm();
+                          setIsAddingChallenge(true);
+                        }}
+                        className="mx-auto px-4 py-1.5 bg-primary hover:bg-muted text-white text-xs font-semibold uppercase tracking-widest rounded-sm cursor-pointer transition-all"
+                      >
+                        Create First Challenge
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {challenges.map(challenge => (
+                        <div key={challenge.id} className="bg-surface rounded-sm border border-border p-5 flex flex-col justify-between hover:border-primary/50 transition-all">
+                          <div className="space-y-3">
+                            <div className="flex items-start justify-between gap-4">
+                              <div>
+                                <h3 className="text-sm font-bold text-text line-clamp-1">{challenge.title}</h3>
+                                <span className="text-[10px] text-muted font-mono">ID: {challenge.id}</span>
+                              </div>
+                              <span className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold border ${challenge.isActive ? "bg-xp/10 text-xp border-xp/30" : "bg-streak/10 text-streak border-streak/20"}`}>
+                                {challenge.isActive ? "Active" : "Inactive"}
+                              </span>
+                            </div>
+
+                            <p className="text-xs text-muted line-clamp-2 leading-relaxed">
+                              {challenge.description}
+                            </p>
+
+                            <div className="space-y-1 text-[10px] text-muted pt-1 border-t border-border/40">
+                              <div className="flex justify-between">
+                                <span>Type:</span>
+                                <span className="font-semibold text-text">{challenge.challengeType}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Target:</span>
+                                <span className="font-semibold text-text">{challenge.targetValue}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Reward:</span>
+                                <span className="font-semibold text-xp">+{challenge.rewardXp} XP</span>
+                              </div>
+                              {challenge.badgeCode && (
+                                <div className="flex justify-between">
+                                  <span>Badge Reward:</span>
+                                  <span className="font-semibold text-secondary">{challenge.badgeCode}</span>
+                                </div>
+                              )}
+                              <div className="flex justify-between">
+                                <span>Duration:</span>
+                                <span className="font-mono">{challenge.startDate} to {challenge.endDate}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between border-t border-border mt-5 pt-4">
+                            <button
+                              type="button"
+                              onClick={() => toggleChallengeStatus(challenge)}
+                              className={`text-xs font-mono font-semibold transition-all cursor-pointer ${challenge.isActive ? "text-muted hover:text-streak" : "text-xp hover:text-primary"}`}
+                            >
+                              {challenge.isActive ? "Deactivate" : "Activate"}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => startEditChallenge(challenge)}
+                              className="px-2.5 py-1 bg-bg hover:bg-border/40 border border-border text-muted hover:text-text rounded-sm text-[11px] flex items-center gap-1 cursor-pointer transition-all"
+                            >
+                              <Edit2 className="h-3 w-3" /> Edit
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-surface rounded-sm border border-border p-6 space-y-6">
+                  <div className="flex items-center justify-between border-b border-border pb-4">
+                    <div>
+                      <h2 className="text-base text-text font-bold">
+                        {editingChallengeId ? "Edit Platform Challenge" : "Create Platform Challenge"}
+                      </h2>
+                      <p className="text-xs text-muted">
+                        {editingChallengeId ? "Update challenge parameters, dates, and rewards." : "Define a new weekly or custom duration challenge."}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={resetChallengeForm}
+                      className="px-3 py-1.5 bg-bg hover:bg-border/40 border border-border text-xs font-semibold rounded-sm text-text cursor-pointer transition-all"
+                    >
+                      Back to List
+                    </button>
+                  </div>
+
+                  <ErrorBanner message={chFormError} />
+
+                  <form onSubmit={handleSaveChallenge} className="space-y-6 text-xs" noValidate>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div>
+                          <label htmlFor="ch-title" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                            Challenge Title *
+                          </label>
+                          <input
+                            id="ch-title"
+                            type="text"
+                            required
+                            placeholder="e.g. Cardio Crush"
+                            value={chTitle}
+                            onChange={(e) => setChTitle(e.target.value)}
+                            className={`${INPUT} w-full`}
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="ch-desc" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                            Description *
+                          </label>
+                          <textarea
+                            id="ch-desc"
+                            required
+                            rows={4}
+                            placeholder="e.g. Log at least 3 cardio workouts of 30 mins or more this week."
+                            value={chDesc}
+                            onChange={(e) => setChDesc(e.target.value)}
+                            className={`${INPUT} w-full`}
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label htmlFor="ch-type" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                              Challenge Type *
+                            </label>
+                            <select
+                              id="ch-type"
+                              required
+                              value={chType === "workout_count" || chType === "duration_min" || chType === "calories_burned" || chType === "steps" ? chType : "custom"}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === "custom") {
+                                  setChType("");
+                                } else {
+                                  setChType(val);
+                                }
+                              }}
+                              className={`${INPUT} w-full cursor-pointer`}
+                            >
+                              <option value="workout_count">Workout Count (workout_count)</option>
+                              <option value="duration_min">Total Duration (duration_min)</option>
+                              <option value="calories_burned">Calories Burned (calories_burned)</option>
+                              <option value="steps">Steps Count (steps)</option>
+                              <option value="custom">Custom Type</option>
+                            </select>
+                          </div>
+
+                          {!(chType === "workout_count" || chType === "duration_min" || chType === "calories_burned" || chType === "steps") ? (
+                            <div>
+                              <label htmlFor="ch-custom-type" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                                Custom Type Slug *
+                              </label>
+                              <input
+                                id="ch-custom-type"
+                                type="text"
+                                required
+                                placeholder="e.g. cardio_sessions"
+                                value={chType}
+                                onChange={(e) => setChType(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                                className={`${INPUT} w-full`}
+                              />
+                            </div>
+                          ) : (
+                            <div>
+                              <label htmlFor="ch-target" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                                Target Value *
+                              </label>
+                              <input
+                                id="ch-target"
+                                type="number"
+                                min={1}
+                                required
+                                value={chTargetValue}
+                                onChange={(e) => setChTargetValue(Number(e.target.value) || 1)}
+                                className={`${INPUT} w-full`}
+                              />
+                            </div>
+                          )}
+                        </div>
+
+                        {chType === "workout_count" || chType === "duration_min" || chType === "calories_burned" || chType === "steps" ? null : (
+                          <div>
+                            <label htmlFor="ch-target" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                              Target Value *
+                            </label>
+                            <input
+                              id="ch-target"
+                              type="number"
+                              min={1}
+                              required
+                              value={chTargetValue}
+                              onChange={(e) => setChTargetValue(Number(e.target.value) || 1)}
+                              className={`${INPUT} w-full`}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label htmlFor="ch-start-date" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                              Start Date *
+                            </label>
+                            <input
+                              id="ch-start-date"
+                              type="date"
+                              required
+                              value={chStartDate}
+                              onChange={(e) => setChStartDate(e.target.value)}
+                              className={`${INPUT} w-full`}
+                            />
+                          </div>
+
+                          <div>
+                            <label htmlFor="ch-end-date" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                              End Date *
+                            </label>
+                            <input
+                              id="ch-end-date"
+                              type="date"
+                              required
+                              value={chEndDate}
+                              onChange={(e) => setChEndDate(e.target.value)}
+                              className={`${INPUT} w-full`}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label htmlFor="ch-reward-xp" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                              Reward XP
+                            </label>
+                            <input
+                              id="ch-reward-xp"
+                              type="number"
+                              min={0}
+                              value={chRewardXp}
+                              onChange={(e) => setChRewardXp(Number(e.target.value) || 0)}
+                              className={`${INPUT} w-full`}
+                            />
+                          </div>
+
+                          <div className="flex flex-col justify-end pb-2.5">
+                            <label className="flex items-center gap-2.5 font-semibold text-text cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={chIsActive}
+                                onChange={(e) => setChIsActive(e.target.checked)}
+                                className="h-4 w-4 bg-bg border border-border text-primary focus:ring-0 rounded-sm cursor-pointer"
+                              />
+                              <span>Active / Visible</span>
+                            </label>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label htmlFor="ch-badge" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
+                            Optional Reward Badge
+                          </label>
+                          <select
+                            id="ch-badge"
+                            value={chBadgeCode}
+                            onChange={(e) => setChBadgeCode(e.target.value)}
+                            className={`${INPUT} w-full cursor-pointer`}
+                          >
+                            <option value="">-- No Badge Reward --</option>
+                            {badges.map(b => (
+                              <option key={b.code} value={b.code}>
+                                {b.icon || "🏆"} {b.name} ({b.code})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-border pt-4 flex gap-3">
+                      <button
+                        type="submit"
+                        className="flex-grow py-2 bg-primary hover:bg-muted text-white font-medium uppercase tracking-widest text-xs rounded-sm transition-all cursor-pointer text-center font-bold text-[11px]"
+                      >
+                        {editingChallengeId ? "Save Changes" : "Create Challenge"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={resetChallengeForm}
+                        className="px-5 py-2 bg-bg hover:bg-border/30 border border-border text-text font-medium uppercase tracking-widest text-xs rounded-sm transition-all cursor-pointer text-center text-[11px]"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "announcements" && (
+            <div className="space-y-6">
+              {!isAddingAnnouncement ? (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border pb-4">
+                    <div>
+                      <h2 className="text-base text-text font-bold">Platform Announcements</h2>
+                      <p className="text-xs text-muted">
+                        Create, edit, toggle active status, and delete announcements displayed to users.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        resetAnnouncementForm();
+                        setIsAddingAnnouncement(true);
+                      }}
+                      className="px-3.5 py-2 bg-primary hover:bg-muted text-white text-xs font-semibold uppercase tracking-widest rounded-sm flex items-center gap-1 cursor-pointer transition-all"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> Add Announcement
+                    </button>
+                  </div>
+
+                  {announcementsLoading && announcements.length === 0 ? (
+                    <Spinner label="Loading announcements..." className="py-12" />
+                  ) : announcementsError ? (
+                    <ErrorBanner message={announcementsError} onRetry={loadAnnouncements} />
+                  ) : announcements.length === 0 ? (
+                    <div className="bg-surface p-12 rounded-sm border border-border text-center space-y-4">
+                      <div className="h-12 w-12 bg-bg border border-border rounded-sm flex items-center justify-center mx-auto text-muted">
+                        <Megaphone className="h-6 w-6 text-primary" aria-hidden="true" />
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="text-sm text-text font-bold">No platform announcements</h3>
+                        <p className="text-xs text-muted max-w-sm mx-auto leading-relaxed">
+                          There are no announcements configured yet. Create one to display global alerts to users.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          resetAnnouncementForm();
+                          setIsAddingAnnouncement(true);
+                        }}
+                        className="mx-auto px-4 py-1.5 bg-primary hover:bg-muted text-white text-xs font-semibold uppercase tracking-widest rounded-sm cursor-pointer transition-all"
+                      >
+                        Create First Announcement
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {announcements.map((ann) => (
+                        <div key={ann.id} className="bg-surface rounded-sm border border-border p-5 flex flex-col justify-between hover:border-primary/50 transition-all">
+                          <div className="space-y-3">
+                            <div className="flex items-start justify-between gap-4">
+                              <div>
+                                <h3 className="text-sm font-bold text-text line-clamp-1">{ann.title}</h3>
+                                <span className="text-[10px] text-muted font-mono">ID: {ann.id}</span>
+                              </div>
+                              <span className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold border ${ann.isActive ? "bg-xp/10 text-xp border-xp/30" : "bg-streak/10 text-streak border-streak/20"}`}>
+                                {ann.isActive ? "Active" : "Inactive"}
+                              </span>
+                            </div>
+
+                            <p className="text-xs text-muted line-clamp-3 leading-relaxed whitespace-pre-wrap text-left">
+                              {ann.body}
+                            </p>
+
+                            <div className="space-y-1 text-[10px] text-muted pt-1 border-t border-border/40 font-mono">
+                              <div className="flex justify-between">
+                                <span>Audience:</span>
+                                <span className="font-semibold text-text uppercase">{ann.audience}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Placement:</span>
+                                <span className="font-semibold text-text">{ann.placement}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Start:</span>
+                                <span>{ann.startAt ? new Date(ann.startAt).toLocaleString() : "Immediately"}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>End:</span>
+                                <span>{ann.endAt ? new Date(ann.endAt).toLocaleString() : "Never"}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between border-t border-border mt-5 pt-4">
+                            <button
+                              type="button"
+                              onClick={() => toggleAnnouncementStatus(ann)}
+                              className={`text-xs font-mono font-semibold transition-all cursor-pointer ${ann.isActive ? "text-muted hover:text-streak" : "text-xp hover:text-primary"}`}
+                            >
+                              {ann.isActive ? "Deactivate" : "Activate"}
+                            </button>
+
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => startEditAnnouncement(ann)}
+                                className="px-2.5 py-1 bg-bg hover:bg-border/40 border border-border text-muted hover:text-text rounded-sm text-[11px] flex items-center gap-1 cursor-pointer transition-all"
+                              >
+                                <Edit2 className="h-3 w-3" /> Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setPendingDeleteAnnouncement(ann.id)}
+                                className="px-2.5 py-1 bg-bg hover:bg-red-500/10 border border-red-500/25 text-streak hover:text-red-600 rounded-sm text-[11px] flex items-center gap-1 cursor-pointer transition-all"
+                              >
+                                <Trash2 className="h-3 w-3" /> Delete
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-surface rounded-sm border border-border p-6 space-y-6">
+                  <div className="flex items-center justify-between border-b border-border pb-4">
+                    <div>
+                      <h2 className="text-base text-text font-bold">
+                        {editingAnnouncementId ? "Edit Announcement" : "Create Announcement"}
+                      </h2>
+                      <p className="text-xs text-muted">
+                        {editingAnnouncementId ? "Update announcement properties, content, and dates." : "Define a new announcement to be shown on target screens."}
+                      </p>
+                    </div>
+                  </div>
+
+                  {annFormError && <ErrorBanner message={annFormError} />}
+
+                  <form onSubmit={handleSaveAnnouncement} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                      <div className="flex flex-col gap-1.5 md:col-span-2">
+                        <label className="text-[10px] font-mono uppercase tracking-widest text-muted">Title</label>
+                        <input
+                          type="text"
+                          className={INPUT}
+                          value={annTitle}
+                          onChange={(e) => setAnnTitle(e.target.value)}
+                          placeholder="System maintenance, new features, etc."
+                          required
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-1.5 md:col-span-2">
+                        <label className="text-[10px] font-mono uppercase tracking-widest text-muted">Body Message</label>
+                        <textarea
+                          rows="4"
+                          className={INPUT}
+                          value={annBody}
+                          onChange={(e) => setAnnBody(e.target.value)}
+                          placeholder="Type your announcement body here..."
+                          required
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-mono uppercase tracking-widest text-muted">Audience</label>
+                        <select
+                          className={`${INPUT} cursor-pointer`}
+                          value={annAudience}
+                          onChange={(e) => setAnnAudience(e.target.value)}
+                          required
+                        >
+                          <option value="all">All Users & Admins</option>
+                          <option value="users">Regular Users Only</option>
+                          <option value="admins">Administrators Only</option>
+                        </select>
+                      </div>
+
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-mono uppercase tracking-widest text-muted">Placement</label>
+                        <input
+                          type="text"
+                          className={INPUT}
+                          value={annPlacement}
+                          onChange={(e) => setAnnPlacement(e.target.value)}
+                          placeholder="dashboard"
+                          required
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-mono uppercase tracking-widest text-muted">Start Date & Time (Optional)</label>
+                        <input
+                          type="datetime-local"
+                          className={INPUT}
+                          value={annStartAt}
+                          onChange={(e) => setAnnStartAt(e.target.value)}
+                        />
+                        <span className="text-[9px] text-muted font-mono mt-0.5">Leave blank to publish immediately.</span>
+                      </div>
+
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-mono uppercase tracking-widest text-muted">End Date & Time (Optional)</label>
+                        <input
+                          type="datetime-local"
+                          className={INPUT}
+                          value={annEndAt}
+                          onChange={(e) => setAnnEndAt(e.target.value)}
+                        />
+                        <span className="text-[9px] text-muted font-mono mt-0.5">Leave blank for indefinite duration.</span>
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-4 md:col-span-2 font-mono">
+                        <input
+                          type="checkbox"
+                          id="annIsActive"
+                          checked={annIsActive}
+                          onChange={(e) => setAnnIsActive(e.target.checked)}
+                          className="rounded-sm border-border text-primary focus:ring-primary cursor-pointer h-4 w-4 animate-none"
+                        />
+                        <label htmlFor="annIsActive" className="text-xs font-semibold text-text select-none cursor-pointer">
+                          Mark as Active & Enable Delivery
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-border pt-4 flex gap-3">
+                      <button
+                        type="submit"
+                        className="flex-grow py-2 bg-primary hover:bg-muted text-white font-medium uppercase tracking-widest text-xs rounded-sm transition-all cursor-pointer text-center font-bold text-[11px]"
+                      >
+                        {editingAnnouncementId ? "Save Changes" : "Create Announcement"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={resetAnnouncementForm}
+                        className="px-5 py-2 bg-bg hover:bg-border/30 border border-border text-text font-medium uppercase tracking-widest text-xs rounded-sm transition-all cursor-pointer text-center text-[11px]"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "feedback" && (
+            <div className="space-y-5">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-bold text-text">User Feedback</h2>
+                <button
+                  type="button"
+                  onClick={loadFeedback}
+                  disabled={feedbackLoading}
+                  className="px-3 py-1.5 bg-bg hover:bg-border/40 text-xs font-mono rounded-sm border border-border cursor-pointer flex items-center gap-1.5 transition-all text-text"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${feedbackLoading ? "animate-spin" : ""}`} /> Refresh
+                </button>
+              </div>
+
+              {/* Filters */}
+              <div className="flex flex-wrap gap-3">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-mono uppercase tracking-widest text-muted">Status</label>
+                  <select
+                    value={feedbackFilters.status}
+                    onChange={(e) => setFeedbackFilters(prev => ({ ...prev, status: e.target.value }))}
+                    className={INPUT}
+                  >
+                    <option value="">All statuses</option>
+                    <option value="new">New</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="resolved">Resolved</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-mono uppercase tracking-widest text-muted">Type</label>
+                  <select
+                    value={feedbackFilters.type}
+                    onChange={(e) => setFeedbackFilters(prev => ({ ...prev, type: e.target.value }))}
+                    className={INPUT}
+                  >
+                    <option value="">All types</option>
+                    <option value="bug">Bug</option>
+                    <option value="feature">Feature Request</option>
+                    <option value="general">General</option>
+                  </select>
+                </div>
+              </div>
+
+              {feedbackError && <ErrorBanner message={feedbackError} onRetry={loadFeedback} />}
+
+              {feedbackLoading ? (
+                <div className="flex justify-center py-12"><Spinner /></div>
+              ) : feedbackList.length === 0 ? (
+                <div className="bg-surface border border-border rounded-sm p-10 text-center space-y-2">
+                  <MessageSquare className="h-8 w-8 text-muted/40 mx-auto" />
+                  <p className="text-sm font-semibold text-text">No feedback submitted yet.</p>
+                  <p className="text-xs text-muted">Feedback from users will appear here once submitted.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {feedbackList.map((fb) => {
+                    const isOpen = triageId === fb.id;
+                    const STATUS_COLORS = {
+                      new: "bg-primary/10 text-primary border-primary/20",
+                      in_progress: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+                      resolved: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+                      archived: "bg-muted/10 text-muted border-border"
+                    };
+                    const TYPE_LABELS = { bug: "Bug", feature: "Feature", general: "General" };
+                    return (
+                      <div key={fb.id} className="bg-surface border border-border rounded-sm overflow-hidden">
+                        <div className="flex items-start gap-4 p-4">
+                          <div className="flex-grow min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                              <span className={`text-[10px] font-mono px-2 py-0.5 rounded-sm border uppercase tracking-widest ${STATUS_COLORS[fb.status] || STATUS_COLORS.new}`}>
+                                {fb.status.replace("_", " ")}
+                              </span>
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded-sm border border-border bg-bg text-muted uppercase tracking-widest">
+                                {TYPE_LABELS[fb.type] || fb.type}
+                              </span>
+                            </div>
+                            <p className="text-sm font-semibold text-text truncate">{fb.subject || "(No subject)"}</p>
+                            <p className="text-xs text-muted mt-0.5">
+                              {fb.userName ? (
+                                <><span className="font-medium text-text">{fb.userName}</span> · {fb.userEmail}</>
+                              ) : (
+                                <span className="italic">Anonymous</span>
+                              )}
+                              {" · "}{new Date(fb.createdAt).toLocaleDateString()}
+                            </p>
+                            {fb.adminNote && (
+                              <p className="text-xs text-muted mt-1.5 italic border-l-2 border-primary/30 pl-2">
+                                Admin note: {fb.adminNote}
+                              </p>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (isOpen) {
+                                setTriageId(null);
+                              } else {
+                                setTriageId(fb.id);
+                                setFbNewStatus(fb.status);
+                                setFbAdminNote(fb.adminNote || "");
+                              }
+                            }}
+                            className="shrink-0 px-3 py-1.5 bg-bg hover:bg-border/40 border border-border text-xs font-mono rounded-sm text-text cursor-pointer transition-all"
+                          >
+                            {isOpen ? "Close" : "Triage"}
+                          </button>
+                        </div>
+
+                        {isOpen && (
+                          <div className="border-t border-border bg-bg p-4 space-y-4">
+                            <div className="space-y-1">
+                              <p className="text-[10px] font-mono uppercase tracking-widest text-muted mb-1">Full message</p>
+                              <p className="text-xs text-text leading-relaxed whitespace-pre-wrap bg-surface border border-border rounded-sm p-3">{fb.message}</p>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono uppercase tracking-widest text-muted block">Update status</label>
+                                <select
+                                  value={fbNewStatus}
+                                  onChange={(e) => setFbNewStatus(e.target.value)}
+                                  className={INPUT + " w-full"}
+                                >
+                                  <option value="new">New</option>
+                                  <option value="in_progress">In Progress</option>
+                                  <option value="resolved">Resolved</option>
+                                  <option value="archived">Archived</option>
+                                </select>
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-mono uppercase tracking-widest text-muted block">Admin note (optional)</label>
+                                <input
+                                  type="text"
+                                  value={fbAdminNote}
+                                  onChange={(e) => setFbAdminNote(e.target.value)}
+                                  placeholder="Internal note..."
+                                  className={INPUT + " w-full"}
+                                />
+                              </div>
+                            </div>
+                            <div className="flex gap-3">
+                              <button
+                                type="button"
+                                disabled={fbSaving}
+                                onClick={async () => {
+                                  setFbSaving(true);
+                                  try {
+                                    await adminService.updateFeedback(fb.id, {
+                                      status: fbNewStatus,
+                                      adminNote: fbAdminNote || null
+                                    });
+                                    push("Feedback updated.", "success");
+                                    setTriageId(null);
+                                    loadFeedback();
+                                  } catch (err) {
+                                    push(err.message || "Failed to update feedback.", "info");
+                                  } finally {
+                                    setFbSaving(false);
+                                  }
+                                }}
+                                className="px-4 py-1.5 bg-primary hover:bg-muted text-white text-xs font-bold uppercase tracking-widest rounded-sm transition-all cursor-pointer"
+                              >
+                                {fbSaving ? "Saving..." : "Save"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setTriageId(null)}
+                                className="px-4 py-1.5 bg-bg hover:bg-border/30 border border-border text-text text-xs font-mono rounded-sm transition-all cursor-pointer"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "analytics" && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-bold text-text">Platform Analytics</h2>
+                <button
+                  type="button"
+                  onClick={loadAnalytics}
+                  disabled={analyticsLoading}
+                  className="px-3 py-1.5 bg-bg hover:bg-border/40 text-xs font-mono rounded-sm border border-border cursor-pointer flex items-center gap-1.5 transition-all text-text"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${analyticsLoading ? "animate-spin" : ""}`} /> Refresh
+                </button>
+              </div>
+
+              {analyticsError && <ErrorBanner message={analyticsError} onRetry={loadAnalytics} />}
+
+              {analyticsLoading ? (
+                <div className="flex justify-center py-12"><Spinner /></div>
+              ) : analyticsData ? (
+                <>
+                  {/* User Activity */}
+                  <section>
+                    <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted mb-3">User Activity (last 30 days)</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <StatCard label="Active Users" value={analyticsData.activeUsers} icon={UserCheck} hint="Logged a workout in last 30 days" />
+                      <StatCard label="Inactive Users" value={analyticsData.inactiveUsers} icon={UserX} hint="No workouts in last 30 days" />
+                      <StatCard label="Total Users" value={analyticsData.totalUsers} icon={Users} hint="Registered non-admin accounts" />
+                    </div>
+                  </section>
+
+                  {/* Platform Content */}
+                  <section>
+                    <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted mb-3">Platform Content</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <StatCard label="Active Challenges" value={analyticsData.activeChallengesCount} icon={Target} hint="Currently active challenges" />
+                      <StatCard label="Active Announcements" value={analyticsData.activeAnnouncementsCount} icon={Megaphone} hint="Active and not expired" />
+                    </div>
+                  </section>
+
+                  {/* Workouts by Category */}
+                  <section>
+                    <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted mb-3">
+                      Workouts by Category
+                      {analyticsData.mostUsedCategory && (
+                        <span className="ml-2 text-primary normal-case">· Most used: {analyticsData.mostUsedCategory.name}</span>
+                      )}
+                    </h3>
+                    {analyticsData.workoutsByCategory.length === 0 ? (
+                      <p className="text-xs text-muted">No workout data yet.</p>
+                    ) : (
+                      <div className="bg-surface border border-border rounded-sm overflow-hidden">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="border-b border-border bg-bg">
+                              <th className="text-left px-4 py-2.5 font-mono uppercase tracking-widest text-muted text-[10px]">Category</th>
+                              <th className="text-right px-4 py-2.5 font-mono uppercase tracking-widest text-muted text-[10px]">Times Logged</th>
+                              <th className="text-right px-4 py-2.5 font-mono uppercase tracking-widest text-muted text-[10px]">Total Mins</th>
+                              <th className="text-right px-4 py-2.5 font-mono uppercase tracking-widest text-muted text-[10px]">Total kcal</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {analyticsData.workoutsByCategory.map((cat, i) => (
+                              <tr key={cat.id} className={`border-b border-border last:border-0 ${i === 0 && cat.usageCount > 0 ? "bg-primary/5" : ""}` }>
+                                <td className="px-4 py-2.5 text-text font-medium">
+                                  {cat.name}
+                                  {i === 0 && cat.usageCount > 0 && (
+                                    <span className="ml-2 text-[9px] font-mono uppercase tracking-widest text-primary">Top</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-2.5 text-right font-mono text-text">{cat.usageCount}</td>
+                                <td className="px-4 py-2.5 text-right font-mono text-muted">{cat.totalMinutes}</td>
+                                <td className="px-4 py-2.5 text-right font-mono text-muted">{cat.totalCalories}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </section>
+
+                  {/* Feedback by Status */}
+                  <section>
+                    <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted mb-3">Feedback by Status</h3>
+                    <div className="bg-surface border border-border rounded-sm overflow-hidden">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b border-border bg-bg">
+                            <th className="text-left px-4 py-2.5 font-mono uppercase tracking-widest text-muted text-[10px]">Status</th>
+                            <th className="text-right px-4 py-2.5 font-mono uppercase tracking-widest text-muted text-[10px]">Count</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {Object.entries(analyticsData.feedbackByStatus).map(([status, count]) => (
+                            <tr key={status} className="border-b border-border last:border-0">
+                              <td className="px-4 py-2.5 text-text capitalize">{status.replace("_", " ")}</td>
+                              <td className="px-4 py-2.5 text-right font-mono text-text">{count}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+
+                  {/* Template Usage */}
+                  <section>
+                    <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted mb-3">Template Usage</h3>
+                    <div className="bg-surface border border-border rounded-sm p-4 flex items-center gap-3">
+                      <BarChart3 className="h-5 w-5 text-muted/50 shrink-0" />
+                      <p className="text-xs text-muted">Template usage tracking not available yet. Per-use logging is not currently stored in the database.</p>
+                    </div>
+                  </section>
+                </>
+              ) : (
+                <div className="bg-surface border border-border rounded-sm p-10 text-center">
+                  <p className="text-xs text-muted">No analytics data available.</p>
+                </div>
+              )}
+            </div>
+          )}
         </>
       )}
+        </div>
+      </div>
 
       {detail && (
         <div
@@ -702,6 +3247,24 @@ export default function AdminPortalView() {
         confirmLabel="Delete"
         onConfirm={confirmDeleteCategory}
         onCancel={() => setPendingDeleteCat(null)}
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingDeleteTemplate)}
+        title="Delete this workout template?"
+        message="This will permanently delete the template from the library. Existing logged workouts will not be affected."
+        confirmLabel="Delete"
+        onConfirm={confirmDeleteTemplate}
+        onCancel={() => setPendingDeleteTemplate(null)}
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingDeleteAnnouncement)}
+        title="Delete this announcement?"
+        message="This will permanently delete the announcement from the system. Users will no longer see it."
+        confirmLabel="Delete"
+        onConfirm={confirmDeleteAnnouncement}
+        onCancel={() => setPendingDeleteAnnouncement(null)}
       />
     </div>
   );

@@ -10,6 +10,8 @@ import RepeatLast from "../components/workout/RepeatLast.jsx";
 import { WORKOUT_MAP } from "../utils/constants.js";
 import { estimateCalories, estimateXP, getProfileWeight } from "../utils/previewCalculator.js";
 import workoutService from "../services/workoutService.js";
+import templateService from "../services/templateService.js";
+import DashboardWorkoutTemplates from "../components/dashboard/DashboardWorkoutTemplates.jsx";
 import { todayStr } from "../utils/workoutUtils.js";
 
 const LAST_WORKOUT_KEY = "fitsync:lastWorkout";
@@ -95,6 +97,8 @@ export default function Log() {
   const [category, setCategory] = useState(null);
   const [subtype, setSubtype] = useState(null);
   const [duration, setDuration] = useState(DEFAULT_DURATION);
+  const [workoutTitle, setWorkoutTitle] = useState("");
+  const [templates, setTemplates] = useState([]);
   const [showDetails, setShowDetails] = useState(false);
   const [details, setDetails] = useState({ date: todayStr(), distance: "", intensity: "med", notes: "", sets: "", reps: "", weight: "" });
   const [submitting, setSubmitting] = useState(false);
@@ -115,9 +119,33 @@ export default function Log() {
     
     setCategory(savedCategory);
     setSubtype(savedSubtype);
+    if (savedSubtype) {
+      setWorkoutTitle(savedSubtype.name);
+    }
     setDuration(Number(saved?.duration || DEFAULT_DURATION));
     setLastWorkout(getStored(LAST_WORKOUT_KEY));
   }, [finalCategories]);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadTemplates() {
+      try {
+        const data = await templateService.getActiveTemplates();
+        if (isMounted) {
+          setTemplates(data || []);
+        }
+      } catch (err) {
+        console.error("Failed to load active templates:", err);
+        if (isMounted) {
+          setTemplates([]);
+        }
+      }
+    }
+    loadTemplates();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const categoryMeta = useMemo(() => findCategoryMeta(finalCategories, category, subtype), [finalCategories, category, subtype]);
   const subtypeForPreview = useMemo(() => ({
@@ -140,13 +168,20 @@ export default function Log() {
   const handleCategorySelect = useCallback((nextCategory) => {
     setSavedTotals(null);
     setCategory(nextCategory);
-    setSubtype(nextCategory.subtypes[0]);
-    store(LAST_CATEGORY_KEY, { categorySlug: nextCategory.slug, subtypeSlug: nextCategory.subtypes[0]?.slug, duration });
+    const nextSubtype = nextCategory.subtypes[0];
+    setSubtype(nextSubtype);
+    if (nextSubtype) {
+      setWorkoutTitle(nextSubtype.name);
+    }
+    store(LAST_CATEGORY_KEY, { categorySlug: nextCategory.slug, subtypeSlug: nextSubtype?.slug, duration });
   }, [duration]);
 
   const handleSubtypeSelect = useCallback((nextSubtype) => {
     setSavedTotals(null);
     setSubtype(nextSubtype);
+    if (nextSubtype) {
+      setWorkoutTitle(nextSubtype.name);
+    }
     store(LAST_CATEGORY_KEY, { categorySlug: category?.slug, subtypeSlug: nextSubtype.slug, duration });
   }, [category?.slug, duration]);
 
@@ -156,10 +191,11 @@ export default function Log() {
     setSavedTotals(null);
     setCategory(nextCategory);
     setSubtype(nextSubtype);
+    setWorkoutTitle(workout.title || nextSubtype?.name || "");
     setDuration(Number(workout.duration || DEFAULT_DURATION));
     setDetails((current) => ({ ...current, distance: workout.distance || "", intensity: workout.intensity || "med", sets: workout.sets || "", reps: workout.reps || "", weight: workout.weight || "" }));
-    setAnnouncement(`Ready to repeat ${nextSubtype.name}.`);
-  }, []);
+    setAnnouncement(`Ready to repeat ${nextSubtype?.name || "workout"}.`);
+  }, [finalCategories]);
 
   const handleCustomDuration = useCallback((value) => {
     const nextDuration = Math.min(300, Math.max(1, Number(value || 1)));
@@ -168,6 +204,64 @@ export default function Log() {
     store(LAST_CATEGORY_KEY, { categorySlug: category?.slug, subtypeSlug: subtype?.slug, duration: nextDuration });
   }, [category?.slug, subtype?.slug]);
 
+  const handleSelectTemplate = useCallback((template) => {
+    const catId = template.categoryId || template.exercises?.[0]?.categoryId;
+    const catName = template.categoryName || template.exercises?.[0]?.categoryName;
+    const targetCategory = finalCategories.find((c) =>
+      (catId && c.id === catId) ||
+      (catName && normalize(c.name) === normalize(catName)) ||
+      (catName && normalize(c.slug) === normalize(catName))
+    ) || finalCategories[0];
+
+    const subtypeName = template.subtype || template.exercises?.[0]?.exerciseName || "";
+    let targetSubtype = targetCategory?.subtypes?.find((s) =>
+      normalize(s.slug) === normalize(subtypeName) ||
+      normalize(s.name) === normalize(subtypeName)
+    );
+
+    if (!targetSubtype && subtypeName) {
+      targetSubtype = {
+        name: subtypeName,
+        slug: normalize(subtypeName).replace(/\s+/g, "-"),
+        categoryId: targetCategory.id
+      };
+    } else if (!targetSubtype) {
+      targetSubtype = targetCategory?.subtypes?.[0];
+    }
+
+    setSavedTotals(null);
+    setCategory(targetCategory);
+    setSubtype(targetSubtype);
+
+    const templateDuration = template.durationMin || template.exercises?.[0]?.duration;
+    if (templateDuration) {
+      setDuration(Number(templateDuration));
+    }
+
+    setWorkoutTitle(template.title || subtypeName || "");
+
+    const firstEx = template.exercises?.[0];
+    const firstSet = firstEx?.sets?.[0];
+    const templateDesc = template.description || template.desc || "";
+
+    setDetails((current) => ({
+      ...current,
+      distance: template.distance || firstEx?.distance || "",
+      intensity: template.intensity || firstEx?.intensity || "med",
+      notes: templateDesc || firstEx?.notes || "",
+      sets: firstEx && firstEx.sets ? String(firstEx.sets.length) : "",
+      reps: firstSet ? String(firstSet.reps || "") : "",
+      weight: firstSet ? String(firstSet.weight || "") : ""
+    }));
+
+    const hasDetails = template.distance || firstEx?.distance || templateDesc || (firstEx && firstEx.sets);
+    if (hasDetails) {
+      setShowDetails(true);
+    }
+
+    setAnnouncement(`Prefilled form with template: ${template.title}.`);
+  }, [finalCategories]);
+
   const handleSubmit = useCallback(async (event) => {
     event.preventDefault();
     if (!category || !subtype || submitting) return;
@@ -175,7 +269,7 @@ export default function Log() {
     const meta = findCategoryMeta(finalCategories, category, subtype);
     const categorySlug = meta?.slug || category.slug;
     const categoryId = meta?.id || subtype.categoryId || category.id;
-    const title = subtype.name;
+    const title = workoutTitle.trim() || subtype.name;
     const payload = {
       date: details.date || todayStr(),
       title,
@@ -256,11 +350,32 @@ export default function Log() {
 
       <RepeatLast workout={lastWorkout} onRepeat={handleRepeat} />
 
+      {templates.length > 0 && (
+        <div className="mb-6">
+          <DashboardWorkoutTemplates templates={templates} onSelectTemplate={handleSelectTemplate} />
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-5">
         <QuickLogGrid categories={finalCategories} selectedSlug={category.slug} onSelect={handleCategorySelect} />
         <SubtypePicker category={category} selectedSubtype={subtype} onSelect={handleSubtypeSelect} />
 
         <section className="rounded-2xl border border-border bg-surface p-4 shadow-lg shadow-black/10">
+          <div className="mb-4">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-muted" htmlFor="workout-title">
+              Workout Title
+            </label>
+            <input
+              id="workout-title"
+              type="text"
+              required
+              placeholder="e.g. Upper Body Push, Running"
+              value={workoutTitle}
+              onChange={(e) => setWorkoutTitle(e.target.value)}
+              className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            />
+          </div>
+
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted">Duration</p>

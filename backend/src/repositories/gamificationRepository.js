@@ -52,7 +52,7 @@ async function addCheckin(userId, date, type, executor = pool) {
 
 async function getAchievementCatalog() {
   const [rows] = await pool.execute(
-    "SELECT code, name, description, requirement_type, requirement_value, sort_order FROM achievements ORDER BY sort_order ASC"
+    "SELECT code, name, description, requirement_type, requirement_value, sort_order, icon, is_active FROM achievements ORDER BY sort_order ASC"
   );
   return rows.map((row) => ({
     code: row.code,
@@ -60,7 +60,9 @@ async function getAchievementCatalog() {
     description: row.description,
     requirementType: row.requirement_type,
     requirementValue: Number(row.requirement_value),
-    sortOrder: Number(row.sort_order)
+    sortOrder: Number(row.sort_order),
+    icon: row.icon || null,
+    isActive: row.is_active === undefined || row.is_active === null ? true : Boolean(row.is_active)
   }));
 }
 

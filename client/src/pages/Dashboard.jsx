@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
-import { Dumbbell, Flame, Sparkles, Terminal, Timer, X } from "lucide-react";
+import { Dumbbell, Flame, Sparkles, Terminal, Timer, X, Award, Megaphone } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import PageHeader from "../components/common/PageHeader.jsx";
 import StatCard from "../components/common/StatCard.jsx";
@@ -11,6 +11,7 @@ import XPProgressBar from "../components/gamification/XPProgressBar.jsx";
 import AchievementBadge from "../components/gamification/AchievementBadge.jsx";
 import insightService from "../services/insightService.js";
 import gamificationService from "../services/gamificationService.js";
+import announcementService from "../services/announcementService.js";
 
 function n(value) {
   return Number(value || 0);
@@ -51,6 +52,15 @@ export default function Dashboard() {
   const { user: authUser } = useAuth();
   const context = useOutletContext();
   const gamification = context.gamification || {};
+  const [announcements, setAnnouncements] = useState([]);
+  const [announcementsLoading, setAnnouncementsLoading] = useState(true);
+  const [dismissedIds, setDismissedIds] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("dismissed_announcements") || "[]");
+    } catch {
+      return [];
+    }
+  });
   const recentWorkouts = useMemo(
     () => context.workouts.slice(0, 3).map(formatWorkout),
     [context.workouts]
@@ -72,6 +82,12 @@ export default function Dashboard() {
       .filter((badge) => badge.isUnlocked && badge.code !== displayedBadgeCode)
       .slice(0, 3);
   }, [gamification.badges, activeBadge]);
+
+  const visibleAnnouncements = useMemo(() => {
+    return announcements.filter(
+      (ann) => ann.placement === "dashboard" && !dismissedIds.includes(ann.id)
+    );
+  }, [announcements, dismissedIds]);
   const userName = authUser?.name || context.user?.name || "there";
   const totalXp = n(gamification.totalXp ?? gamification.total_xp);
   const nextLevelXp = n(gamification.nextLevelXp ?? gamification.next_level_xp);
@@ -93,6 +109,10 @@ export default function Dashboard() {
   const [streakLoading, setStreakLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
+  const [challenges, setChallenges] = useState([]);
+  const [challengesLoading, setChallengesLoading] = useState(true);
+  const [challengesError, setChallengesError] = useState(null);
+
   const fetchStreakStatus = async () => {
     try {
       const res = await gamificationService.getStreakStatus();
@@ -104,9 +124,48 @@ export default function Dashboard() {
     }
   };
 
+  const fetchActiveChallenges = async () => {
+    try {
+      const res = await gamificationService.getActiveChallenges();
+      setChallenges(res);
+    } catch (err) {
+      console.error("Failed to fetch active challenges", err);
+      setChallengesError(err.message || "Failed to load active challenges.");
+    } finally {
+      setChallengesLoading(false);
+    }
+  };
+
+  const fetchActiveAnnouncements = async () => {
+    try {
+      const res = await announcementService.getActiveAnnouncements();
+      setAnnouncements(res || []);
+    } catch (err) {
+      console.error("Failed to fetch active announcements", err);
+      setAnnouncements([]);
+    } finally {
+      setAnnouncementsLoading(false);
+    }
+  };
+
+  const handleDismissAnnouncement = (id) => {
+    const updated = [...dismissedIds, id];
+    setDismissedIds(updated);
+    try {
+      localStorage.setItem("dismissed_announcements", JSON.stringify(updated));
+    } catch (err) {
+      console.error("Failed to save dismissed announcements", err);
+    }
+  };
+
   useEffect(() => {
     fetchStreakStatus();
   }, [gamification]);
+
+  useEffect(() => {
+    fetchActiveChallenges();
+    fetchActiveAnnouncements();
+  }, []);
 
   const handleRestoreStreak = async () => {
     setActionLoading(true);
@@ -425,7 +484,87 @@ export default function Dashboard() {
         }
       />
 
+      {visibleAnnouncements.map((ann) => (
+        <div
+          key={ann.id}
+          className="flex items-start justify-between gap-4 p-5 rounded-2xl border border-secondary/30 bg-secondary/10 shadow-md transition duration-300 relative text-left animate-slide-up"
+        >
+          <div className="flex items-start gap-3 flex-grow">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-secondary/25 text-primary">
+              <Megaphone className="h-6 w-6 text-primary" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-semibold text-text text-sm md:text-base">{ann.title}</h3>
+              <p className="text-xs md:text-sm text-muted leading-relaxed whitespace-pre-wrap">
+                {ann.body}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => handleDismissAnnouncement(ann.id)}
+            className="p-1 rounded-full text-muted hover:bg-border/30 hover:text-text transition cursor-pointer self-start"
+            aria-label="Dismiss announcement"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      ))}
+
       {renderWeeklyStreakBanner()}
+
+      {/* Active Challenges Section */}
+      <section className="bg-surface rounded-2xl border border-border p-5 shadow-lg shadow-black/10 transition-all duration-300">
+        <div className="flex items-center justify-between gap-3 border-b border-border/40 pb-3">
+          <div className="flex items-center gap-2">
+            <Award className="h-5 w-5 text-primary" aria-hidden="true" />
+            <h2 className="text-base font-bold text-text">Active Weekly Challenges</h2>
+          </div>
+          <span className="text-[10px] font-mono font-bold bg-primary/10 text-primary border border-primary/20 rounded-sm px-2 py-0.5 uppercase tracking-wider">
+            Weekly Targets
+          </span>
+        </div>
+
+        {challengesLoading ? (
+          <div className="py-8 text-center text-xs text-muted">Loading challenges...</div>
+        ) : challengesError ? (
+          <div className="py-8 text-center text-xs text-streak">{challengesError}</div>
+        ) : challenges.length === 0 ? (
+          <div className="py-8 text-center text-xs text-muted">
+            No active challenges right now. Stay tuned for new fitness targets!
+          </div>
+        ) : (
+          <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {challenges.map((challenge) => (
+              <div key={challenge.id} className="rounded-2xl bg-bg p-4 border border-border/30 flex flex-col justify-between hover:border-primary/45 transition-all">
+                <div className="space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="text-sm font-bold text-text">{challenge.title}</h3>
+                    <span className="shrink-0 text-[9px] font-mono font-semibold px-1.5 py-0.5 bg-primary/15 text-primary border border-primary/20 rounded-sm capitalize">
+                      {challenge.challengeType.replace(/_/g, " ")}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted leading-relaxed">{challenge.description}</p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-border/30 flex items-center justify-between text-[11px] text-muted">
+                  <span>Target: <strong className="text-text font-mono">{challenge.targetValue}</strong></span>
+                  <div className="flex items-center gap-2 font-semibold text-xp">
+                    <span>+{challenge.rewardXp} XP</span>
+                    {challenge.badgeCode && (
+                      <span className="px-1.5 py-0.5 bg-secondary/15 text-secondary border border-secondary/20 rounded-sm text-[9px] font-bold" title={`Badge Reward: ${challenge.badgeCode}`}>
+                        🏆 Badge
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-2 text-[9px] text-muted/65 font-mono text-right">
+                  Ends {new Date(challenge.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <StreakCard current={currentStreak} longest={longestStreak} />

@@ -7,12 +7,23 @@ The app uses a React + Vite client, an Express backend, a MySQL database, JWT au
 ## Features
 
 - User registration and login with JWT authentication
-- Protected user dashboard with streaks, badges, BMI, target-weight progress, recent workouts, and quick actions
+- Protected user dashboard with streaks, badges, BMI, target-weight progress, recent workouts, quick actions, active challenge banners, and system announcements
 - Workout logging with exercises, sets, reps, weights, duration, calories, notes, filtering, sorting, and pagination
+- Workout template pre-fill: users can select admin-published templates to pre-populate a new log entry
 - Weight tracking with BMI calculation and progress chart
 - Daily wellness check-ins, activity streaks, and achievement badges
 - Weekly AI insights generated on the backend with Google Gemini
-- Admin portal for platform activity, user account management, workout category management, and category usage analytics.
+- Feedback backend/admin triage support: a submission endpoint exists, but a user-facing feedback form is not yet implemented
+- Admin portal for:
+  - Platform activity dashboard and gamification statistics
+  - User account management (search, role toggle, activate/deactivate)
+  - Exercise category management and category usage analytics
+  - Workout template management (create, edit, activate/deactivate, delete)
+  - Achievement badge management (create, edit, activate/deactivate)
+  - Community challenge management (create, edit, activate/deactivate)
+  - System announcement management (create, edit, activate/deactivate, delete)
+  - User feedback triage (filter by status/type, update status and admin note)
+  - Admin analytics showing aggregate platform counts, category usage, feedback status counts, and active content counts
 - Responsive React UI with Tailwind CSS and Lucide icons
 - MySQL-backed persistence with startup database bootstrap and seed data
 
@@ -205,13 +216,19 @@ Frontend routes:
 | --- | --- |
 | `/login` | Login screen |
 | `/register` | Registration screen |
-| `/` | User dashboard |
-| `/log` | Workout logging |
+| `/` | User dashboard (streaks, badges, BMI, announcements, challenges) |
+| `/log` | Workout logging (with template pre-fill) |
 | `/progress` | Weight and progress tracking |
 | `/you` | User profile |
-| `/admin/dashboard` | Admin platform activity overview |
+| `/admin/dashboard` | Admin platform activity overview and gamification stats |
 | `/admin/users` | Admin user account management |
-| `/admin/categories` | Admin workout category management and category usage analytics |
+| `/admin/categories` | Admin workout category management and usage analytics |
+| `/admin/templates` | Admin workout template management |
+| `/admin/badges` | Admin achievement badge management |
+| `/admin/challenges` | Admin community challenge management |
+| `/admin/announcements` | Admin system announcement management |
+| `/admin/feedback` | Admin user feedback triage |
+| `/admin/analytics` | Admin aggregate analytics |
 
 API routes:
 
@@ -225,9 +242,27 @@ API routes:
 | Categories | `GET /api/categories` |
 | Gamification | `GET /api/gamification/summary`, `POST /api/gamification/checkin` |
 | AI Insights | `GET /api/ai/insights`, `POST /api/ai/generate-weekly-insight` |
-| Admin | `/api/admin/*` admin-only platform stats, user management, category management, and category analytics routes |
+| Templates (public read-only) | `GET /api/templates/active` |
+| Challenges (user) | `GET /api/challenges/active` |
+| Announcements (user) | `GET /api/announcements/active` |
+| Feedback (authenticated API) | `POST /api/feedback` |
+| Admin — Stats | `GET /api/admin/stats` |
+| Admin — Users | `GET /api/admin/users`, `GET /api/admin/users/:id`, `PUT /api/admin/users/:id/role`, `PUT /api/admin/users/:id/status` |
+| Admin — Categories | `GET /api/admin/categories/analytics`, `POST /api/admin/categories`, `PUT /api/admin/categories/:id`, `DELETE /api/admin/categories/:id` |
+| Admin — Templates | `GET /api/admin/templates`, `GET /api/admin/templates/:id`, `POST /api/admin/templates`, `PUT /api/admin/templates/:id`, `PUT /api/admin/templates/:id/status`, `DELETE /api/admin/templates/:id` |
+| Admin — Badges | `GET /api/admin/badges`, `GET /api/admin/badges/:code`, `POST /api/admin/badges`, `PUT /api/admin/badges/:code`, `PATCH /api/admin/badges/:code/status` |
+| Admin — Challenges | `GET /api/admin/challenges`, `GET /api/admin/challenges/:id`, `POST /api/admin/challenges`, `PUT /api/admin/challenges/:id`, `PATCH /api/admin/challenges/:id/status` |
+| Admin — Announcements | `GET /api/admin/announcements`, `GET /api/admin/announcements/:id`, `POST /api/admin/announcements`, `PUT /api/admin/announcements/:id`, `PATCH /api/admin/announcements/:id/status`, `DELETE /api/admin/announcements/:id` |
+| Admin — Feedback | `GET /api/admin/feedback`, `PATCH /api/admin/feedback/:id` |
+| Admin — Analytics | `GET /api/admin/analytics` |
 
 Workout list filters include `category`, `search`, `from`, `to`, `sort`, `page`, and `limit`.
+
+Admin feedback filters include `status` (`new`/`in_progress`/`resolved`/`archived`) and `type` (`bug`/`feature`/`general`).
+
+`POST /api/feedback` is available for authenticated API requests, but the React client does not currently include a user-facing feedback form.
+
+Admin analytics show aggregate platform counts, category usage, feedback status counts, and active content counts. They do not currently provide time-series user growth, workout volume trends, or weight-entry trends.
 
 ## Scripts
 
@@ -258,6 +293,65 @@ npm test
 
 The current tests cover authentication validation, password hashing behavior, and ownership protection for workout and weight-log operations.
 
+Core behavior was regression-checked with backend tests and frontend build. Some user-facing files were intentionally touched for templates, challenges, announcements, or dashboard display, so they should be manually reviewed before commit.
+
+## Manual Testing Checklist
+
+### Auth and User Access
+- [ ] Register a new user account and confirm login succeeds.
+- [ ] Log in as a standard user.
+- [ ] Attempt to navigate directly to `/admin/dashboard`. Confirm redirect to `/`.
+- [ ] Send `GET http://localhost:5000/api/admin/stats` with user JWT. Confirm `403 Forbidden`.
+
+### Admin Portal Access
+- [ ] Log in as `admin@fitsync.com`.
+- [ ] Navigate to `/admin/dashboard`. Confirm platform stats and gamification summary load.
+- [ ] Navigate to `/admin/users`. Confirm user list loads with search/filter controls.
+- [ ] Navigate to `/admin/categories`. Confirm category list and analytics table load.
+- [ ] Navigate to `/admin/templates`. Confirm template list loads (empty state if none exist).
+- [ ] Navigate to `/admin/badges`. Confirm badge list loads.
+- [ ] Navigate to `/admin/challenges`. Confirm challenge list loads.
+- [ ] Navigate to `/admin/announcements`. Confirm announcement list loads.
+- [ ] Navigate to `/admin/feedback`. Confirm feedback list loads.
+- [ ] Navigate to `/admin/analytics`. Confirm aggregate analytics data loads.
+
+### Admin CRUD — Templates
+- [ ] Create a new workout template with at least one exercise. Confirm it appears in the list.
+- [ ] Edit the template title and save. Confirm the change persists.
+- [ ] Toggle template status inactive. Confirm the status indicator updates.
+- [ ] Delete the template. Confirm it is removed from the list.
+- [ ] Confirm active templates appear under the public read-only `GET /api/templates/active` endpoint.
+
+### Admin CRUD — Badges
+- [ ] Create a new badge with a unique code. Confirm it appears in the list.
+- [ ] Edit the badge description and save. Confirm the change persists.
+- [ ] Toggle badge status. Confirm the indicator updates.
+
+### Admin CRUD — Challenges
+- [ ] Create a challenge with start/end dates. Confirm it appears in the list.
+- [ ] Edit the challenge target value and save. Confirm the change persists.
+- [ ] Toggle challenge status. Confirm the indicator updates.
+- [ ] Confirm active challenges appear under `GET /api/challenges/active`.
+
+### Admin CRUD — Announcements
+- [ ] Create an announcement with title and body. Confirm it appears in the list.
+- [ ] Toggle announcement active status. Confirm the indicator updates.
+- [ ] Delete the announcement. Confirm it is removed.
+- [ ] Confirm active announcements appear under `GET /api/announcements/active`.
+- [ ] Log in as a standard user and open the dashboard. Confirm active announcement banner displays.
+
+### Feedback Submission and Triage
+- [ ] Submit a feedback entry directly via `POST /api/feedback` (authenticated API request, type `bug`). Confirm `201 Created`.
+- [ ] In the admin feedback tab, confirm the submitted entry appears.
+- [ ] Update the feedback status to `in_progress`. Confirm the change persists.
+
+### User Features (Regression)
+- [ ] Log a new workout. Confirm it appears in the workout list and dashboard.
+- [ ] Log a weight entry. Confirm it appears in the progress chart.
+- [ ] Complete a daily wellness check-in. Confirm streak increments.
+- [ ] View AI insight on the dashboard.
+- [ ] Activate/deactivate a test user account and verify they cannot log in while inactive.
+
 ## Security Notes
 
 - Do not commit real `.env` files.
@@ -265,8 +359,10 @@ The current tests cover authentication validation, password hashing behavior, an
 - Rotate any API key or password that was ever committed before making the repository public.
 - Gemini requests are backend-only, so the API key is not exposed to the browser.
 - The backend uses Helmet, CORS allow-listing, JSON body limits, global rate limiting, JWT auth, bcrypt password hashing, role middleware, and centralized error handling.
+- All `/api/admin/*` routes require both a valid JWT (`authenticateToken`) and `role === 'admin'` (`requireAdmin`). Any new admin endpoint must be mounted on the admin router to inherit this protection.
 - Demo credentials are for development only.
 
 ## License
 
 No license file is currently included. Add one before publishing this as reusable open source software.
+
