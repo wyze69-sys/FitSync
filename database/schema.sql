@@ -12,12 +12,16 @@ DROP TABLE IF EXISTS user_gamification;
 DROP TABLE IF EXISTS user_achievements;
 DROP TABLE IF EXISTS user_streaks;
 DROP TABLE IF EXISTS daily_checkins;
+DROP TABLE IF EXISTS user_feedback;
+DROP TABLE IF EXISTS announcements;
+DROP TABLE IF EXISTS challenges;
 DROP TABLE IF EXISTS achievements;
 DROP TABLE IF EXISTS ai_insights;
 DROP TABLE IF EXISTS weight_logs;
 DROP TABLE IF EXISTS workout_sets;
 DROP TABLE IF EXISTS workout_exercises;
 DROP TABLE IF EXISTS workouts;
+DROP TABLE IF EXISTS workout_templates;
 DROP TABLE IF EXISTS exercise_categories;
 DROP TABLE IF EXISTS users;
 
@@ -97,6 +101,24 @@ CREATE TABLE workout_sets (
     INDEX idx_sets_exercise (exercise_id)
 );
 
+CREATE TABLE workout_templates (
+    id VARCHAR(50) PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    category_id VARCHAR(50) NULL,
+    category_name VARCHAR(255) NOT NULL,
+    subtype VARCHAR(255) NULL,
+    duration_min INT NOT NULL DEFAULT 30,
+    exercises JSON NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_by VARCHAR(50) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_templates_category FOREIGN KEY (category_id) REFERENCES exercise_categories(id) ON DELETE SET NULL,
+    CONSTRAINT fk_templates_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
 CREATE TABLE weight_logs (
     id VARCHAR(50) PRIMARY KEY,
     user_id VARCHAR(50) NOT NULL,
@@ -146,7 +168,10 @@ CREATE TABLE achievements (
     description VARCHAR(500) NOT NULL,
     requirement_type VARCHAR(30) NOT NULL DEFAULT 'streak',
     requirement_value INT NOT NULL DEFAULT 0,
-    sort_order INT NOT NULL DEFAULT 0
+    sort_order INT NOT NULL DEFAULT 0,
+    icon VARCHAR(80) NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Gamification: achievements unlocked per user.
@@ -204,4 +229,53 @@ CREATE TABLE user_streaks (
     last_active_date DATE,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE challenges (
+    id VARCHAR(50) PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    challenge_type VARCHAR(50) NOT NULL,
+    target_value INT NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    reward_xp INT NOT NULL DEFAULT 0,
+    badge_code VARCHAR(50) NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by VARCHAR(50) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_challenges_badge FOREIGN KEY (badge_code) REFERENCES achievements(code) ON DELETE SET NULL,
+    CONSTRAINT fk_challenges_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE announcements (
+    id VARCHAR(50) PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    body TEXT NOT NULL,
+    audience ENUM('all', 'users', 'admins') NOT NULL DEFAULT 'users',
+    placement VARCHAR(50) NOT NULL DEFAULT 'dashboard',
+    start_at DATETIME NULL,
+    end_at DATETIME NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by VARCHAR(50) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_announcements_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE user_feedback (
+    id VARCHAR(50) PRIMARY KEY,
+    user_id VARCHAR(50) NULL,
+    type ENUM('bug', 'feature', 'general') NOT NULL DEFAULT 'general',
+    subject VARCHAR(255) NOT NULL DEFAULT '',
+    message TEXT NOT NULL,
+    status ENUM('new', 'in_progress', 'resolved', 'archived') NOT NULL DEFAULT 'new',
+    admin_note TEXT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_feedback_status (status),
+    INDEX idx_feedback_type (type),
+    INDEX idx_feedback_user (user_id),
+    CONSTRAINT fk_feedback_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );

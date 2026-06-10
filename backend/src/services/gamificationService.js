@@ -796,6 +796,10 @@ async function buildSummary(userId) {
   const unlocked = await gamificationRepository.getUnlockedAchievements(userId);
   const todayData = await getTodaySummary(userId);
 
+  const visibleCatalog = catalog.filter(
+    (achievement) => achievement.isActive || unlocked.has(achievement.code)
+  );
+
   return {
     currentStreak: weeklyStatus.weeklyStreak,
     longestStreak: weeklyStatus.weeklyLongestStreak,
@@ -816,14 +820,15 @@ async function buildSummary(userId) {
     nextLevelXp: nextLevel?.xpRequired || totalXp,
     next_level_xp: nextLevel?.xpRequired || totalXp,
     streakMessage: streakMessage(weeklyStatus.weeklyStreak),
-    badges: catalog.map((achievement) => ({
+    badges: visibleCatalog.map((achievement) => ({
       code: achievement.code,
       name: achievement.name,
       description: achievement.description,
       requirement: achievement.requirementType,
       value: achievement.requirementValue,
       isUnlocked: unlocked.has(achievement.code),
-      unlockedAt: unlocked.get(achievement.code) || null
+      unlockedAt: unlocked.get(achievement.code) || null,
+      icon: achievement.icon || null
     })),
     newlyUnlocked: []
   };

@@ -88,6 +88,15 @@ const adminController = {
     } catch (err) {
       next(err);
     }
+  },
+
+  async getAnalytics(req, res, next) {
+    try {
+      const analytics = await adminService.getAnalytics();
+      res.json(analytics);
+    } catch (err) {
+      next(err);
+    }
   }
 };
 

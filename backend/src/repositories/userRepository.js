@@ -243,8 +243,14 @@ async function getAdminUserList({ search, role, status } = {}) {
             u.target_weight, u.preferred_workout_type, u.goal, u.activity_level,
             u.is_active, u.created_at, u.updated_at,
             (SELECT COUNT(*) FROM workouts w WHERE w.user_id = u.id) AS workout_count,
-            (SELECT COUNT(*) FROM weight_logs wl WHERE wl.user_id = u.id) AS weight_count
+            (SELECT COUNT(*) FROM weight_logs wl WHERE wl.user_id = u.id) AS weight_count,
+            ug.level, ug.total_xp, 
+            COALESCE(ug.current_streak, us.current_streak) AS current_streak, 
+            COALESCE(ug.longest_streak, us.longest_streak) AS longest_streak,
+            us.last_active_date
      FROM users u
+     LEFT JOIN user_gamification ug ON ug.user_id = u.id
+     LEFT JOIN user_streaks us ON us.user_id = u.id
      ${whereClause}
      ORDER BY u.created_at DESC`,
     params
@@ -253,7 +259,11 @@ async function getAdminUserList({ search, role, status } = {}) {
   return rows.map((row) => ({
     ...toSafeUser(mapUserRow(row)),
     workoutCount: Number(row.workout_count),
-    weightCount: Number(row.weight_count)
+    weightCount: Number(row.weight_count),
+    level: Number(row.level || 1),
+    xp: Number(row.total_xp || 0),
+    currentStreak: Number(row.current_streak || 0),
+    lastActiveDate: row.last_active_date ? new Date(row.last_active_date).toISOString().slice(0, 10) : null
   }));
 }
 

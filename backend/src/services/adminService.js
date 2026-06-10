@@ -78,6 +78,10 @@ const adminService = {
       gamificationService.getStatistics()
     ]);
     return { ...base, gamification };
+  },
+
+  async getAnalytics() {
+    return categoryRepository.getAnalyticsData();
   }
 };
 

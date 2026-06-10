@@ -9,5 +9,11 @@ export default defineConfig({
     proxy: {
       "/api": process.env.VITE_API_PROXY_TARGET || "http://localhost:5000"
     }
+  },
+  preview: {
+    port: 4173,
+    proxy: {
+      "/api": process.env.VITE_API_PROXY_TARGET || "http://localhost:5000"
+    }
   }
 });

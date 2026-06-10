@@ -23,6 +23,10 @@ const gamificationService = {
 
   startNewStreak() {
     return apiClient.post("/gamification/start-new-streak");
+  },
+
+  getActiveChallenges() {
+    return apiClient.get("/challenges/active");
   }
 };
 
