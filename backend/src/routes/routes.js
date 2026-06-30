@@ -1,5 +1,6 @@
 const { Router } = require("express");
 const adminRoutes = require("./adminRoutes");
+const aiRoutes = require("./aiRoutes");
 const authRoutes = require("./authRoutes");
 const categoryRoutes = require("./categoryRoutes");
 const gamificationRoutes = require("./gamificationRoutes");
@@ -23,6 +24,7 @@ router.use("/templates", templateRoutes);
 router.use("/feedback", feedbackRoutes);
 router.use("/challenges", challengeRoutes);
 router.use("/announcements", announcementRoutes);
+router.use("/ai", aiRoutes);
 router.use("/admin", adminRoutes);
 
 module.exports = router;
