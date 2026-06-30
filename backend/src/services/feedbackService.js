@@ -58,6 +58,18 @@ const feedbackService = {
       );
     }
     return feedbackRepository.updateFeedback(id, updates);
+  },
+
+  /**
+   * Admin: delete a feedback record.
+   * @param {string} id
+   */
+  async deleteFeedback(id) {
+    const deleted = await feedbackRepository.deleteFeedback(id);
+    if (!deleted) {
+      throw httpError("Feedback record not found.", 404);
+    }
+    return { deleted: true };
   }
 };
 

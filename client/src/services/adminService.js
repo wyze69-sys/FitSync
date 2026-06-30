@@ -149,6 +149,10 @@ const adminService = {
     });
   },
 
+  deleteFeedback(id) {
+    return apiClient.del(`/admin/feedback/${id}`);
+  },
+
   // Analytics
   getAnalytics() {
     return apiClient.get("/admin/analytics");
