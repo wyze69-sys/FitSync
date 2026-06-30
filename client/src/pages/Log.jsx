@@ -302,6 +302,7 @@ export default function Log() {
       const calories = data.calories ?? data.caloriesTotal ?? data.calories_total ?? data.caloriesBurned;
       setSavedTotals({ xp, calories });
       const storedWorkout = {
+        title,
         categorySlug: category.slug,
         categoryName: category.name,
         subtypeSlug: subtype.slug,
@@ -325,7 +326,7 @@ export default function Log() {
     } finally {
       setSubmitting(false);
     }
-  }, [finalCategories, category, details, duration, isCardio, isStrength, preview.xp, push, refreshAll, submitting, subtype]);
+  }, [finalCategories, category, details, duration, isCardio, isStrength, preview.xp, push, refreshAll, submitting, subtype, workoutTitle]);
 
   if (loading) return <LoadingSpinner label="Loading workout logger" />;
 

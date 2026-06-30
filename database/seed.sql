@@ -1,4 +1,10 @@
 USE fitsync_db;
+SHOW TABLES;
+SELECT * FROM levels;
+SELECT * FROM achievements;
+
+
+
 
 -- Production workout category catalog. Keep this list to exactly six defaults.
 DELETE FROM exercise_categories
