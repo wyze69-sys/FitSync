@@ -189,6 +189,7 @@ export default function AdminPortalView() {
   const [fbNewStatus, setFbNewStatus] = useState("");
   const [fbAdminNote, setFbAdminNote] = useState("");
   const [fbSaving, setFbSaving] = useState(false);
+  const [pendingDeleteFeedback, setPendingDeleteFeedback] = useState(null);
 
   // Analytics state
   const [analyticsData, setAnalyticsData] = useState(null);
@@ -2910,7 +2911,7 @@ export default function AdminPortalView() {
               </div>
 
               {/* Filters */}
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-3 items-end">
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-mono uppercase tracking-widest text-muted">Status</label>
                   <select
@@ -2938,6 +2939,15 @@ export default function AdminPortalView() {
                     <option value="general">General</option>
                   </select>
                 </div>
+                {(feedbackFilters.status || feedbackFilters.type) && (
+                  <button
+                    type="button"
+                    onClick={() => setFeedbackFilters({ status: "", type: "" })}
+                    className="px-3 py-2 bg-bg hover:bg-border/40 text-xs font-mono rounded-sm border border-border cursor-pointer flex items-center gap-1.5 transition-all text-muted hover:text-text"
+                  >
+                    <X className="h-3 w-3" /> Reset Filters
+                  </button>
+                )}
               </div>
 
               {feedbackError && <ErrorBanner message={feedbackError} onRetry={loadFeedback} />}
@@ -3001,7 +3011,7 @@ export default function AdminPortalView() {
                             }}
                             className="shrink-0 px-3 py-1.5 bg-bg hover:bg-border/40 border border-border text-xs font-mono rounded-sm text-text cursor-pointer transition-all"
                           >
-                            {isOpen ? "Close" : "Triage"}
+                            {isOpen ? "Close" : "Review"}
                           </button>
                         </div>
 
@@ -3066,6 +3076,13 @@ export default function AdminPortalView() {
                                 className="px-4 py-1.5 bg-bg hover:bg-border/30 border border-border text-text text-xs font-mono rounded-sm transition-all cursor-pointer"
                               >
                                 Cancel
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setPendingDeleteFeedback(fb)}
+                                className="ml-auto px-4 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-600 text-xs font-bold uppercase tracking-widest rounded-sm transition-all cursor-pointer flex items-center gap-1.5"
+                              >
+                                <Trash2 className="h-3 w-3" /> Delete
                               </button>
                             </div>
                           </div>
@@ -3288,6 +3305,25 @@ export default function AdminPortalView() {
         confirmLabel="Delete"
         onConfirm={confirmDeleteAnnouncement}
         onCancel={() => setPendingDeleteAnnouncement(null)}
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingDeleteFeedback)}
+        title="Delete this feedback?"
+        message="This will permanently remove this feedback entry. This action cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={async () => {
+          try {
+            await adminService.deleteFeedback(pendingDeleteFeedback.id);
+            push("Feedback deleted.", "success");
+            setPendingDeleteFeedback(null);
+            setTriageId(null);
+            loadFeedback();
+          } catch (err) {
+            push(err.message || "Failed to delete feedback.", "info");
+          }
+        }}
+        onCancel={() => setPendingDeleteFeedback(null)}
       />
     </div>
   );

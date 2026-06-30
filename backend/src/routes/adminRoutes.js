@@ -79,6 +79,7 @@ router.delete("/announcements/:id", announcementController.deleteAnnouncement);
 // User Feedback triage (admin view + status update)
 router.get("/feedback", validate(feedbackQuerySchema, "query"), feedbackController.getFeedback);
 router.patch("/feedback/:id", validate(feedbackUpdateSchema), feedbackController.updateFeedback);
+router.delete("/feedback/:id", feedbackController.deleteFeedback);
 
 // Analytics
 router.get("/analytics", adminController.getAnalytics);

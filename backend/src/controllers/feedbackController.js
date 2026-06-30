@@ -36,6 +36,18 @@ const feedbackController = {
     } catch (err) {
       next(err);
     }
+  },
+
+  /**
+   * DELETE /api/admin/feedback/:id — permanently delete a feedback record (admin only).
+   */
+  async deleteFeedback(req, res, next) {
+    try {
+      await feedbackService.deleteFeedback(req.params.id);
+      res.json({ deleted: true });
+    } catch (err) {
+      next(err);
+    }
   }
 };
 

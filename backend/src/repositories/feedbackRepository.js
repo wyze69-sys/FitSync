@@ -144,12 +144,26 @@ async function getFeedbackStatusCounts() {
   return counts;
 }
 
+/**
+ * Deletes a feedback record by id.
+ * @param {string} id
+ * @returns {boolean} true if a row was deleted
+ */
+async function deleteFeedback(id) {
+  const [result] = await pool.execute(
+    `DELETE FROM user_feedback WHERE id = ?`,
+    [id]
+  );
+  return result.affectedRows > 0;
+}
+
 module.exports = {
   feedbackRepository: {
     getFeedbackList,
     getFeedbackById,
     createFeedback,
     updateFeedback,
+    deleteFeedback,
     getFeedbackStatusCounts
   }
 };
