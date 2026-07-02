@@ -1,6 +1,7 @@
 const bcryptjs = require("bcryptjs");
 const mysql = require("mysql2/promise");
 const pool = require("../config/db");
+const { cumulativeXpForLevel } = require("./calculators");
 
 function toMysqlDate(date) {
   return date.toISOString().slice(0, 10);
@@ -64,6 +65,70 @@ async function createTables() {
   `);
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS activity_library (
+      id VARCHAR(50) PRIMARY KEY,
+      slug VARCHAR(100) UNIQUE NOT NULL,
+      name VARCHAR(255) NOT NULL,
+      category_slug VARCHAR(80) NOT NULL,
+      category_id VARCHAR(50) NULL,
+      description TEXT,
+      base_met DECIMAL(4,2) NOT NULL DEFAULT 3.50,
+      intensity_level ENUM('low','moderate','high','very_high') NOT NULL DEFAULT 'moderate',
+      calorie_method VARCHAR(40) NOT NULL DEFAULT 'met_duration',
+      pace_profile VARCHAR(40) NULL,
+      supports_distance BOOLEAN NOT NULL DEFAULT FALSE,
+      supports_duration BOOLEAN NOT NULL DEFAULT TRUE,
+      supports_sets_reps_weight BOOLEAN NOT NULL DEFAULT FALSE,
+      supports_bodyweight BOOLEAN NOT NULL DEFAULT FALSE,
+      supports_reps_only BOOLEAN NOT NULL DEFAULT FALSE,
+      supports_hold_time BOOLEAN NOT NULL DEFAULT FALSE,
+      distance_multiplier DECIMAL(6,3) NULL,
+      bodyweight_factor DECIMAL(4,2) NULL,
+      volume_modifier_min DECIMAL(4,2) NULL,
+      volume_modifier_max DECIMAL(4,2) NULL,
+      default_duration_min INT NULL,
+      equipment VARCHAR(255) NULL,
+      primary_muscles VARCHAR(255) NULL,
+      secondary_muscles VARCHAR(255) NULL,
+      tracking_fields JSON NULL,
+      calculation_notes TEXT NULL,
+      sort_order INT NOT NULL DEFAULT 0,
+      is_active BOOLEAN NOT NULL DEFAULT TRUE,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      CONSTRAINT fk_activity_category FOREIGN KEY (category_id) REFERENCES exercise_categories(id) ON DELETE SET NULL,
+      INDEX idx_activity_category (category_slug),
+      INDEX idx_activity_active (is_active)
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS nutrition_foods (
+      id VARCHAR(160) PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      serving_size VARCHAR(120) NOT NULL DEFAULT 'dataset serving',
+      calories INT NOT NULL DEFAULT 0,
+      protein_g DECIMAL(8,3) NOT NULL DEFAULT 0,
+      carbs_g DECIMAL(8,3) NOT NULL DEFAULT 0,
+      fat_g DECIMAL(8,3) NOT NULL DEFAULT 0,
+      fiber_g DECIMAL(8,3) NOT NULL DEFAULT 0,
+      sugar_g DECIMAL(8,3) NOT NULL DEFAULT 0,
+      sodium_mg DECIMAL(10,3) NOT NULL DEFAULT 0,
+      food_type VARCHAR(40) NOT NULL DEFAULT 'general',
+      diet_tags JSON NULL,
+      source_dataset VARCHAR(255) NULL,
+      source_file VARCHAR(120) NULL,
+      source_group VARCHAR(40) NULL,
+      is_active BOOLEAN NOT NULL DEFAULT TRUE,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_nutrition_name (name),
+      INDEX idx_nutrition_food_type (food_type),
+      INDEX idx_nutrition_active (is_active)
+    )
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS workouts (
       id VARCHAR(50) PRIMARY KEY,
       user_id VARCHAR(50) NOT NULL,
@@ -91,6 +156,8 @@ async function createTables() {
       workout_id VARCHAR(50) NOT NULL,
       category_id VARCHAR(50),
       category_name VARCHAR(255),
+      activity_id VARCHAR(50) NULL,
+      activity_slug VARCHAR(100) NULL,
       exercise_name VARCHAR(255) NOT NULL,
       duration INT NOT NULL DEFAULT 0,
       calories_burned INT NOT NULL DEFAULT 0,
@@ -415,6 +482,9 @@ async function applySchemaUpgrades() {
     "updated_at",
     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
   );
+
+  await ensureColumn("workout_exercises", "activity_id", "activity_id VARCHAR(50) NULL");
+  await ensureColumn("workout_exercises", "activity_slug", "activity_slug VARCHAR(100) NULL");
 }
 
 async function seedCategories() {
@@ -450,18 +520,32 @@ async function seedCategories() {
 }
 
 async function seedLevels() {
-  const levels = [
-    ["lvl_1", 1, 0, "level_1", "Starter"],
-    ["lvl_2", 2, 150, "level_2", "Warm Up"],
-    ["lvl_3", 3, 350, "level_3", "Builder"],
-    ["lvl_4", 4, 600, "level_4", "Regular"],
-    ["lvl_5", 5, 900, "level_5", "Momentum"],
-    ["lvl_6", 6, 1250, "level_6", "Athlete"],
-    ["lvl_7", 7, 1650, "level_7", "Specialist"],
-    ["lvl_8", 8, 2100, "level_8", "Pro"],
-    ["lvl_9", 9, 2600, "level_9", "Elite"],
-    ["lvl_10", 10, 3150, "level_10", "Legend"]
+  // Cumulative XP thresholds derived from the logweb PDF (section 5):
+  //   xpNeededForNextLevel = 100 + (level * 75) + (level^2 * 15)
+  // Level 1=0, 2=190, 3=500, 4=960, 5=1600, 6=2450, 7=3540, 8=4900, 9=6560, 10=8550.
+  // Titles/badge codes are preserved; only xp_required changes (safe upsert).
+  const titles = [
+    "Starter",
+    "Warm Up",
+    "Builder",
+    "Regular",
+    "Momentum",
+    "Athlete",
+    "Specialist",
+    "Pro",
+    "Elite",
+    "Legend"
   ];
+  const levels = titles.map((title, index) => {
+    const levelNumber = index + 1;
+    return [
+      `lvl_${levelNumber}`,
+      levelNumber,
+      cumulativeXpForLevel(levelNumber),
+      `level_${levelNumber}`,
+      title
+    ];
+  });
 
   for (const level of levels) {
     await pool.execute(
@@ -761,10 +845,133 @@ async function seedInsight(today) {
   );
 }
 
+async function seedActivityLibrary() {
+  const { ACTIVITY_LIBRARY } = require("../data/activityLibrary");
+
+  for (const activity of ACTIVITY_LIBRARY) {
+    await pool.execute(
+      `INSERT INTO activity_library (
+         id, slug, name, category_slug, category_id, description, base_met, intensity_level,
+         calorie_method, pace_profile, supports_distance, supports_duration,
+         supports_sets_reps_weight, supports_bodyweight, supports_reps_only, supports_hold_time,
+         distance_multiplier, bodyweight_factor, volume_modifier_min, volume_modifier_max,
+         default_duration_min, equipment, primary_muscles, secondary_muscles, tracking_fields,
+         calculation_notes, sort_order, is_active
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+         name = VALUES(name),
+         category_slug = VALUES(category_slug),
+         category_id = VALUES(category_id),
+         description = VALUES(description),
+         base_met = VALUES(base_met),
+         intensity_level = VALUES(intensity_level),
+         calorie_method = VALUES(calorie_method),
+         pace_profile = VALUES(pace_profile),
+         supports_distance = VALUES(supports_distance),
+         supports_duration = VALUES(supports_duration),
+         supports_sets_reps_weight = VALUES(supports_sets_reps_weight),
+         supports_bodyweight = VALUES(supports_bodyweight),
+         supports_reps_only = VALUES(supports_reps_only),
+         supports_hold_time = VALUES(supports_hold_time),
+         distance_multiplier = VALUES(distance_multiplier),
+         bodyweight_factor = VALUES(bodyweight_factor),
+         volume_modifier_min = VALUES(volume_modifier_min),
+         volume_modifier_max = VALUES(volume_modifier_max),
+         default_duration_min = VALUES(default_duration_min),
+         equipment = VALUES(equipment),
+         primary_muscles = VALUES(primary_muscles),
+         secondary_muscles = VALUES(secondary_muscles),
+         tracking_fields = VALUES(tracking_fields),
+         calculation_notes = VALUES(calculation_notes),
+         sort_order = VALUES(sort_order),
+         is_active = VALUES(is_active)`,
+      [
+        activity.id,
+        activity.slug,
+        activity.name,
+        activity.categorySlug,
+        activity.categoryId,
+        activity.description,
+        activity.baseMet,
+        activity.intensityLevel,
+        activity.calorieMethod,
+        activity.paceProfile,
+        activity.supportsDistance,
+        activity.supportsDuration,
+        activity.supportsSetsRepsWeight,
+        activity.supportsBodyweight,
+        activity.supportsRepsOnly,
+        activity.supportsHoldTime,
+        activity.distanceMultiplier,
+        activity.bodyweightFactor,
+        activity.volumeModifierMin,
+        activity.volumeModifierMax,
+        activity.defaultDurationMin,
+        activity.equipment,
+        activity.primaryMuscles,
+        activity.secondaryMuscles,
+        JSON.stringify(activity.trackingFields || []),
+        activity.calculationNotes,
+        activity.sortOrder,
+        activity.isActive
+      ]
+    );
+  }
+}
+
+async function seedNutritionFoods() {
+  const { loadNutritionFoods } = require("../data/nutritionFoodDataset");
+  const foods = loadNutritionFoods();
+
+  for (const food of foods) {
+    await pool.execute(
+      `INSERT INTO nutrition_foods (
+         id, name, serving_size, calories, protein_g, carbs_g, fat_g, fiber_g, sugar_g,
+         sodium_mg, food_type, diet_tags, source_dataset, source_file, source_group, is_active
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)
+       ON DUPLICATE KEY UPDATE
+         name = VALUES(name),
+         serving_size = VALUES(serving_size),
+         calories = VALUES(calories),
+         protein_g = VALUES(protein_g),
+         carbs_g = VALUES(carbs_g),
+         fat_g = VALUES(fat_g),
+         fiber_g = VALUES(fiber_g),
+         sugar_g = VALUES(sugar_g),
+         sodium_mg = VALUES(sodium_mg),
+         food_type = VALUES(food_type),
+         diet_tags = VALUES(diet_tags),
+         source_dataset = VALUES(source_dataset),
+         source_file = VALUES(source_file),
+         source_group = VALUES(source_group),
+         is_active = TRUE`,
+      [
+        food.id,
+        food.name,
+        food.servingSize,
+        food.calories,
+        food.proteinG,
+        food.carbsG,
+        food.fatG,
+        food.fiberG,
+        food.sugarG,
+        food.sodiumMg,
+        food.foodType,
+        JSON.stringify(food.dietTags || []),
+        food.sourceDataset,
+        food.sourceFile,
+        food.sourceGroup
+      ]
+    );
+  }
+}
+
 async function seedDefaults() {
   const today = new Date();
 
   await seedCategories();
+  await seedActivityLibrary();
+  await seedNutritionFoods();
   await seedLevels();
   await seedAchievements();
   await seedUsers();

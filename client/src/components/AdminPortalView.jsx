@@ -29,24 +29,30 @@ import { useToast } from "../context/ToastContext.jsx";
 import Spinner from "./common/Spinner.jsx";
 import ErrorBanner from "./common/ErrorBanner.jsx";
 import ConfirmDialog from "./modals/ConfirmDialog.jsx";
+import getBadgeAsset from "../utils/badgeAssets.js";
 
-// Fixed: Inputs now utilize text matching light-mode layout standards
+// Inputs read on the light admin surface: subtle inset rest state, white on focus.
 const INPUT =
   "px-3 py-2 bg-bg border border-border rounded-sm text-xs text-text focus:bg-surface focus:border-primary focus:outline-none transition-all";
 
 function StatCard({ label, value, icon: Icon, hint }) {
   return (
     <div className="bg-surface p-5 border border-border rounded-sm">
-      <span className="text-muted/60 font-mono text-[9px] uppercase tracking-widest block">
-        {label}
-      </span>
-      <strong className="text-2xl font-black text-text mt-1 block font-mono">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-muted font-mono text-[10px] font-semibold uppercase tracking-widest block">
+          {label}
+        </span>
+        {Icon && (
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm bg-bg text-primary">
+            <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+          </span>
+        )}
+      </div>
+      <strong className="text-[28px] leading-none font-bold text-text mt-3 block font-mono tracking-tight">
         {value ?? "--"}
       </strong>
       {hint && (
-        <span className="text-[10px] text-muted mt-1.5 flex items-center gap-1">
-          <Icon className="h-3 w-3 text-primary" aria-hidden="true" /> {hint}
-        </span>
+        <span className="text-[11px] text-muted mt-2 block">{hint}</span>
       )}
     </div>
   );
@@ -964,23 +970,25 @@ export default function AdminPortalView() {
 
   return (
     <div className="space-y-5 text-left text-text">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="space-y-1">
+      <div className="bg-surface border border-border rounded-sm px-5 py-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="space-y-1.5">
           <p className="text-[10px] font-mono font-semibold uppercase tracking-[0.28em] text-muted">
             FitSync administration
           </p>
-          <div className="flex items-center gap-3">
-            <ShieldCheck className="h-6 w-6 text-primary" aria-hidden="true" />
-            <h1 className="text-2xl font-semibold tracking-tight text-text">
-              Admin dashboard
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-primary text-white">
+              <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+            </span>
+            <h1 className="text-xl font-semibold tracking-tight text-text">
+              Operations console
             </h1>
           </div>
           <p className="max-w-2xl text-xs leading-relaxed text-muted">
-            Monitor platform activity, manage users, configure workout data, and review admin queues from one operations console.
+            Monitor platform activity, manage users, configure workout data, and review admin queues from one place.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-sm border border-border bg-surface px-3 py-2 text-[11px] font-mono text-muted">
+          <span className="rounded-sm border border-border bg-bg px-3 py-2 text-[11px] font-mono text-muted">
             {currentUser?.name || "Admin"} · {currentUser?.role || "admin"}
           </span>
           <button
@@ -1003,7 +1011,7 @@ export default function AdminPortalView() {
               if (activeTab === "announcements") loadAnnouncements();
             }}
             disabled={loading || badgesLoading || challengesLoading || templatesLoading || announcementsLoading}
-            className="rounded-sm border border-border bg-text px-3.5 py-2 text-xs font-semibold text-bg shadow-sm cursor-pointer flex items-center gap-1.5 transition-all hover:bg-surface hover:text-text"
+            className="rounded-sm border border-primary bg-primary px-3.5 py-2 text-xs font-semibold text-white shadow-sm cursor-pointer flex items-center gap-1.5 transition-all disabled:opacity-60"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading || badgesLoading || challengesLoading || templatesLoading || announcementsLoading ? "animate-spin" : ""}`} /> Refresh data
           </button>
@@ -1014,12 +1022,12 @@ export default function AdminPortalView() {
 
       <div className="flex flex-col lg:flex-row gap-5">
         <aside className="w-full lg:w-56 shrink-0">
-          <div className="sticky top-4 bg-surface border border-border rounded-sm p-3 space-y-5">
+          <div className="sticky top-4 bg-surface border border-border rounded-sm p-2.5 space-y-4">
             <div>
-              <p className="px-2 pb-2 text-[9px] font-mono font-semibold uppercase tracking-[0.22em] text-muted">
-                Project
+              <p className="px-2.5 pb-2 text-[9px] font-mono font-semibold uppercase tracking-[0.22em] text-muted">
+                Console
               </p>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
             {TABS.map((tab) => {
               const isActive =
                 activeTab === tab.key ||
@@ -1030,10 +1038,11 @@ export default function AdminPortalView() {
                   key={tab.key}
                   type="button"
                   onClick={() => navigate(tab.path)}
-                  className={`w-full text-left py-2.5 px-4 rounded-sm text-xs font-semibold flex items-center gap-3 transition-all cursor-pointer ${
+                  aria-current={isActive ? "page" : undefined}
+                  className={`w-full text-left py-2.5 px-3 rounded-sm text-xs font-semibold flex items-center gap-3 transition-all cursor-pointer border-l-2 ${
                     isActive
-                      ? "bg-primary text-white font-bold"
-                      : "text-muted hover:text-text hover:bg-bg"
+                      ? "bg-bg border-primary text-primary"
+                      : "border-transparent text-muted hover:text-text hover:bg-bg"
                   }`}
                 >
                   <tab.icon className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -2036,15 +2045,20 @@ export default function AdminPortalView() {
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {badges.map(badge => (
-                        <div key={badge.code} className="bg-surface rounded-sm border border-border p-5 flex flex-col justify-between hover:border-primary/50 transition-all">
+                        <div key={badge.code} className={`bg-surface rounded-sm border p-5 flex flex-col justify-between transition-all ${badge.isActive ? "border-border hover:border-primary/50" : "border-border/60 opacity-75 hover:opacity-100"}`}>
                           <div className="space-y-3">
                             <div className="flex items-start justify-between gap-4">
-                              <div className="flex items-center gap-3">
-                                <span className="text-3xl" role="img" aria-label={badge.name}>
-                                  {badge.icon || "🏆"}
-                                </span>
+                              <div className="flex items-center gap-3.5">
+                                <div className={`grid place-items-center h-[88px] w-[88px] shrink-0 rounded-xl border bg-gradient-to-b from-bg to-surface ${badge.isActive ? "border-primary/30" : "border-border grayscale opacity-60"}`}>
+                                  <img
+                                    src={getBadgeAsset(badge)}
+                                    alt={`${badge.name} badge art`}
+                                    className="h-[72px] w-[72px] object-contain drop-shadow-[0_3px_7px_rgba(0,0,0,0.28)]"
+                                    draggable="false"
+                                  />
+                                </div>
                                 <div>
-                                  <h3 className="text-sm font-bold text-text line-clamp-1">{badge.name}</h3>
+                                  <h3 className="text-sm font-bold text-text line-clamp-2">{badge.name}</h3>
                                   <span className="text-[10px] text-muted font-mono">{badge.code}</span>
                                 </div>
                               </div>
@@ -2252,6 +2266,25 @@ export default function AdminPortalView() {
                           <label htmlFor="bdg-icon" className="block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5">
                             Badge Icon (Emoji / Symbol)
                           </label>
+                          <div className="flex items-center gap-3.5 mb-2.5 p-3 bg-bg border border-border rounded-lg">
+                            <div className="grid place-items-center h-[80px] w-[80px] shrink-0 rounded-xl border border-primary/30 bg-gradient-to-b from-bg to-surface">
+                              <img
+                                src={getBadgeAsset({
+                                  code: bdgCode,
+                                  name: bdgName,
+                                  requirement: bdgReqType === "custom" ? bdgCustomReqType : bdgReqType,
+                                  value: bdgReqValue,
+                                  icon: bdgIcon
+                                })}
+                                alt="Badge art preview"
+                                className="h-[68px] w-[68px] object-contain drop-shadow-[0_3px_7px_rgba(0,0,0,0.28)]"
+                                draggable="false"
+                              />
+                            </div>
+                            <p className="text-[10px] text-muted leading-relaxed">
+                              Live preview of the collectible medal art mapped to this badge. The art is chosen automatically from the badge code, name and type.
+                            </p>
+                          </div>
                           <div className="flex gap-2">
                             <input
                               id="bdg-icon"

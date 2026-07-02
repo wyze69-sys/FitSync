@@ -8,6 +8,7 @@ import Register from "./pages/Register.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Log from "./pages/Log.jsx";
 import Progress from "./pages/Progress.jsx";
+import Nutrition from "./pages/Nutrition.jsx";
 import You from "./pages/You.jsx";
 import Workouts from "./pages/Workouts.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="/log" element={<Log />} />
           <Route path="/workouts" element={<Workouts />} />
           <Route path="/progress" element={<Progress />} />
+          <Route path="/nutrition" element={<Nutrition />} />
           <Route path="/you" element={<You />} />
         </Route>
 

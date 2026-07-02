@@ -1,26 +1,51 @@
-@import url('https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600&f[]=jetbrains-mono@500&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=space-grotesk@500,600,700&f[]=general-sans@400,500,600&f[]=jetbrains-mono@500,700&display=swap');
 @import "tailwindcss";
 
-:root {
-  --primary: #10B981;
-  --bg-app: #FAFAF9;
-  --surface: #FFFFFF;
-  --border: #E5E7EB;
+:root,
+.light {
+  /* Lovable-style tactical LIGHT palette — paper + ink */
+  --primary: #0f9b73;
+  --primary-bright: #12b587;
+  --primary-contrast: #ffffff;
+  --bg-app: #f4f1ea;
+  --surface: #ffffff;
+  --text: #0d1b2a;
+  --secondary-text: #5a6472;
+  --muted-text: #6f7a86;
+  --streak: #c2410c;
+  --border: #d9d3c4;
+}
+
+.dark {
+  /* Lovable-style tactical DARK palette */
+  --primary: #2dd4a8;
+  --primary-bright: #73ffb8;
+  --primary-contrast: #0d1b2a;
+  --bg-app: #0d1b2a;
+  --surface: #050a10;
+  --text: #ffffff;
+  --secondary-text: #8aa0b4;
+  --muted-text: #6f8599;
+  --streak: #f59e0b;
+  --border: #1a2e44;
 }
 
 @theme {
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  --color-bg: #FAFAF9;
-  --color-surface: #FFFFFF;
-  --color-text: #1F2937;
-  --color-muted: #4B5563;
-  --color-primary: #10B981;
-  --color-secondary: #059669;
-  --color-streak: #EF4444;
-  --color-xp: #16A34A;
-  --color-border: #E5E7EB;
+  --color-bg: var(--bg-app);
+  --color-surface: var(--surface);
+  --color-text: var(--text);
+  --color-secondary: var(--secondary-text);
+  --color-muted: var(--muted-text);
+  --color-primary: var(--primary);
+  --color-primary-bright: var(--primary-bright);
+  --color-primary-contrast: var(--primary-contrast);
+  --color-streak: var(--streak);
+  --color-xp: var(--primary);
+  --color-border: var(--border);
 
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -35,9 +60,9 @@
 
   body {
     background-color: var(--bg-app);
-    color: theme('colors.text');
+    color: var(--text);
     -webkit-font-smoothing: antialiased;
-    color-scheme: light;
+    color-scheme: light dark;
   }
 
   button,
@@ -56,7 +81,7 @@
   input,
   select,
   textarea {
-    color: theme('colors.text');
+    color: var(--text);
   }
 
   input:focus-visible,
@@ -85,6 +110,40 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--primary);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Nutrition dashboard layout — big daily-target card on the left, a stack of
+   two compact side cards on the right, and a full-width section below.
+   ────────────────────────────────────────────────────────────────────────── */
+.nutrition-dashboard-grid {
+  display: grid;
+  gap: 24px;
+  align-items: stretch;
+}
+
+@media (min-width: 1024px) {
+  .nutrition-dashboard-grid {
+    grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
+  }
+}
+
+.nutrition-side-stack {
+  display: grid;
+  gap: 16px;
+  height: 100%;
+}
+
+/* On desktop the right column mirrors the left Daily Target card height:
+   Goal Pace takes its natural height and Workout Balance fills the rest. */
+@media (min-width: 1024px) {
+  .nutrition-side-stack {
+    grid-template-rows: auto 1fr;
+  }
+}
+
+.nutrition-full-width-section {
+  grid-column: 1 / -1;
 }
 
 .card-hover-effect {
@@ -233,52 +292,152 @@
   z-index: 60;
 }
 
-/* Admin database-console theme inspired by the provided dark dashboard reference. */
+/* ──────────────────────────────────────────────────────────────────────────
+   Admin operations console — light, off-white SaaS admin design language.
+   One restrained deep-emerald accent. No gradients, glow, or glassmorphism.
+   The admin uses a soft neutral-gray canvas with white panels so it reads as
+   a separate, serious operations surface from the warm user fitness app.
+   ────────────────────────────────────────────────────────────────────────── */
 .admin-console {
-  --admin-bg: #101010;
-  --admin-panel: #1f1f1f;
-  --admin-panel-strong: #242424;
-  --admin-border: #343434;
-  --admin-border-soft: rgba(255, 255, 255, 0.08);
-  --admin-text: #f4f4f1;
-  --admin-muted: #a7a7a2;
-  --admin-primary: #8b5cf6;
-  --admin-primary-soft: rgba(139, 92, 246, 0.18);
-  --admin-link: #60a5fa;
+  --admin-canvas: #EEF1F4;       /* page background (neutral cool gray)        */
+  --admin-panel: #FFFFFF;        /* cards, tables, forms                       */
+  --admin-inset: #F3F5F8;        /* table headers, input rest, subtle insets   */
+  --admin-border: #DCE1E7;       /* standard hairline border                   */
+  --admin-border-strong: #C7CDD6;
+  --admin-text: #1B2430;         /* primary dark slate text                    */
+  --admin-muted: #5A6472;        /* secondary text                             */
+  --admin-accent: #047857;       /* deep emerald accent                        */
+  --admin-accent-strong: #065F46;
+  --admin-accent-soft: rgba(4, 120, 87, 0.10);
   min-height: 100vh;
-  color-scheme: dark;
-  background:
-    radial-gradient(circle at 28% -10%, rgba(139, 92, 246, 0.13), transparent 28rem),
-    linear-gradient(180deg, #111111 0%, #0d0d0d 100%);
+  color-scheme: light;
+  background-color: var(--admin-canvas);
 }
 
-.admin-console .bg-bg { background-color: var(--admin-bg) !important; }
+/* Token remap — flips the shared utility classes to the light admin palette. */
+.admin-console .bg-bg { background-color: var(--admin-inset) !important; }
 .admin-console .bg-surface { background-color: var(--admin-panel) !important; }
-.admin-console .bg-primary { background-color: var(--admin-primary) !important; }
-.admin-console .bg-secondary { background-color: var(--admin-primary-soft) !important; }
+.admin-console .bg-primary { background-color: var(--admin-accent) !important; }
+.admin-console .bg-secondary { background-color: var(--admin-accent-soft) !important; }
 .admin-console .text-text { color: var(--admin-text) !important; }
 .admin-console .text-muted { color: var(--admin-muted) !important; }
-.admin-console .text-primary { color: var(--admin-primary) !important; }
+.admin-console .text-primary { color: var(--admin-accent) !important; }
 .admin-console .border-border { border-color: var(--admin-border) !important; }
-.admin-console .border-primary { border-color: var(--admin-primary) !important; }
+.admin-console .border-primary { border-color: var(--admin-accent) !important; }
 
-.admin-console [class*="rounded-sm"] { border-radius: 0.45rem !important; }
+/* Primary buttons darken to a deeper accent on hover (not gray). */
+.admin-console .bg-primary.hover\:bg-muted:hover,
+.admin-console .hover\:bg-muted:hover { background-color: var(--admin-accent-strong) !important; }
+
+/* Consistent radius + tabular figures for operational data. */
+.admin-console [class*="rounded-sm"] { border-radius: 6px !important; }
 .admin-console .font-mono { font-variant-numeric: tabular-nums; }
+
+/* Inputs read clearly on the light surface. */
 .admin-console input,
 .admin-console select,
 .admin-console textarea {
-  background: #151515 !important;
+  background: var(--admin-inset) !important;
   border-color: var(--admin-border) !important;
   color: var(--admin-text) !important;
 }
+.admin-console input:focus,
+.admin-console select:focus,
+.admin-console textarea:focus { background: var(--admin-panel) !important; }
 .admin-console input::placeholder,
-.admin-console textarea::placeholder { color: #73736f; }
+.admin-console textarea::placeholder { color: #97A0AC; }
 
-.admin-console aside > div,
+/* Crisp, light elevation — subtle, not floaty. */
 .admin-console .bg-surface {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035), 0 18px 48px rgba(0, 0, 0, 0.24);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
 }
 
-.admin-console table thead { background: #151515 !important; }
-.admin-console tbody tr:hover { background: #181818 !important; }
-.admin-console button:hover { border-color: rgba(255, 255, 255, 0.22) !important; }
+/* Tables: distinct header, gentle row hover. */
+.admin-console table thead { background: var(--admin-inset) !important; }
+.admin-console tbody tr:hover { background: var(--admin-inset) !important; }
+
+/* Operational, mostly-static feel: replace the global lift with state colors. */
+.admin-console button:not(:disabled):hover,
+.admin-console a:hover { transform: none; }
+.admin-console button:hover { border-color: var(--admin-border-strong) !important; }
+.admin-console .bg-primary:hover,
+.admin-console .bg-primary.hover\:bg-muted:hover { border-color: var(--admin-accent-strong) !important; }
+
+/* Light scrollbars inside the console. */
+.admin-console ::-webkit-scrollbar-track { background: var(--admin-inset); }
+.admin-console ::-webkit-scrollbar-thumb { background: var(--admin-border-strong); }
+.admin-console ::-webkit-scrollbar-thumb:hover { background: var(--admin-accent); }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Log Page Custom Sizing and Alignment (centered layout and larger cards)
+   ────────────────────────────────────────────────────────────────────────── */
+.log-page-container {
+  /* Ensure centering and max width */
+  max-width: 72rem !important; /* max-w-6xl */
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* PageHeader font size adjustments */
+.log-page-container header h1 {
+  font-size: 1.875rem !important; /* text-3xl */
+}
+@media (min-width: 640px) {
+  .log-page-container header h1 {
+    font-size: 2.25rem !important; /* text-4xl */
+    line-height: 2.5rem !important;
+  }
+}
+
+/* Category cards (QuickLogGrid) overrides */
+.log-page-container section[aria-label="Quick workout categories"] {
+  gap: 1.25rem !important; /* gap-5 */
+}
+@media (min-width: 640px) {
+  .log-page-container section[aria-label="Quick workout categories"] {
+    gap: 1.5rem !important; /* gap-6 */
+  }
+}
+.log-page-container section[aria-label="Quick workout categories"] button {
+  padding: 1.5rem !important; /* p-6 */
+  min-height: 110px !important;
+}
+.log-page-container section[aria-label="Quick workout categories"] button span.mt-3 {
+  font-size: 0.95rem !important;
+  margin-top: 1rem !important;
+}
+
+/* Repeat last workout card override */
+.log-page-container button[aria-label^="Repeat "] {
+  padding: 1.25rem 1.5rem !important;
+}
+
+/* Activity picker card padding override */
+.log-page-container section[aria-label$="activities"] {
+  padding: 1.5rem !important; /* p-6 */
+}
+
+/* Activity search input overrides (taller and wider) */
+.log-page-container #subtype-search {
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+  padding-left: 2.5rem !important;
+  font-size: 0.95rem !important;
+}
+.log-page-container svg.pointer-events-none {
+  left: 0.875rem !important;
+  width: 1.15rem !important;
+  height: 1.15rem !important;
+}
+
+/* Activity selection buttons overrides (more padding and height) */
+.log-page-container section[aria-label$="activities"] .grid {
+  gap: 0.75rem !important; /* gap-3 */
+}
+.log-page-container section[aria-label$="activities"] .grid button {
+  padding: 0.75rem 1rem !important;
+  min-height: 64px !important;
+}
+.log-page-container section[aria-label$="activities"] .grid button span {
+  font-size: 0.925rem !important;
+}

@@ -5,13 +5,13 @@ import { defineConfig } from "vite";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    port: 5173,
+    port: 5174,
     proxy: {
       "/api": process.env.VITE_API_PROXY_TARGET || "http://localhost:5001"
     }
   },
   preview: {
-    port: 4173,
+    port: 4174,
     proxy: {
       "/api": process.env.VITE_API_PROXY_TARGET || "http://localhost:5001"
     }
