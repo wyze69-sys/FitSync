@@ -1,5 +1,9 @@
 const DEFAULT_WEIGHT_KG = 70;
-const DISTANCE_XP_FACTOR = 0.8;
+
+// Mirrors STRENGTH_ACTIVE_TIME_FACTOR in backend/src/utils/calculators.js so the
+// preview estimate and the authoritative backend result stay aligned. Strength
+// training has rest between sets, so duration-based calories are scaled down.
+const STRENGTH_ACTIVE_TIME_FACTOR = 0.65;
 
 const CATEGORY_PROFILES = {
   cardio: { baseMet: 7.5, xpPerMetMin: 0.18 },
@@ -26,7 +30,21 @@ function normalize(value) {
 function resolveProfile(subtype) {
   const slug = normalize(subtype);
   const family = normalize(subtype?.categorySlug || subtype?.categoryName || subtype?.category || subtype?.family);
+  // Prefer an explicit baseMet from the backend activity library when present.
+  if (subtype && Number(subtype.baseMet) > 0) {
+    return { baseMet: Number(subtype.baseMet), xpPerMetMin: 0.2, family: family || slug };
+  }
   return CATEGORY_PROFILES[slug] || CATEGORY_PROFILES[family] || CATEGORY_PROFILES.cardio;
+}
+
+/**
+ * True when the activity belongs to the strength family (weighted, bodyweight,
+ * or timed-hold logged under the strength category). Used to apply the
+ * active-time factor to calorie estimates.
+ */
+function isStrengthFamily(subtype, slug, profile) {
+  const family = normalize(subtype?.categorySlug || subtype?.categoryName || subtype?.family);
+  return profile?.family === "strength" || slug === "strength" || family === "strength";
 }
 
 function calculateMet(slug, distanceKm, durationMin, fallbackMet) {
@@ -63,18 +81,29 @@ export function estimateCalories(subtype, duration, weightKg = DEFAULT_WEIGHT_KG
   const slug = normalize(subtype);
   const profile = resolveProfile(subtype);
   const met = calculateMet(slug, Number(distanceKm || 0), minutes, profile.baseMet);
-  return Math.round(met * Number(weightKg || DEFAULT_WEIGHT_KG) * (minutes / 60));
+  // logweb PDF s.3: calories = MET * 3.5 * weightKg / 200 * minutes
+  let calories = (met * 3.5 * Number(weightKg || DEFAULT_WEIGHT_KG)) / 200 * minutes;
+  // Strength is not continuous effort — apply the active-time factor so the
+  // estimate matches the backend and does not read like cardio.
+  if (isStrengthFamily(subtype, slug, profile)) {
+    calories *= STRENGTH_ACTIVE_TIME_FACTOR;
+  }
+  return Math.round(calories);
 }
 
 export function estimateXP(subtype, duration, weightKg = DEFAULT_WEIGHT_KG, distanceKm = 0) {
   const minutes = Number(duration || 0);
   if (minutes <= 0) return 0;
-  const slug = normalize(subtype);
   const profile = resolveProfile(subtype);
   const kilometres = Number(distanceKm || 0);
-  const met = calculateMet(slug, kilometres, minutes, profile.baseMet);
-  if (kilometres > 0) return Math.floor(kilometres * met * DISTANCE_XP_FACTOR);
-  return Math.floor(minutes * met * profile.xpPerMetMin);
+  // logweb PDF s.4. Preview estimate only (no weekly streak bonus) — the
+  // backend remains the source of truth and recomputes the authoritative XP.
+  const baseCompletionXp = 20;
+  const durationXp = Math.min(minutes * 1.2, 90);
+  const intensityXp = Math.min(profile.baseMet * minutes * 0.15, 60);
+  const cardioBonus = Math.min(kilometres * 4, 40);
+  const performanceBonus = Math.max(cardioBonus, 0);
+  return Math.round(baseCompletionXp + durationXp + intensityXp + performanceBonus);
 }
 
 export function getProfileWeight(user) {

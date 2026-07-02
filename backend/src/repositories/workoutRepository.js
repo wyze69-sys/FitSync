@@ -42,6 +42,8 @@ async function loadExercisesForWorkouts(workoutIds, executor = pool) {
       id: row.id,
       categoryId: row.category_id || "",
       categoryName: row.category_name || "",
+      activityId: row.activity_id || null,
+      activitySlug: row.activity_slug || null,
       exerciseName: row.exercise_name,
       duration: Number(row.duration),
       caloriesBurned: Number(row.calories_burned),
@@ -155,14 +157,16 @@ async function insertExercises(executor, workoutId, exercises) {
 
     await executor.execute(
       `INSERT INTO workout_exercises (
-         id, workout_id, category_id, category_name, exercise_name, duration, calories_burned
+         id, workout_id, category_id, category_name, activity_id, activity_slug, exercise_name, duration, calories_burned
        )
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         exerciseId,
         workoutId,
         exercise.categoryId || null,
         exercise.categoryName || null,
+        exercise.activityId || null,
+        exercise.activitySlug || null,
         exercise.exerciseName,
         exercise.duration,
         exercise.caloriesBurned
@@ -274,17 +278,18 @@ async function updateWorkout(id, updates) {
   return getWorkoutById(id);
 }
 
-async function applyWorkoutReward(userId, workoutId, xp) {
+async function applyWorkoutReward(userId, workoutId, xp, breakdown = null) {
   const { gamificationService } = require("../services/gamificationService");
   const connection = await pool.getConnection();
 
   try {
     await connection.beginTransaction();
     const reward = await gamificationService.addUserXp(userId, Number(xp || 0), connection);
+    const breakdownJson = JSON.stringify(breakdown || { source: "workoutService" });
     await connection.execute(
       `INSERT INTO xp_logs (id, user_id, workout_id, xp_earned, reason, breakdown)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [createId("xp"), userId, workoutId, Number(xp || 0), "Workout logged", JSON.stringify({ source: "workoutService" })]
+      [createId("xp"), userId, workoutId, Number(xp || 0), "Workout logged", breakdownJson]
     );
     await connection.commit();
     return reward;

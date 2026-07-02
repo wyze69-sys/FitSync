@@ -10,16 +10,75 @@ import RepeatLast from "../components/workout/RepeatLast.jsx";
 import { WORKOUT_MAP } from "../utils/constants.js";
 import { estimateCalories, estimateXP, getProfileWeight } from "../utils/previewCalculator.js";
 import workoutService from "../services/workoutService.js";
+import activityService from "../services/activityService.js";
 import templateService from "../services/templateService.js";
 import DashboardWorkoutTemplates from "../components/dashboard/DashboardWorkoutTemplates.jsx";
+import FoodRecommendations from "../components/nutrition/FoodRecommendations.jsx";
 import { todayStr } from "../utils/workoutUtils.js";
 
 const LAST_WORKOUT_KEY = "fitsync:lastWorkout";
 const LAST_CATEGORY_KEY = "fitsync_last_log";
 const DEFAULT_DURATION = 30;
+const CATEGORY_ORDER = ["cardio", "strength", "hiit", "yoga", "mobility", "sports"];
+const CATEGORY_ICONS = { cardio: "🏃", strength: "💪", hiit: "⚡", yoga: "🧘", mobility: "🌿", sports: "🏀" };
+
+// Sensible starting duration per category. Strength defaults low (quick log)
+// because full-hour resistance sessions overstate effort; HIIT is short by
+// nature. Users can still pick any duration, including custom or 60m.
+const CATEGORY_DEFAULT_DURATION = { strength: 30, hiit: 20, yoga: 30, mobility: 30, cardio: 30, sports: 30 };
+
+function defaultDurationForCategory(slug) {
+  const key = String(slug || "").trim().toLowerCase();
+  return CATEGORY_DEFAULT_DURATION[key] || DEFAULT_DURATION;
+}
 
 function normalize(value) {
   return String(value || "").trim().toLowerCase();
+}
+
+/**
+ * Builds quick-log categories from the backend activity library. Each activity
+ * becomes a selectable subtype carrying its calorie/XP metadata so the form can
+ * render the right input fields. Returns null when no activities are available
+ * (the caller then falls back to the legacy hardcoded map).
+ */
+function buildActivityCategories(apiCategories, grouped) {
+  if (!Array.isArray(grouped) || grouped.length === 0) return null;
+
+  const ordered = [...grouped].sort((a, b) => {
+    const ia = CATEGORY_ORDER.indexOf(a.categorySlug);
+    const ib = CATEGORY_ORDER.indexOf(b.categorySlug);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+  });
+
+  return ordered.map((group) => {
+    const core = WORKOUT_MAP.find((c) => c.slug === group.categorySlug);
+    const apiCat = apiCategories.find(
+      (c) => normalize(c.slug) === group.categorySlug || normalize(c.name) === group.categorySlug
+    );
+    const categoryId = apiCat?.id || core?.id || `cat_${group.categorySlug}`;
+    const categoryName = apiCat?.name || core?.name || group.categorySlug;
+
+    return {
+      id: categoryId,
+      slug: group.categorySlug,
+      name: categoryName,
+      description: apiCat?.description || core?.description || "",
+      icon: CATEGORY_ICONS[group.categorySlug] || core?.icon || "🔥",
+      subtypes: group.activities.map((activity) => ({
+        name: activity.name,
+        slug: activity.slug,
+        categoryId,
+        categorySlug: group.categorySlug,
+        categoryName,
+        activitySlug: activity.slug,
+        baseMet: activity.baseMet,
+        calorieMethod: activity.calorieMethod,
+        intensityLevel: activity.intensityLevel,
+        trackingFields: Array.isArray(activity.trackingFields) ? activity.trackingFields : ["duration"]
+      }))
+    };
+  });
 }
 
 function useMergedCategories(apiCategories = []) {
@@ -60,6 +119,21 @@ function useMergedCategories(apiCategories = []) {
   }, [apiCategories]);
 }
 
+/**
+ * Returns which extra detail fields an activity requires, derived from its
+ * trackingFields. Used to auto-expand the details panel and prefill defaults.
+ */
+function activityFieldNeeds(subtype) {
+  const tf = Array.isArray(subtype?.trackingFields) ? subtype.trackingFields : [];
+  const strength = tf.includes("sets") || tf.includes("weight");
+  return {
+    strength,
+    hold: tf.includes("holdTime"),
+    repsOnly: tf.includes("reps") && !strength,
+    distance: tf.includes("distance")
+  };
+}
+
 function findCategoryMeta(apiCategories, category, subtype) {
   const subtypeSlug = normalize(subtype?.slug);
   const subtypeName = normalize(subtype?.name);
@@ -72,8 +146,7 @@ function findCategoryMeta(apiCategories, category, subtype) {
   );
 }
 
-function getStored(key) {
-  try {
+function getStored(key) {  try {
     return JSON.parse(localStorage.getItem(key) || "null");
   } catch (err) {
     return null;
@@ -93,14 +166,20 @@ function realNumber(result, names) {
 
 export default function Log() {
   const { user, categories: apiCategories = [], loading, error, refreshAll, push } = useOutletContext();
-  const finalCategories = useMergedCategories(apiCategories);
+  const [groupedActivities, setGroupedActivities] = useState([]);
+  const mergedFallback = useMergedCategories(apiCategories);
+  const activityCategories = useMemo(
+    () => buildActivityCategories(apiCategories, groupedActivities),
+    [apiCategories, groupedActivities]
+  );
+  const finalCategories = activityCategories || mergedFallback;
   const [category, setCategory] = useState(null);
   const [subtype, setSubtype] = useState(null);
   const [duration, setDuration] = useState(DEFAULT_DURATION);
   const [workoutTitle, setWorkoutTitle] = useState("");
   const [templates, setTemplates] = useState([]);
   const [showDetails, setShowDetails] = useState(false);
-  const [details, setDetails] = useState({ date: todayStr(), distance: "", intensity: "med", notes: "", sets: "", reps: "", weight: "" });
+  const [details, setDetails] = useState({ date: todayStr(), distance: "", intensity: "med", notes: "", sets: "", reps: "", weight: "", holdTime: "" });
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [lastWorkout, setLastWorkout] = useState(null);
@@ -122,7 +201,9 @@ export default function Log() {
     if (savedSubtype) {
       setWorkoutTitle(savedSubtype.name);
     }
-    setDuration(Number(saved?.duration || DEFAULT_DURATION));
+    // Respect a previously saved duration; otherwise start from the category
+    // default (e.g. 30m for strength) rather than a one-size-fits-all value.
+    setDuration(Number(saved?.duration || defaultDurationForCategory(savedCategory?.slug)));
     setLastWorkout(getStored(LAST_WORKOUT_KEY));
   }, [finalCategories]);
 
@@ -147,6 +228,37 @@ export default function Log() {
     };
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+    async function loadActivities() {
+      try {
+        const data = await activityService.getGroupedActivities();
+        if (isMounted) setGroupedActivities(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Failed to load activity library:", err);
+        if (isMounted) setGroupedActivities([]);
+      }
+    }
+    loadActivities();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // When the backend activity library arrives after the initial render, remap
+  // the current category/subtype selection onto the activity-backed objects so
+  // the selected subtype carries its calorie/XP metadata (trackingFields, etc.).
+  useEffect(() => {
+    if (!activityCategories || !category || subtype?.activitySlug) return;
+    const match = activityCategories.find((c) => c.slug === category.slug) || activityCategories[0];
+    if (!match) return;
+    const nextSubtype = match.subtypes.find((s) => s.slug === subtype?.slug) || match.subtypes[0];
+    setCategory(match);
+    setSubtype(nextSubtype);
+    if (nextSubtype) setWorkoutTitle((current) => current || nextSubtype.name);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activityCategories]);
+
   const categoryMeta = useMemo(() => findCategoryMeta(finalCategories, category, subtype), [finalCategories, category, subtype]);
   const subtypeForPreview = useMemo(() => ({
     ...subtype,
@@ -156,14 +268,26 @@ export default function Log() {
   const isCardio = normalize(category?.slug).includes("cardio") || normalize(category?.name).includes("cardio");
   const isStrength = normalize(category?.slug).includes("strength") || normalize(category?.name).includes("strength");
 
+  // Activity-driven field visibility. When the selected subtype comes from the
+  // backend activity library it carries trackingFields; otherwise we fall back
+  // to the legacy category heuristics so old data keeps logging.
+  const trackingFields = Array.isArray(subtype?.trackingFields) ? subtype.trackingFields : null;
+  const hasActivityMeta = Boolean(trackingFields && subtype?.activitySlug);
+  const showDistance = hasActivityMeta ? trackingFields.includes("distance") : isCardio;
+  const showStrength = hasActivityMeta
+    ? trackingFields.includes("sets") || trackingFields.includes("weight")
+    : isStrength;
+  const showRepsOnly = hasActivityMeta && trackingFields.includes("reps") && !showStrength;
+  const showHold = hasActivityMeta && trackingFields.includes("holdTime");
+
   const preview = useMemo(() => {
     const weightKg = getProfileWeight(user);
-    const distance = isCardio ? Number(details.distance || 0) : 0;
+    const distance = showDistance ? Number(details.distance || 0) : 0;
     return {
       calories: estimateCalories(subtypeForPreview, duration, weightKg, distance),
       xp: estimateXP(subtypeForPreview, duration, weightKg, distance)
     };
-  }, [details.distance, duration, isCardio, subtypeForPreview, user]);
+  }, [details.distance, duration, showDistance, subtypeForPreview, user]);
 
   const handleCategorySelect = useCallback((nextCategory) => {
     setSavedTotals(null);
@@ -173,14 +297,29 @@ export default function Log() {
     if (nextSubtype) {
       setWorkoutTitle(nextSubtype.name);
     }
-    store(LAST_CATEGORY_KEY, { categorySlug: nextCategory.slug, subtypeSlug: nextSubtype?.slug, duration });
-  }, [duration]);
+    // A category change clearly warrants re-defaulting the duration to that
+    // category's sensible starting point (strength no longer inherits 60m).
+    const nextDuration = defaultDurationForCategory(nextCategory.slug);
+    setDuration(nextDuration);
+    store(LAST_CATEGORY_KEY, { categorySlug: nextCategory.slug, subtypeSlug: nextSubtype?.slug, duration: nextDuration });
+  }, []);
 
   const handleSubtypeSelect = useCallback((nextSubtype) => {
     setSavedTotals(null);
     setSubtype(nextSubtype);
     if (nextSubtype) {
       setWorkoutTitle(nextSubtype.name);
+    }
+    const needs = activityFieldNeeds(nextSubtype);
+    if (needs.strength || needs.hold || needs.repsOnly) {
+      setShowDetails(true);
+      setDetails((current) => ({
+        ...current,
+        sets: needs.strength && !current.sets ? "3" : current.sets,
+        reps: (needs.strength || needs.repsOnly) && !current.reps ? "10" : current.reps,
+        weight: needs.strength && !current.weight ? "20" : current.weight,
+        holdTime: needs.hold && !current.holdTime ? "60" : current.holdTime
+      }));
     }
     store(LAST_CATEGORY_KEY, { categorySlug: category?.slug, subtypeSlug: nextSubtype.slug, duration });
   }, [category?.slug, duration]);
@@ -270,26 +409,43 @@ export default function Log() {
     const categorySlug = meta?.slug || category.slug;
     const categoryId = meta?.id || subtype.categoryId || category.id;
     const title = workoutTitle.trim() || subtype.name;
+    const activitySlug = subtype.activitySlug;
+    const setCount = Math.max(1, Number(details.sets) || 1);
     const payload = {
       date: details.date || todayStr(),
       title,
       category: categorySlug,
       categorySlug,
       duration_min: Number(duration || DEFAULT_DURATION),
-      distance_km: isCardio && details.distance ? Number(details.distance) : undefined,
       intensity: details.intensity,
-      notes: details.notes || undefined,
-      exercises: [
-        {
-          categoryId,
-          categoryName: meta?.name || category.name,
-          exerciseName: subtype.name,
-          duration: Number(duration || DEFAULT_DURATION),
-          categorySlug,
-          sets: isStrength && details.sets ? [{ reps: Number(details.reps || 0), weight: Number(details.weight || 0) }] : undefined
-        }
-      ]
+      notes: details.notes || undefined
     };
+    if (activitySlug) payload.activitySlug = activitySlug;
+    if (showDistance && details.distance) payload.distance_km = Number(details.distance);
+    if (showStrength) {
+      if (details.sets) payload.sets = Number(details.sets);
+      if (details.reps) payload.reps = Number(details.reps);
+      if (details.weight) payload.weight = Number(details.weight);
+    }
+    if (showRepsOnly && details.reps) payload.reps = Number(details.reps);
+    if (showHold && details.holdTime) payload.holdTime = Number(details.holdTime);
+    payload.exercises = [
+      {
+        categoryId,
+        categoryName: meta?.name || category.name,
+        exerciseName: subtype.name,
+        duration: Number(duration || DEFAULT_DURATION),
+        categorySlug,
+        activitySlug: activitySlug || undefined,
+        sets:
+          showStrength && details.sets
+            ? Array.from({ length: setCount }, () => ({
+                reps: Number(details.reps || 0),
+                weight: Number(details.weight || 0)
+              }))
+            : undefined
+      }
+    ];
 
     setSubmitting(true);
     setFormError("");
@@ -326,7 +482,7 @@ export default function Log() {
     } finally {
       setSubmitting(false);
     }
-  }, [finalCategories, category, details, duration, isCardio, isStrength, preview.xp, push, refreshAll, submitting, subtype, workoutTitle]);
+  }, [finalCategories, category, details, duration, showDistance, showStrength, showRepsOnly, showHold, preview.xp, push, refreshAll, submitting, subtype, workoutTitle]);
 
   if (loading) return <LoadingSpinner label="Loading workout logger" />;
 
@@ -339,7 +495,7 @@ export default function Log() {
   }
 
   return (
-    <main className="space-y-6 text-text animate-fade-in">
+    <main className="log-page-container space-y-8 text-text animate-fade-in max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8">
       <PageHeader
         eyebrow="Quick log"
         title="Log a workout in 3 taps"
@@ -357,12 +513,18 @@ export default function Log() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <QuickLogGrid categories={finalCategories} selectedSlug={category.slug} onSelect={handleCategorySelect} />
+      <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
+        <div>
+          <div className="mb-4">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Step 1</p>
+            <h2 className="text-lg font-semibold text-text">Choose category</h2>
+          </div>
+          <QuickLogGrid categories={finalCategories} selectedSlug={category.slug} onSelect={handleCategorySelect} />
+        </div>
         <SubtypePicker category={category} selectedSubtype={subtype} onSelect={handleSubtypeSelect} />
 
-        <section className="rounded-2xl border border-border bg-surface p-4 shadow-lg shadow-black/10">
-          <div className="mb-4">
+        <section className="rounded-2xl border border-border bg-surface p-5 md:p-6 shadow-lg shadow-black/10">
+          <div className="mb-5">
             <label className="text-[10px] font-bold uppercase tracking-widest text-muted" htmlFor="workout-title">
               Workout Title
             </label>
@@ -373,14 +535,14 @@ export default function Log() {
               placeholder="e.g. Upper Body Push, Running"
               value={workoutTitle}
               onChange={(e) => setWorkoutTitle(e.target.value)}
-              className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="mt-2 w-full rounded-2xl border border-border bg-bg px-5 py-3 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             />
           </div>
 
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted">Duration</p>
-              <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Workout duration">
+              <div className="mt-2 flex flex-wrap gap-2.5" role="group" aria-label="Workout duration">
                 {[15, 30, 45, 60].map((minutes) => (
                   <button
                     type="button"
@@ -391,7 +553,7 @@ export default function Log() {
                       store(LAST_CATEGORY_KEY, { categorySlug: category.slug, subtypeSlug: subtype.slug, duration: minutes });
                     }}
                     aria-pressed={duration === minutes}
-                    className={`min-h-[44px] min-w-[44px] rounded-full px-4 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${duration === minutes ? "bg-primary text-white" : "bg-bg text-text"}`}
+                    className={`min-h-[46px] min-w-[46px] rounded-full px-5 py-2.5 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${duration === minutes ? "bg-primary text-white" : "bg-bg text-text"}`}
                   >
                     {minutes}m
                   </button>
@@ -405,11 +567,11 @@ export default function Log() {
                   placeholder="Custom"
                   value={[15, 30, 45, 60].includes(Number(duration)) ? "" : duration}
                   onChange={(event) => handleCustomDuration(event.target.value)}
-                  className="min-h-[44px] w-28 rounded-full border border-border bg-bg px-4 py-2 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-primary"
+                  className="min-h-[46px] w-32 rounded-full border border-border bg-bg px-5 py-2.5 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-primary"
                 />
               </div>
             </div>
-            <div className="rounded-2xl border border-border bg-bg p-3 text-sm">
+            <div className="rounded-2xl border border-border bg-bg p-4 text-sm font-medium">
               {savedTotals ? (
                 <p className="font-bold text-primary">Saved XP: {savedTotals.xp} / Calories: {savedTotals.calories}</p>
               ) : (
@@ -424,51 +586,63 @@ export default function Log() {
           <button
             type="button"
             onClick={() => setShowDetails((value) => !value)}
-            className="mt-4 text-sm font-semibold text-primary underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="mt-5 text-sm font-bold text-primary underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             aria-expanded={showDetails}
           >
             Add details
           </button>
 
           {showDetails && (
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <label className="text-sm text-text">
                 Date
-                <input type="date" value={details.date} onChange={(e) => setDetails((current) => ({ ...current, date: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
+                <input type="date" value={details.date} onChange={(e) => setDetails((current) => ({ ...current, date: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
               </label>
-              {isCardio && (
+              {showDistance && (
                 <label className="text-sm text-text">
-                  Distance (km, optional)
-                  <input type="number" min="0" step="0.1" inputMode="decimal" value={details.distance} onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, distance: e.target.value })); }} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:ring-2 focus-visible:ring-primary" />
+                  Distance (km{hasActivityMeta && trackingFields.includes("distance") && subtype?.calorieMethod === "distance_multiplier" ? "" : ", optional"})
+                  <input type="number" min="0" step="0.1" inputMode="decimal" value={details.distance} onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, distance: e.target.value })); }} className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" />
                 </label>
               )}
               <label className="text-sm text-text">
                 Intensity
-                <select value={details.intensity} onChange={(e) => setDetails((current) => ({ ...current, intensity: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                <select value={details.intensity} onChange={(e) => setDetails((current) => ({ ...current, intensity: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                   <option value="low">Low</option>
                   <option value="med">Medium</option>
                   <option value="high">High</option>
                 </select>
               </label>
-              {isStrength && (
-                <div className="grid gap-3 sm:col-span-2 sm:grid-cols-3">
+              {showStrength && (
+                <div className="grid gap-4 sm:col-span-2 sm:grid-cols-3">
                   <label className="text-sm text-text">
                     Sets
-                    <input type="number" min="1" max="20" value={details.sets} onChange={(e) => setDetails((current) => ({ ...current, sets: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:ring-2 focus-visible:ring-primary" />
+                    <input type="number" min="1" max="20" value={details.sets} onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, sets: e.target.value })); }} className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" />
                   </label>
                   <label className="text-sm text-text">
                     Reps
-                    <input type="number" min="1" max="100" value={details.reps} onChange={(e) => setDetails((current) => ({ ...current, reps: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:ring-2 focus-visible:ring-primary" />
+                    <input type="number" min="1" max="100" value={details.reps} onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, reps: e.target.value })); }} className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" />
                   </label>
                   <label className="text-sm text-text">
                     Weight (kg)
-                    <input type="number" min="0" step="0.5" value={details.weight} onChange={(e) => setDetails((current) => ({ ...current, weight: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:ring-2 focus-visible:ring-primary" />
+                    <input type="number" min="0" step="0.5" value={details.weight} onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, weight: e.target.value })); }} className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" />
                   </label>
                 </div>
               )}
+              {showRepsOnly && (
+                <label className="text-sm text-text">
+                  Reps
+                  <input type="number" min="1" max="500" value={details.reps} onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, reps: e.target.value })); }} className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" />
+                </label>
+              )}
+              {showHold && (
+                <label className="text-sm text-text">
+                  Hold time (seconds)
+                  <input type="number" min="1" max="3600" value={details.holdTime} onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, holdTime: e.target.value })); }} className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" />
+                </label>
+              )}
               <label className="text-sm text-text sm:col-span-2">
                 Notes
-                <textarea value={details.notes} onChange={(e) => setDetails((current) => ({ ...current, notes: e.target.value }))} rows="3" className="mt-2 w-full rounded-2xl border border-border bg-bg px-3 py-2 focus-visible:ring-2 focus-visible:ring-primary" />
+                <textarea value={details.notes} onChange={(e) => setDetails((current) => ({ ...current, notes: e.target.value }))} rows="3" className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" />
               </label>
             </div>
           )}
@@ -477,11 +651,21 @@ export default function Log() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded-2xl bg-primary px-5 py-4 text-base font-bold text-white shadow-lg shadow-primary/20 transition hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-2xl bg-primary px-6 py-4.5 text-lg font-bold text-white shadow-lg shadow-primary/20 transition hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:cursor-not-allowed disabled:opacity-60"
         >
           {submitting ? "Logging…" : `Log ${subtype.name}`}
         </button>
       </form>
+
+      {savedTotals && (
+        <FoodRecommendations
+          goal={user?.goal}
+          workoutType={subtype?.name || category?.name}
+          category={category?.slug || category?.name}
+          caloriesBurned={savedTotals?.calories}
+          limit={5}
+        />
+      )}
     </main>
   );
 }

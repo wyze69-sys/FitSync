@@ -36,13 +36,49 @@ const workoutBodySchema = {
   notes: { type: "string", maxLength: 2000 },
   category: { type: "string", maxLength: 80 },
   categorySlug: { type: "string", maxLength: 80 },
+  activitySlug: { type: "string", maxLength: 100 },
+  activityId: { type: "string", maxLength: 50 },
   duration_min: { type: "number", min: 1, max: 1440 },
   durationMin: { type: "number", min: 1, max: 1440 },
   distance_km: { type: "number", min: 0, max: 1000 },
   distanceKm: { type: "number", min: 0, max: 1000 },
+  sets: { type: "integer", min: 0, max: 50 },
+  reps: { type: "integer", min: 0, max: 1000 },
+  weight: { type: "number", min: 0, max: 1000 },
+  holdTime: { type: "number", min: 0, max: 86400 },
   user_weight: { type: "number", min: 20, max: 500 },
   userWeight: { type: "number", min: 20, max: 500 },
   exercises: { type: "array", minLength: 1, maxLength: 50 }
+};
+
+const activityQuerySchema = {
+  category: { type: "string", maxLength: 80 },
+  grouped: { type: "string", maxLength: 10 }
+};
+
+const nutritionQuerySchema = {
+  search: { type: "string", maxLength: 100 },
+  foodType: { type: "string", maxLength: 40 },
+  limit: { type: "integer", min: 1, max: 100, default: 50 }
+};
+
+const nutritionRecommendationQuerySchema = {
+  goal: { type: "string", maxLength: 255 },
+  workoutType: { type: "string", maxLength: 80 },
+  category: { type: "string", maxLength: 80 },
+  caloriesBurned: { type: "number", min: 0, max: 5000 },
+  search: { type: "string", maxLength: 100 },
+  limit: { type: "integer", min: 1, max: 50, default: 12 }
+};
+
+const nutritionPlanQuerySchema = {
+  targetChangeKg: { type: "number", min: -50, max: 50 },
+  timeframeDays: { type: "integer", min: 1, max: 730 },
+  mode: { type: "string", enum: ["safe", "requested"], default: "safe" },
+  goal: { type: "string", maxLength: 255 },
+  dietPreference: { type: "string", maxLength: 100 },
+  allergies: { type: "string", maxLength: 500 },
+  limit: { type: "integer", min: 1, max: 20, default: 8 }
 };
 
 const workoutQuerySchema = {
@@ -212,6 +248,10 @@ module.exports = {
   profileUpdateSchema,
   workoutBodySchema,
   workoutQuerySchema,
+  activityQuerySchema,
+  nutritionQuerySchema,
+  nutritionRecommendationQuerySchema,
+  nutritionPlanQuerySchema,
   weightLogSchema,
   categorySchema,
   categoryUpdateSchema,
