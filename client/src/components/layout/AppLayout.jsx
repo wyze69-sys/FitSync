@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { Component, useState, useEffect, useCallback } from "react";
 import { Outlet, NavLink, Navigate } from "react-router-dom";
-import { Dumbbell, Home, Scale, UserCog, Clock } from "lucide-react";
+import { Dumbbell, Home, BarChart3, User, Clock, Salad } from "lucide-react";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
 import Navbar from "../common/Navbar.jsx";
@@ -12,9 +12,41 @@ const MOBILE_LINKS = [
   { to: "/", label: "Home", icon: Home },
   { to: "/log", label: "Log", icon: Dumbbell },
   { to: "/workouts", label: "History", icon: Clock },
-  { to: "/progress", label: "Progress", icon: Scale },
-  { to: "/you", label: "You", icon: UserCog }
+  { to: "/progress", label: "Progress", icon: BarChart3 },
+  { to: "/nutrition", label: "Nutrition", icon: Salad },
+  { to: "/you", label: "You", icon: User }
 ];
+
+class RouteErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+
+  componentDidCatch(error, info) {
+    console.error("Route render failed", error, info);
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-left text-red-100">
+          <p className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-red-300">Page crashed</p>
+          <h1 className="mt-2 text-2xl font-black text-red-50">This route failed to render.</h1>
+          <pre className="mt-4 overflow-auto whitespace-pre-wrap rounded-xl bg-black/30 p-4 text-xs text-red-100">
+            {this.state.error?.stack || this.state.error?.message || String(this.state.error)}
+          </pre>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 /**
  * Shared shell for authenticated user pages. Loads reusable user data once and
@@ -110,10 +142,12 @@ export default function AppLayout() {
     <div className="min-h-screen bg-bg text-text flex flex-col font-sans relative pb-20 md:pb-8 overflow-x-hidden">
       <Navbar />
 
-      <main className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6 bg-bg text-text flex-grow pb-24 md:pb-8">
+      <main className="mx-auto w-full max-w-[1400px] px-4 sm:px-8 lg:px-12 pt-28 pb-6 bg-bg text-text flex-grow pb-24 md:pb-8">
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
           <div className="xl:col-span-12">
-            <Outlet context={context} />
+            <RouteErrorBoundary>
+              <Outlet context={context} />
+            </RouteErrorBoundary>
           </div>
         </div>
       </main>

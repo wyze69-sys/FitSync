@@ -2,7 +2,6 @@ import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   Dumbbell,
-  Scale,
   Home,
   LayoutDashboard,
   Users,
@@ -12,24 +11,29 @@ import {
   LogOut,
   Menu,
   X,
-  UserCog
+  User,
+  Salad
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext.jsx";
+import ThemeToggle from "./ThemeToggle.jsx";
 
 const USER_LINKS = [
   { to: "/", label: "Home", icon: Home, end: true },
   { to: "/log", label: "Log", icon: Dumbbell },
   { to: "/workouts", label: "History", icon: Clock },
-  { to: "/progress", label: "Progress", icon: Scale },
-  { to: "/you", label: "You", icon: UserCog }
+  { to: "/progress", label: "Progress", icon: BarChart3 },
+  { to: "/nutrition", label: "Nutrition", icon: Salad },
+  { to: "/you", label: "You", icon: User }
 ];
 
-const ADMIN_LINKS = [
-  { to: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/admin/users", label: "Users", icon: Users },
-  { to: "/admin/categories", label: "Categories", icon: Layers },
-  { to: "/admin/statistics", label: "Statistics", icon: BarChart3 }
-];
+function getInitials(name) {
+  if (!name) return "";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+}
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -46,52 +50,56 @@ export default function Navbar() {
   }
 
   const desktopClass = ({ isActive }) =>
-    `h-16 flex items-center gap-1.5 border-b-2 font-semibold transition-all cursor-pointer ${
-      isActive ? "text-text border-primary" : "border-transparent text-muted hover:text-text"
+    `h-14 flex items-center gap-2 font-black uppercase tracking-[0.22em] text-[12px] transition-all cursor-pointer ${
+      isActive ? "text-primary" : "text-muted hover:text-text"
     }`;
 
   const mobileClass = ({ isActive }) =>
-    `w-full text-left py-2 px-3 rounded-sm font-medium flex items-center gap-2 uppercase tracking-widest ${
+    `w-full text-left py-2 px-3 rounded-full font-medium flex items-center gap-2 uppercase tracking-widest ${
       isActive ? "bg-primary text-white" : "text-muted hover:text-text hover:bg-bg"
     }`;
 
   return (
-    <nav className="bg-bg border-b border-border sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center gap-2">
-            <div className="h-9 w-9 bg-surface border border-border rounded-sm flex items-center justify-center">
-              <Dumbbell className="h-5 w-5 text-primary" aria-hidden="true" />
-            </div>
-            <span className="tracking-tight text-xl font-semibold text-text select-none">
-              FitSync
+    <nav className="fixed top-4 left-0 right-0 z-40 mx-auto max-w-[1400px] w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] lg:w-[calc(100%-6rem)] rounded-[2.25rem] border border-border/40 bg-surface/95 backdrop-blur-md shadow-xl shadow-black/20">
+      <div className="max-w-[1400px] mx-auto px-7 lg:px-8">
+        <div className="flex justify-between h-[72px] items-center">
+          <div className="flex items-center">
+            <span className="font-display tracking-tight text-xl lg:text-2xl font-black text-primary select-none">
+              FITSYNC.
             </span>
           </div>
 
-          <div className="hidden md:flex items-center space-x-6 text-xs uppercase tracking-widest font-sans">
+          <div className="hidden md:flex items-center justify-center space-x-7 lg:space-x-8 flex-1 mx-6">
             {links.map(({ to, label, icon: Icon, end }) => (
               <NavLink key={to} to={to} end={end} className={desktopClass}>
-                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                <Icon className="h-4 w-4" aria-hidden="true" />
                 {label}
               </NavLink>
             ))}
           </div>
 
-          <div className="hidden md:flex items-center gap-4 border-l border-border pl-4 font-sans text-xs">
+          <div className="hidden md:flex items-center gap-5 border-l border-border/30 pl-5 font-sans text-xs">
             <div className="text-right">
-              <div className="font-semibold text-text line-clamp-1">{user.name}</div>
-              <div className="text-[9px] uppercase font-mono tracking-widest text-muted capitalize">
-                {user.role} Account
+              <div className="font-black text-text line-clamp-1 text-[14px] leading-tight">{user.name}</div>
+              <div className="text-[9px] uppercase font-mono tracking-widest text-muted mt-1">
+                {user.role} ACCOUNT
               </div>
             </div>
+            
+            <div className="h-10 w-10 rounded-full bg-primary text-primary-contrast font-black text-sm flex items-center justify-center select-none shrink-0 shadow-lg shadow-primary/20">
+              {getInitials(user.name)}
+            </div>
+            
+            <ThemeToggle />
+            
             <button
               type="button"
               onClick={handleLogout}
               aria-label="Log out"
               title="Log out"
-              className="h-8 w-8 rounded-sm bg-surface border border-border text-muted hover:text-text hover:border-primary flex items-center justify-center transition-all cursor-pointer"
+              className="h-10 w-10 rounded-full bg-surface border border-border/40 text-muted hover:text-text hover:border-primary flex items-center justify-center transition-all cursor-pointer shrink-0"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-[18px] w-[18px]" />
             </button>
           </div>
 
@@ -101,7 +109,7 @@ export default function Navbar() {
               onClick={() => setIsMobileMenuOpen((open) => !open)}
               aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
               aria-expanded={isMobileMenuOpen}
-              className="h-10 w-10 text-muted hover:text-text flex items-center justify-center rounded-sm hover:bg-surface"
+              className="h-10 w-10 text-muted hover:text-text flex items-center justify-center rounded-full hover:bg-surface"
             >
               {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
@@ -110,7 +118,7 @@ export default function Navbar() {
       </div>
 
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-bg border-t border-border px-4 py-3 space-y-1 font-sans text-xs">
+        <div className="md:hidden bg-surface border-t border-border/40 px-6 py-4 space-y-1 font-sans text-xs rounded-b-[2rem]">
           {links.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
@@ -122,18 +130,21 @@ export default function Navbar() {
               <Icon className="h-4 w-4" aria-hidden="true" /> {label}
             </NavLink>
           ))}
-          <div className="pt-3 border-t border-border flex items-center justify-between">
+          <div className="pt-4 border-t border-border/30 flex items-center justify-between">
             <div>
               <div className="font-semibold text-text">{user.name}</div>
               <div className="text-[10px] text-muted capitalize">{user.role} role</div>
             </div>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="py-1.5 px-3 bg-transparent border border-border text-text font-medium rounded-sm flex items-center gap-1 cursor-pointer hover:border-primary"
-            >
-              <LogOut className="h-3.5 w-3.5" /> Logout
-            </button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="py-1.5 px-3 bg-transparent border border-border/40 text-text font-medium rounded-full flex items-center gap-1 cursor-pointer hover:border-primary"
+              >
+                <LogOut className="h-3.5 w-3.5" /> Logout
+              </button>
+            </div>
           </div>
         </div>
       )}
