@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="streak30Title">
+  <title id="streak30Title">Thirty Day Fire Crown Medal</title>
+  <desc>An epic gold and red flaming crown medal with a sunburst for a major thirty-day streak.</desc>
+  <defs>
+    <radialGradient id="s30Body" cx="42%" cy="32%" r="84%">
+      <stop offset="0%" stop-color="#641E0C"/>
+      <stop offset="100%" stop-color="#220A03"/>
+    </radialGradient>
+    <linearGradient id="s30Ring" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFEFA6"/>
+      <stop offset="45%" stop-color="#FF9A2B"/>
+      <stop offset="100%" stop-color="#9A2E10"/>
+    </linearGradient>
+    <linearGradient id="s30Ray" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFE07A"/>
+      <stop offset="100%" stop-color="#E08A1E"/>
+    </linearGradient>
+    <linearGradient id="s30Crown" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFF6C8"/>
+      <stop offset="100%" stop-color="#E0A92A"/>
+    </linearGradient>
+    <linearGradient id="s30Flame" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#E23A2E"/>
+      <stop offset="60%" stop-color="#FF8A2B"/>
+      <stop offset="100%" stop-color="#FFE9A6"/>
+    </linearGradient>
+    <path id="s30RayShape" d="M48 3 L51.5 24 L44.5 24 Z"/>
+  </defs>
+  <g fill="url(#s30Ray)" opacity="0.92">
+    <use href="#s30RayShape" transform="rotate(0 48 50)"/>
+    <use href="#s30RayShape" transform="rotate(30 48 50)"/>
+    <use href="#s30RayShape" transform="rotate(60 48 50)"/>
+    <use href="#s30RayShape" transform="rotate(90 48 50)"/>
+    <use href="#s30RayShape" transform="rotate(120 48 50)"/>
+    <use href="#s30RayShape" transform="rotate(150 48 50)"/>
+    <use href="#s30RayShape" transform="rotate(180 48 50)"/>
+    <use href="#s30RayShape" transform="rotate(210 48 50)"/>
+    <use href="#s30RayShape" transform="rotate(240 48 50)"/>
+    <use href="#s30RayShape" transform="rotate(270 48 50)"/>
+    <use href="#s30RayShape" transform="rotate(300 48 50)"/>
+    <use href="#s30RayShape" transform="rotate(330 48 50)"/>
+  </g>
+  <circle cx="48" cy="50" r="40" fill="url(#s30Ring)"/>
+  <circle cx="48" cy="50" r="33" fill="url(#s30Body)"/>
+  <circle cx="48" cy="50" r="33" fill="none" stroke="#FFD18A" stroke-opacity="0.5" stroke-width="1.5"/>
+  <g fill="url(#s30Flame)">
+    <path d="M48 18 c4 6 7 9 7 13 c2 -1 3 -3 3 -5 c3 4 5 8 5 12 c0 2 -1 3 -1 4 H34 c0 -1 -1 -2 -1 -4 c0 -4 2 -8 5 -12 c0 2 1 4 3 5 c0 -4 2 -7 6 -13 Z"/>
+  </g>
+  <path fill="url(#s30Crown)" stroke="#9A6B12" stroke-width="0.8" stroke-linejoin="round" d="M31 62 L27 44 L39 53 L48 40 L57 53 L69 44 L65 62 Z"/>
+  <rect x="31" y="62" width="34" height="6" rx="2" fill="url(#s30Crown)" stroke="#9A6B12" stroke-width="0.8"/>
+  <circle cx="48" cy="47" r="2.6" fill="#FFF7D6"/>
+  <circle cx="30" cy="46" r="2" fill="#FFF7D6"/>
+  <circle cx="66" cy="46" r="2" fill="#FFF7D6"/>
+  <ellipse cx="40" cy="40" rx="12" ry="6" fill="#FFFFFF" fill-opacity="0.1"/>
+</svg>

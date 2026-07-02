@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="cardioTitle">
+  <title id="cardioTitle">Cardio Energy Medal</title>
+  <defs>
+    <radialGradient id="cdBody" cx="40%" cy="30%" r="82%">
+      <stop offset="0%" stop-color="#2A4D63"/>
+      <stop offset="60%" stop-color="#163445"/>
+      <stop offset="100%" stop-color="#0B2230"/>
+    </radialGradient>
+    <linearGradient id="cdRing" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5FC7E8"/>
+      <stop offset="100%" stop-color="#1A6F95"/>
+    </linearGradient>
+    <linearGradient id="cdBolt" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFE07A"/>
+      <stop offset="55%" stop-color="#FF9A2B"/>
+      <stop offset="100%" stop-color="#F2641E"/>
+    </linearGradient>
+  </defs>
+  <circle cx="48" cy="48" r="44" fill="url(#cdRing)"/>
+  <circle cx="48" cy="48" r="37" fill="url(#cdBody)"/>
+  <circle cx="48" cy="48" r="37" fill="none" stroke="#9FE3F5" stroke-opacity="0.4" stroke-width="1.5"/>
+  <path fill="none" stroke="#5FC7E8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M20 52 H32 L37 42 L44 60 L49 50 H58"/>
+  <path fill="url(#cdBolt)" stroke="#C24A12" stroke-width="0.8" stroke-linejoin="round" d="M54 24 L40 52 L50 52 L44 72 L66 42 L54 42 Z"/>
+  <ellipse cx="40" cy="32" rx="15" ry="8" fill="#FFFFFF" fill-opacity="0.12"/>
+</svg>

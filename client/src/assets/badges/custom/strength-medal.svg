@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="strengthTitle">
+  <title id="strengthTitle">Strength Medal</title>
+  <defs>
+    <radialGradient id="strBody" cx="38%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="#EDF1F5"/>
+      <stop offset="50%" stop-color="#8A929C"/>
+      <stop offset="100%" stop-color="#454B54"/>
+    </radialGradient>
+    <linearGradient id="strRing" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#D9DEE4"/>
+      <stop offset="100%" stop-color="#3A3F47"/>
+    </linearGradient>
+    <linearGradient id="strBar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FF6B5A"/>
+      <stop offset="100%" stop-color="#B5241A"/>
+    </linearGradient>
+  </defs>
+  <circle cx="48" cy="48" r="44" fill="url(#strRing)"/>
+  <circle cx="48" cy="48" r="37" fill="url(#strBody)"/>
+  <circle cx="48" cy="48" r="37" fill="none" stroke="#FFFFFF" stroke-opacity="0.45" stroke-width="1.5"/>
+  <g stroke="#2A2E34" stroke-width="1">
+    <rect x="22" y="38" width="7" height="20" rx="2" fill="#2F343B"/>
+    <rect x="29" y="33" width="7" height="30" rx="2" fill="#3A3F47"/>
+    <rect x="60" y="33" width="7" height="30" rx="2" fill="#3A3F47"/>
+    <rect x="67" y="38" width="7" height="20" rx="2" fill="#2F343B"/>
+    <rect x="36" y="44" width="24" height="8" rx="2" fill="url(#strBar)"/>
+  </g>
+  <ellipse cx="40" cy="32" rx="15" ry="8" fill="#FFFFFF" fill-opacity="0.3"/>
+</svg>

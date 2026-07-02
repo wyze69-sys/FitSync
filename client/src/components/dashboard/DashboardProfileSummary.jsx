@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
-import { Settings } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import authService from "../../services/authService.js";
 import { GENDERS, GOALS, ACTIVITY_LEVELS, WORKOUT_TYPES } from "../../utils/constants.js";
 import ErrorBanner from "../common/ErrorBanner.jsx";
 
 const LABEL =
-  "block text-[9px] font-mono font-semibold text-muted uppercase tracking-widest mb-1";
+  "block text-[10px] font-mono font-semibold text-muted uppercase tracking-widest mb-1.5";
 const INPUT =
-  "block w-full px-3 py-2 text-xs bg-bg border border-border focus:border-primary rounded-sm text-text focus:outline-none";
+  "block w-full px-4 py-3 text-sm bg-bg border border-border focus:border-primary rounded-xl text-text focus:outline-none";
 
 /**
  * Athlete profile card with an inline view/edit toggle. Persists target weight
@@ -64,11 +64,11 @@ export default function DashboardProfileSummary({ user, onProfileUpdated, onToas
   }
 
   return (
-    <div className="bg-surface p-4 rounded-sm border border-border space-y-4">
-      <div className="flex items-center justify-between pb-3 border-b border-border">
+    <div className="rounded-3xl border border-border bg-surface p-6 shadow-md">
+      <div className="flex items-center justify-between border-b border-border pb-4">
         <div className="flex items-center gap-2">
-          <Settings className="h-4 w-4 text-muted" aria-hidden="true" />
-          <h3 className="text-xs font-mono font-semibold text-text uppercase tracking-widest">
+          <SlidersHorizontal className="h-4 w-4 text-primary" aria-hidden="true" />
+          <h3 className="text-xs font-mono font-bold text-text uppercase tracking-[0.2em]">
             Athlete Profile
           </h3>
         </div>
@@ -87,17 +87,17 @@ export default function DashboardProfileSummary({ user, onProfileUpdated, onToas
       <ErrorBanner message={error} />
 
       {!isEditing ? (
-        <div className="space-y-3 pt-1 text-xs text-text">
-          <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-4 pt-4 text-sm text-text">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field label="Name" value={user.name} />
             <Field label="Gender" value={user.gender || "Not set"} capitalize />
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Field label="Age" value={`${user.age || "--"} yrs`} center numeric />
             <Field label="Height" value={`${user.height || "--"} cm`} center numeric />
             <Field label="Weight" value={`${user.weight || "--"} kg`} center numeric />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field
               label="Target Weight"
               value={user.targetWeight ? `${user.targetWeight} kg` : "Not set"}
@@ -109,7 +109,7 @@ export default function DashboardProfileSummary({ user, onProfileUpdated, onToas
           <Field label="Activity Level" value={user.activityLevel || "Active"} block />
         </div>
       ) : (
-        <form onSubmit={handleSave} className="space-y-4 text-left">
+        <form onSubmit={handleSave} className="space-y-5 pt-4 text-left">
           <div>
             <label htmlFor="p-name" className={LABEL}>
               Name
@@ -123,7 +123,7 @@ export default function DashboardProfileSummary({ user, onProfileUpdated, onToas
               className={INPUT}
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <label htmlFor="p-gender" className={LABEL}>
                 Gender
@@ -155,7 +155,7 @@ export default function DashboardProfileSummary({ user, onProfileUpdated, onToas
               />
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div>
               <label htmlFor="p-height" className={LABEL}>
                 Height (cm)
@@ -214,7 +214,7 @@ export default function DashboardProfileSummary({ user, onProfileUpdated, onToas
               ))}
             </select>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <label htmlFor="p-activity" className={LABEL}>
                 Activity Level
@@ -253,7 +253,7 @@ export default function DashboardProfileSummary({ user, onProfileUpdated, onToas
           <button
             type="submit"
             disabled={saving}
-            className="w-full py-2 bg-primary text-white font-medium text-xs rounded-sm uppercase tracking-widest transition-all cursor-pointer disabled:opacity-50"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-xs font-black uppercase tracking-widest text-primary-contrast shadow-sm hover:bg-primary-bright disabled:opacity-50 transition-all cursor-pointer"
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>
@@ -266,11 +266,11 @@ export default function DashboardProfileSummary({ user, onProfileUpdated, onToas
 function Field({ label, value, center, block, capitalize, numeric }) {
   return (
     <div
-      className={`bg-bg border border-border p-2.5 rounded-sm ${center ? "text-center" : ""} ${block ? "col-span-full" : ""}`}
+      className={`rounded-2xl border border-border bg-bg/70 p-6 ${center ? "text-center" : ""} ${block ? "col-span-full" : ""}`}
     >
-      <div className="text-[8px] font-mono uppercase tracking-wider text-muted">{label}</div>
+      <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted">{label}</div>
       <div
-        className={`font-semibold text-text mt-1 ${capitalize ? "capitalize" : ""} ${
+        className={`mt-2 text-base md:text-lg font-black text-text ${capitalize ? "capitalize" : ""} ${
           numeric ? "font-mono tabular-nums" : ""
         }`}
       >

@@ -121,14 +121,52 @@ const {
   calculateCalories,
   calculateMet,
   calculateXP,
+  calculateXpBreakdown,
+  cumulativeXpForLevel,
   getCategorySlug,
   getDistanceKm,
   getDurationMinutes,
-  resolveCategoryProfile
+  resolveCategoryProfile,
+  restoreCostForWeeklyStreak,
+  streakBonusForWeeklyStreak,
+  xpNeededForNextLevel
 } = require("../utils/calculators");
 
 const CHECKIN_XP = 10;
 const DEFAULT_LEVEL = { levelNumber: 1, xpRequired: 0, badgeUnlock: "level_1", title: "Starter" };
+
+/**
+ * Streak milestone -> achievement code mapping. A user is awarded every badge
+ * whose threshold is at or below their current streak. Codes match the seeded
+ * achievements catalog (database/seed.sql, bootstrap.js) and the frontend
+ * STREAK_ART mapping (client/src/utils/badgeAssets.js).
+ */
+const STREAK_BADGE_THRESHOLDS = [
+  { streak: 3, code: "streak_3" },
+  { streak: 7, code: "streak_7" },
+  { streak: 14, code: "streak_14" },
+  { streak: 30, code: "streak_30" }
+];
+
+/**
+ * Awards streak milestone badges for the user's current streak. Idempotent:
+ * relies on the repository's INSERT IGNORE on user_achievements, so repeated
+ * summary calls never duplicate an unlock. Does not touch XP/level logic.
+ * @param {string} userId User id.
+ * @param {number} currentStreak Current (weekly) streak count.
+ * @returns {Promise<string[]>} Codes that were newly unlocked by this call.
+ */
+async function awardStreakBadges(userId, currentStreak) {
+  const streak = Number(currentStreak || 0);
+  const newlyAwarded = [];
+  for (const { streak: threshold, code } of STREAK_BADGE_THRESHOLDS) {
+    if (streak >= threshold) {
+      const didUnlock = await gamificationRepository.unlockAchievement(userId, code);
+      if (didUnlock) newlyAwarded.push(code);
+    }
+  }
+  return newlyAwarded;
+}
 
 /**
  * Creates a controller-friendly HTTP error.
@@ -621,7 +659,7 @@ async function getWeeklyStreakStatus(userId, executor = pool) {
   const weekInfo = getCambodiaWeekInfo(new Date());
   const progress = await getCurrentWeekProgress(userId, executor);
 
-  const restoreCost = Math.min(150, 50 + 10 * statusData.weekly_streak);
+  const restoreCost = restoreCostForWeeklyStreak(statusData.weekly_streak);
   let restoreType = null;
   let canRestore = false;
 
@@ -774,6 +812,13 @@ async function buildSummary(userId) {
 
   const activeDates = await gamificationRepository.getActivityDates(userId);
   const stats = computeStreakStats(activeDates);
+
+  // Award streak milestone badges from the DAILY activity streak so they match
+  // the day-based badge names/descriptions (Three Day Start = 3-day streak,
+  // One Week Streak = 7-day, Two Week Habit = 14-day, Thirty Day Streak = 30-day).
+  // Idempotent via INSERT IGNORE, so this is safe to run on every summary fetch.
+  await awardStreakBadges(userId, stats.currentStreak);
+
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   const weekly = await gamificationRepository.getWeeklyWorkoutTotals(userId, toDateStr(sevenDaysAgo));
@@ -801,8 +846,10 @@ async function buildSummary(userId) {
   );
 
   return {
-    currentStreak: weeklyStatus.weeklyStreak,
-    longestStreak: weeklyStatus.weeklyLongestStreak,
+    currentStreak: stats.currentStreak,
+    longestStreak: stats.longestStreak,
+    weeklyStreak: weeklyStatus.weeklyStreak,
+    weeklyLongestStreak: weeklyStatus.weeklyLongestStreak,
     weeklyConsistency: stats.weeklyConsistency,
     activeDaysInLast7: stats.activeDaysInLast7,
     lastActiveDate: weeklyStatus.lastCountedWeekStart || stats.lastActiveDate,
@@ -819,7 +866,7 @@ async function buildSummary(userId) {
     title: level.title,
     nextLevelXp: nextLevel?.xpRequired || totalXp,
     next_level_xp: nextLevel?.xpRequired || totalXp,
-    streakMessage: streakMessage(weeklyStatus.weeklyStreak),
+    streakMessage: streakMessage(stats.currentStreak),
     badges: visibleCatalog.map((achievement) => ({
       code: achievement.code,
       name: achievement.name,
@@ -857,8 +904,18 @@ async function recordAutoWorkout(userId, payload) {
     const workout = { ...payload, category: categoryMeta.slug, duration_min: durationMin };
     const profile = resolveCategoryProfile(categoryMeta.slug, categoryMeta);
     const met = calculateMet(categoryMeta.slug, getDistanceKm(payload), durationMin, profile.baseMet);
-    const calories = calculateCalories(workout, weightKg, { categoryMeta, met });
-    const xp = calculateXP(workout, { categoryMeta, met });
+
+    // Read the current weekly streak so XP can award the streak bonus (PDF s.4/6).
+    const [[gamRow]] = await connection.execute(
+      "SELECT COALESCE(weekly_streak, 0) AS weekly_streak FROM user_gamification WHERE user_id = ? LIMIT 1",
+      [userId]
+    );
+    const weeklyStreak = Number(gamRow?.weekly_streak || 0);
+
+    const totalVolumeKg = Number(payload.totalVolumeKg ?? payload.total_volume_kg ?? 0);
+    const calories = calculateCalories(workout, weightKg, { categoryMeta, met, totalVolumeKg });
+    const xpBreakdown = calculateXpBreakdown(workout, { categoryMeta, weeklyStreak, totalVolumeKg });
+    const xp = xpBreakdown.finalXp;
     const date = payload.date || toDateStr(new Date());
     const workoutId = createId("wk");
     const title = payload.title || categoryMeta.name;
@@ -901,7 +958,7 @@ async function recordAutoWorkout(userId, payload) {
         workoutId,
         xp,
         `${categoryMeta.name} workout`,
-        JSON.stringify({ category: categoryMeta.slug, duration_min: durationMin, calories, met })
+        JSON.stringify({ ...xpBreakdown, category: categoryMeta.slug, calories })
       ]
     );
 
@@ -928,6 +985,7 @@ const gamificationService = {
   CATEGORY_MET_DATA: CATEGORY_PROFILES,
   calculateCalories,
   calculateXP,
+  calculateXpBreakdown,
   getCategoryMeta,
   recordAutoWorkout,
   addUserXp,
@@ -936,6 +994,7 @@ const gamificationService = {
   getWeeklyStreakStatus,
   restoreStreak,
   startNewStreak,
+  awardStreakBadges,
 
   async getSummary(userId) {
     return buildSummary(userId);
@@ -975,8 +1034,14 @@ const gamificationService = {
 module.exports = {
   gamificationService,
   getWeeklyStats,
+  awardStreakBadges,
   calculateXP,
+  calculateXpBreakdown,
   calculateCalories,
+  cumulativeXpForLevel,
+  xpNeededForNextLevel,
+  restoreCostForWeeklyStreak,
+  streakBonusForWeeklyStreak,
   CATEGORY_MET_DATA: CATEGORY_PROFILES,
   getCambodiaWeekInfo,
   getCambodiaDayOfWeek,

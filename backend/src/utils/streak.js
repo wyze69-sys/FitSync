@@ -76,21 +76,24 @@ function computeStreakStats(activeDates, now = new Date()) {
 
 function streakMessage(currentStreak) {
   if (currentStreak <= 0) {
-    return "Every session helps. Complete 3 workouts this week to start your streak!";
+    return "Every session counts. Work out today to start your streak!";
   }
   if (currentStreak === 1) {
-    return "First week completed! Keep it up next week to build your momentum.";
+    return "Day 1 done! Come back tomorrow to keep the streak alive.";
   }
-  if (currentStreak < 4) {
-    return "You are building weekly consistency. Stay on target and keep the streak going.";
+  if (currentStreak < 3) {
+    return "Two days in a row. One more day to earn your first streak badge!";
   }
-  if (currentStreak < 8) {
-    return "Several weeks of consistency! It's becoming part of your routine.";
+  if (currentStreak < 7) {
+    return "You're building a daily habit. Keep going to reach a 7-day streak.";
   }
-  if (currentStreak < 12) {
-    return "Over two months of weekly consistency! Your routine is getting stronger.";
+  if (currentStreak < 14) {
+    return "A full week streak! Stay consistent to hit 14 days.";
   }
-  return "Incredible consistency! Your habit is solid and reliable.";
+  if (currentStreak < 30) {
+    return "Two weeks strong! Your daily habit is locking in.";
+  }
+  return "Thirty days and counting. Incredible daily consistency!";
 }
 
 module.exports = { computeStreakStats, streakMessage, toDateStr };
