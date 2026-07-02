@@ -1,115 +1,82 @@
 /**
  * Maps backend badge/achievement data to local FitSync badge art.
  *
- * Two visually distinct families:
- *   - XP RANK emblems  (./assets/badges/rhosgfx-ranks/) -> downloaded RhosGFX
- *     "Vector Ranks" CC0 art (see rhosgfx-ranks/README.md and
- *     LICENSE-RhosGFX-Vector-Ranks.txt). This is the single source of truth for
- *     XP/level rank badges.
- *   - STREAK / category medals (./assets/badges/custom/) -> circular flame medals,
- *     each streak tier visually unique. Original FitSync art.
+ * Single visual family:
+ *   - XP LEVEL emblems (./assets/badges/xp-levels/) -> 12 user-provided
+ *     level/rank images, one image per XP level.
  *
  * This is a pure presentation helper. It does NOT change backend data: the
  * database `icon` (emoji) field, badge codes, names and CRUD all stay intact.
- *
- * Matching priority (most specific first):
- *   1. streak badge code / streak requirement value  -> unique streak medal
- *   2. explicit numeric level / level_N code          -> rank tier emblem
- *   3. keyword match across code/type/name/icon
- *   4. requirement-type fallback
- *   5. safe default (bronze rank)
  */
 
-// XP rank emblems (downloaded RhosGFX CC0 "Vector Ranks").
-import xpRankBronze from "../assets/badges/rhosgfx-ranks/xp-rank-bronze.svg";
-import xpRankSilver from "../assets/badges/rhosgfx-ranks/xp-rank-silver.svg";
-import xpRankGold from "../assets/badges/rhosgfx-ranks/xp-rank-gold.svg";
-import xpRankPlatinum from "../assets/badges/rhosgfx-ranks/xp-rank-platinum.svg";
-import xpRankDiamond from "../assets/badges/rhosgfx-ranks/xp-rank-diamond.svg";
-import xpRankChampion from "../assets/badges/rhosgfx-ranks/xp-rank-champion.svg";
-
-// Streak medals (circular flame family) — each tier is unique.
-import streak3 from "../assets/badges/custom/streak-3.svg";
-import streak7 from "../assets/badges/custom/streak-7.svg";
-import streak14 from "../assets/badges/custom/streak-14.svg";
-import streak30 from "../assets/badges/custom/streak-30.svg";
-
-// Category medals.
-import strengthMedal from "../assets/badges/custom/strength-medal.svg";
-import cardioBolt from "../assets/badges/custom/cardio-bolt.svg";
-import consistencyCrown from "../assets/badges/custom/consistency-crown.svg";
+import xpLevel01 from "../assets/badges/xp-levels/xp_level_01.png";
+import xpLevel02 from "../assets/badges/xp-levels/xp_level_02.png";
+import xpLevel03 from "../assets/badges/xp-levels/xp_level_03.png";
+import xpLevel04 from "../assets/badges/xp-levels/xp_level_04.png";
+import xpLevel05 from "../assets/badges/xp-levels/xp_level_05.png";
+import xpLevel06 from "../assets/badges/xp-levels/xp_level_06.png";
+import xpLevel07 from "../assets/badges/xp-levels/xp_level_07.png";
+import xpLevel08 from "../assets/badges/xp-levels/xp_level_08.png";
+import xpLevel09 from "../assets/badges/xp-levels/xp_level_09.png";
+import xpLevel10 from "../assets/badges/xp-levels/xp_level_10.png";
+import xpLevel11 from "../assets/badges/xp-levels/xp_level_11.png";
+import xpLevel12 from "../assets/badges/xp-levels/xp_level_12.png";
 
 export const RANK_ART = {
-  bronze: xpRankBronze,
-  silver: xpRankSilver,
-  gold: xpRankGold,
-  platinum: xpRankPlatinum,
-  diamond: xpRankDiamond,
-  champion: xpRankChampion
+  level_01: xpLevel01,
+  level_02: xpLevel02,
+  level_03: xpLevel03,
+  level_04: xpLevel04,
+  level_05: xpLevel05,
+  level_06: xpLevel06,
+  level_07: xpLevel07,
+  level_08: xpLevel08,
+  level_09: xpLevel09,
+  level_10: xpLevel10,
+  level_11: xpLevel11,
+  level_12: xpLevel12,
+
+  // Semantic aliases for non-numeric fallback matching.
+  bronze: xpLevel01,
+  silver: xpLevel03,
+  gold: xpLevel05,
+  platinum: xpLevel08,
+  diamond: xpLevel10,
+  champion: xpLevel12,
+  legendary: xpLevel12,
+  streak: xpLevel06,
+  strength: xpLevel07,
+  cardio: xpLevel07,
+  consistency: xpLevel08
 };
 
 export const STREAK_ART = {
-  streak_3: streak3,
-  streak_7: streak7,
-  streak_14: streak14,
-  streak_30: streak30
+  streak_3: xpLevel06,
+  streak_7: xpLevel08,
+  streak_14: xpLevel10,
+  streak_30: xpLevel12
 };
 
 export const BADGE_ART = {
   ...RANK_ART,
-  streak3,
-  streak7,
-  streak14,
-  streak30,
-  strength: strengthMedal,
-  cardio: cardioBolt,
-  consistency: consistencyCrown
+  ...STREAK_ART
 };
 
-const DEFAULT_ART = xpRankBronze;
+const DEFAULT_ART = xpLevel01;
 
 /**
- * Resolve a rank-tier art key from a numeric level.
- * level 1 -> bronze, 2 -> silver, 3 -> gold, 4 -> platinum, 5-6 -> diamond, 7+ -> champion.
+ * Resolve the exact XP-level art key from a numeric level.
+ * Levels above 12 use the level 12 final badge.
  * @param {number} level
  * @returns {string}
  */
 export function tierFromLevel(level) {
-  const n = Number(level || 0);
-  if (n >= 7) return "champion";
-  if (n >= 5) return "diamond";
-  if (n >= 4) return "platinum";
-  if (n >= 3) return "gold";
-  if (n >= 2) return "silver";
-  return "bronze";
-}
-
-/**
- * Picks the unique streak medal for a streak badge, by code first then by the
- * nearest requirement threshold (3/7/14/30). Returns an asset URL or null.
- * @param {object} badge
- * @returns {string|null}
- */
-function resolveStreakArt(badge) {
-  const code = String(badge.code || "").toLowerCase();
-  if (STREAK_ART[code]) return STREAK_ART[code];
-
-  const requirementType = String(badge.requirement || badge.requirementType || "").toLowerCase();
-  const isStreak = requirementType === "streak" || code.startsWith("streak") || /\bstreak\b/.test(String(badge.name || "").toLowerCase());
-  if (!isStreak) return null;
-
-  const value = Number(badge.value ?? badge.requirementValue ?? NaN);
-  if (!Number.isNaN(value)) {
-    if (value >= 30) return streak30;
-    if (value >= 14) return streak14;
-    if (value >= 7) return streak7;
-    return streak3;
-  }
-  return streak7;
+  const n = Math.max(1, Math.min(12, Math.floor(Number(level || 1))));
+  return `level_${String(n).padStart(2, "0")}`;
 }
 
 const KEYWORD_RULES = [
-  { key: "champion", patterns: ["champion", "elite", "legend", "master", "grandmaster"] },
+  { key: "champion", patterns: ["champion", "elite", "legend", "master", "grandmaster", "mythic"] },
   { key: "diamond", patterns: ["diamond", "crystal"] },
   { key: "platinum", patterns: ["platinum", "plat"] },
   { key: "gold", patterns: ["gold", "advanced", "expert"] },
@@ -117,6 +84,7 @@ const KEYWORD_RULES = [
   { key: "consistency", patterns: ["consistency", "consistent", "weekly", "habit", "dedication"] },
   { key: "strength", patterns: ["strength", "strong", "lift", "power", "muscle", "iron"] },
   { key: "cardio", patterns: ["cardio", "distance", "running", "run", "ride", "cycle", "swim", "endurance", "bolt", "heart"] },
+  { key: "streak", patterns: ["streak"] },
   { key: "bronze", patterns: ["bronze", "beginner", "first", "starter", "rookie", "start"] }
 ];
 
@@ -129,21 +97,18 @@ function buildHaystack(badge) {
 }
 
 /**
- * Resolves the local SVG asset URL for a badge. Always returns a valid asset.
+ * Resolves the local image asset URL for a badge. Always returns a valid asset.
  * @param {object} badge backend badge/achievement object
- * @returns {string} importable SVG URL
+ * @returns {string} importable image URL
  */
 export function getBadgeAsset(badge) {
   if (!badge) return DEFAULT_ART;
 
-  // 1. Streak badges get unique streak medals.
-  const streakArt = resolveStreakArt(badge);
-  if (streakArt) return streakArt;
-
-  // 2. Explicit numeric level / level_N code -> rank emblem.
   const levelValue = badge.level_number ?? badge.level;
   const requirementType = String(badge.requirement || badge.requirementType || "").toLowerCase();
   const code = String(badge.code || "").toLowerCase();
+
+  // Explicit numeric level / level_N code -> exact rank emblem.
   if (levelValue !== undefined && levelValue !== null && !Number.isNaN(Number(levelValue))) {
     return RANK_ART[tierFromLevel(levelValue)];
   }
@@ -155,7 +120,18 @@ export function getBadgeAsset(badge) {
     return RANK_ART[tierFromLevel(badge.value)];
   }
 
-  // 3. Keyword matching.
+  // Streak thresholds now reuse the single XP-level image family.
+  if (requirementType === "streak" || code.startsWith("streak") || /\bstreak\b/.test(String(badge.name || "").toLowerCase())) {
+    const value = Number(badge.value ?? badge.requirementValue ?? NaN);
+    if (!Number.isNaN(value)) {
+      if (value >= 30) return xpLevel12;
+      if (value >= 14) return xpLevel10;
+      if (value >= 7) return xpLevel08;
+      return xpLevel06;
+    }
+    return xpLevel06;
+  }
+
   const haystack = buildHaystack(badge);
   for (const rule of KEYWORD_RULES) {
     if (rule.patterns.some((p) => haystack.includes(p))) {
@@ -163,8 +139,7 @@ export function getBadgeAsset(badge) {
     }
   }
 
-  // 4. Requirement-type fallback.
-  if (requirementType === "workout") return strengthMedal;
+  if (requirementType === "workout") return xpLevel07;
 
   return DEFAULT_ART;
 }

@@ -880,14 +880,7 @@ export default function Dashboard() {
         {/* Badge Card */}
         <article className="rounded-2xl border border-border bg-surface p-6 md:col-span-4 xl:col-span-3 flex flex-col items-center justify-center min-h-[140px]">
           <div className="flex flex-col items-center justify-center py-2.5">
-            <div className="relative size-16 flex items-center justify-center">
-              {/* Rotated square for diamond */}
-              <div className="absolute inset-0 rotate-45 rounded-lg border-2 border-primary/35 bg-surface" />
-              {/* Circular badge in center */}
-              <div className="relative grid size-10 place-items-center rounded-full border border-primary/50 bg-bg font-mono text-sm font-black text-primary">
-                {level}
-              </div>
-            </div>
+            <BadgeMedal level={level} size="md" showLevel={false} />
             <div className="mt-4 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
               {(gamification.title || "Warm Up").toUpperCase()} BADGE
             </div>

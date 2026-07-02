@@ -65,10 +65,7 @@ export default function XPProgressBar({ totalXp = 0, nextLevelXp = 0, level = 1,
             </div>
           ) : (
             <div className="flex flex-col items-center text-center">
-              {/* Fallback Badge Monogram if no badge exists */}
-              <div className="h-12 w-12 mx-auto relative shrink-0 flex items-center justify-center rounded-xl border border-border bg-bg/50">
-                <span className="font-mono text-xs font-bold text-muted">LVL</span>
-              </div>
+              <RankMedal level={level} title={title} size="sm" />
               <span className="mt-2 text-[10px] font-bold uppercase tracking-wider text-secondary">
                 Level {level}
               </span>
