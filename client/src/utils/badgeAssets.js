@@ -62,19 +62,22 @@ function isLevelRequirement(requirementType) {
   return requirementType === "level" || requirementType === "xp_level" || requirementType === "rank";
 }
 
-/**
- * Resolves the local XP-level image asset URL for a badge.
- * Returns null for streak/category/workout achievements because XP art should
- * not be reused for those badge families.
- * @param {object} badge backend badge/achievement object
- * @returns {string|null} importable image URL for XP levels, otherwise null
- */
 export function getBadgeAsset(badge) {
   if (!badge) return null;
 
-  const levelValue = badge.level_number ?? badge.level;
-  const requirementType = String(badge.requirement || badge.requirementType || "").toLowerCase();
   const code = String(badge.code || "").toLowerCase();
+  const requirementType = String(badge.requirement || badge.requirementType || "").toLowerCase();
+  const levelValue = badge.level_number ?? badge.level;
+
+  // If the badge represents a specific system badge from DB/endpoints
+  // (which has a non-empty code or requirementType), it MUST be an XP level to use XP art.
+  const hasCodeOrReq = !!(badge.code || badge.requirement || badge.requirementType);
+  if (hasCodeOrReq) {
+    const isXP = code.match(/^level[_-]?\d+$/) || isLevelRequirement(requirementType);
+    if (!isXP) {
+      return null; // Keep non-XP badges blank
+    }
+  }
 
   // Explicit numeric level / level_N code -> exact XP-level emblem.
   if (levelValue !== undefined && levelValue !== null && !Number.isNaN(Number(levelValue))) {
