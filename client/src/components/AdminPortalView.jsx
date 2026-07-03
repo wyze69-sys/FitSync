@@ -144,7 +144,7 @@ export default function AdminPortalView() {
   const [bdgReqType, setBdgReqType] = useState("streak");
   const [bdgCustomReqType, setBdgCustomReqType] = useState("");
   const [bdgReqValue, setBdgReqValue] = useState(0);
-  const [bdgIcon, setBdgIcon] = useState("🏆");
+  const [bdgIcon, setBdgIcon] = useState("");
   const [bdgSortOrder, setBdgSortOrder] = useState(0);
   const [bdgIsActive, setBdgIsActive] = useState(true);
   const [bdgFormError, setBdgFormError] = useState(null);
@@ -556,7 +556,7 @@ export default function AdminPortalView() {
     setBdgReqType("streak");
     setBdgCustomReqType("");
     setBdgReqValue(0);
-    setBdgIcon("🏆");
+    setBdgIcon("");
     setBdgSortOrder(0);
     setBdgIsActive(true);
     setBdgFormError(null);
@@ -579,7 +579,7 @@ export default function AdminPortalView() {
     }
     
     setBdgReqValue(badge.value || 0);
-    setBdgIcon(badge.icon || "🏆");
+    setBdgIcon(badge.icon || "");
     setBdgSortOrder(badge.sortOrder || 0);
     setBdgIsActive(badge.isActive !== false);
     setBdgFormError(null);
@@ -2050,12 +2050,16 @@ export default function AdminPortalView() {
                             <div className="flex items-start justify-between gap-4">
                               <div className="flex items-center gap-3.5">
                                 <div className={`grid place-items-center h-[88px] w-[88px] shrink-0 rounded-xl border bg-gradient-to-b from-bg to-surface ${badge.isActive ? "border-primary/30" : "border-border grayscale opacity-60"}`}>
-                                  <img
-                                    src={getBadgeAsset(badge)}
-                                    alt={`${badge.name} badge art`}
-                                    className="h-[72px] w-[72px] object-contain drop-shadow-[0_3px_7px_rgba(0,0,0,0.28)]"
-                                    draggable="false"
-                                  />
+                                  {getBadgeAsset(badge) ? (
+                                    <img
+                                      src={getBadgeAsset(badge)}
+                                      alt={`${badge.name} XP level badge art`}
+                                      className="h-[72px] w-[72px] object-contain drop-shadow-[0_3px_7px_rgba(0,0,0,0.28)]"
+                                      draggable="false"
+                                    />
+                                  ) : (
+                                    <span className="block h-[72px] w-[72px] rounded-full border border-dashed border-border bg-bg/50" aria-hidden="true" />
+                                  )}
                                 </div>
                                 <div>
                                   <h3 className="text-sm font-bold text-text line-clamp-2">{badge.name}</h3>
@@ -2268,21 +2272,31 @@ export default function AdminPortalView() {
                           </label>
                           <div className="flex items-center gap-3.5 mb-2.5 p-3 bg-bg border border-border rounded-lg">
                             <div className="grid place-items-center h-[80px] w-[80px] shrink-0 rounded-xl border border-primary/30 bg-gradient-to-b from-bg to-surface">
-                              <img
-                                src={getBadgeAsset({
-                                  code: bdgCode,
-                                  name: bdgName,
-                                  requirement: bdgReqType === "custom" ? bdgCustomReqType : bdgReqType,
-                                  value: bdgReqValue,
-                                  icon: bdgIcon
-                                })}
-                                alt="Badge art preview"
-                                className="h-[68px] w-[68px] object-contain drop-shadow-[0_3px_7px_rgba(0,0,0,0.28)]"
-                                draggable="false"
-                              />
+                              {getBadgeAsset({
+                                code: bdgCode,
+                                name: bdgName,
+                                requirement: bdgReqType === "custom" ? bdgCustomReqType : bdgReqType,
+                                value: bdgReqValue,
+                                icon: bdgIcon
+                              }) ? (
+                                <img
+                                  src={getBadgeAsset({
+                                    code: bdgCode,
+                                    name: bdgName,
+                                    requirement: bdgReqType === "custom" ? bdgCustomReqType : bdgReqType,
+                                    value: bdgReqValue,
+                                    icon: bdgIcon
+                                  })}
+                                  alt="XP level badge art preview"
+                                  className="h-[68px] w-[68px] object-contain drop-shadow-[0_3px_7px_rgba(0,0,0,0.28)]"
+                                  draggable="false"
+                                />
+                              ) : (
+                                <span className="block h-[68px] w-[68px] rounded-full border border-dashed border-border bg-bg/50" aria-hidden="true" />
+                              )}
                             </div>
                             <p className="text-[10px] text-muted leading-relaxed">
-                              Live preview of the collectible medal art mapped to this badge. The art is chosen automatically from the badge code, name and type.
+                              XP-level badges use level art automatically. Other badge types stay blank until separate artwork is added.
                             </p>
                           </div>
                           <div className="flex gap-2">
@@ -2290,27 +2304,15 @@ export default function AdminPortalView() {
                               id="bdg-icon"
                               type="text"
                               maxLength={80}
-                              placeholder="e.g. 🏆"
+                              placeholder="Leave blank until artwork exists"
                               value={bdgIcon}
                               onChange={(e) => setBdgIcon(e.target.value)}
                               className={`${INPUT} flex-grow`}
                             />
                           </div>
-                          <div className="mt-2.5 space-y-1">
-                            <span className="text-[9px] font-mono text-muted uppercase tracking-wider block">Quick Presets:</span>
-                            <div className="flex flex-wrap gap-1.5">
-                              {["🏆", "🥇", "🥈", "🥉", "⭐", "🔥", "⚡", "🏅", "🏃‍♂️", "🏋️‍♂️", "🧘‍♂️", "🚴‍♂️", "🏊‍♂️", "🧗‍♂️", "🥗"].map(emoji => (
-                                <button
-                                  key={emoji}
-                                  type="button"
-                                  onClick={() => setBdgIcon(emoji)}
-                                  className="w-7 h-7 bg-bg hover:bg-border/30 border border-border rounded-sm flex items-center justify-center text-sm cursor-pointer transition-all"
-                                >
-                                  {emoji}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
+                          <p className="mt-2.5 text-[9px] font-mono text-muted uppercase tracking-wider">
+                            No emoji/icon presets. Add real artwork later.
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -2657,7 +2659,7 @@ export default function AdminPortalView() {
                             <option value="">-- No Badge Reward --</option>
                             {badges.map(b => (
                               <option key={b.code} value={b.code}>
-                                {b.icon || "🏆"} {b.name} ({b.code})
+                                {b.name} ({b.code})
                               </option>
                             ))}
                           </select>

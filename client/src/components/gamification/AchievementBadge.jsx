@@ -28,8 +28,7 @@ const LEVEL_CHIP_CLASSES = {
 };
 
 /**
- * Renders a single premium medal image from local SVG art.
- * Supports earned (full color, glow) and locked (grayscale, lock overlay) states.
+ * Lock overlay used for locked badge states.
  */
 function LockEmblem({ className = "h-5 w-5" }) {
   return (
@@ -41,8 +40,8 @@ function LockEmblem({ className = "h-5 w-5" }) {
 }
 
 /**
- * Renders a single premium medal image from local SVG art.
- * Supports earned (full color, glow) and locked (grayscale, lock overlay) states.
+ * Renders a single premium XP-level image when available.
+ * Non-XP achievements stay visually blank until separate artwork exists.
  */
 export function BadgeMedal({ badge, level, title, size = "md", locked = false, showLevel = true }) {
   const source = badge ?? (level !== undefined ? { level, name: title } : null);
@@ -54,17 +53,26 @@ export function BadgeMedal({ badge, level, title, size = "md", locked = false, s
 
   return (
     <div className={`relative mx-auto shrink-0 ${sizeClass}`}>
-      <img
-        src={src}
-        alt=""
-        aria-hidden="true"
-        draggable="false"
-        className={`h-full w-full select-none object-contain transition-all duration-300 ${
-          locked
-            ? "grayscale opacity-30"
-            : "drop-shadow-[0_4px_10px_rgba(0,0,0,0.28)]"
-        }`}
-      />
+      {src ? (
+        <img
+          src={src}
+          alt=""
+          aria-hidden="true"
+          draggable="false"
+          className={`h-full w-full select-none object-contain transition-all duration-300 ${
+            locked
+              ? "grayscale opacity-30"
+              : "drop-shadow-[0_4px_10px_rgba(0,0,0,0.28)]"
+          }`}
+        />
+      ) : (
+        <span
+          aria-hidden="true"
+          className={`block h-full w-full rounded-full border border-dashed border-border/70 bg-bg/35 transition-all duration-300 ${
+            locked ? "opacity-30" : "shadow-sm"
+          }`}
+        />
+      )}
       {locked && (
         <span className="absolute inset-0 grid place-items-center">
           <LockEmblem className="h-6 w-6 text-muted/60" aria-hidden="true" />

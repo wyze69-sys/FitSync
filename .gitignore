@@ -17,3 +17,8 @@ backend/.env.*
 *.p12
 *.pfx
 secrets/
+
+# IDE and temporary folders
+.vscode/
+.understand-anything/
+home-refresh-unzipped/

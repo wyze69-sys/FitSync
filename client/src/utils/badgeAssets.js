@@ -1,12 +1,12 @@
 /**
- * Maps backend badge/achievement data to local FitSync badge art.
+ * Maps backend XP level data to local FitSync XP-level badge art.
  *
- * Single visual family:
- *   - XP LEVEL emblems (./assets/badges/xp-levels/) -> 12 user-provided
- *     level/rank images, one image per XP level.
+ * XP LEVEL emblems (./assets/badges/xp-levels/) -> 10 user-provided images,
+ * one image per XP level. These assets are XP-level only; streak/category
+ * achievements intentionally do not reuse them.
  *
  * This is a pure presentation helper. It does NOT change backend data: the
- * database `icon` (emoji) field, badge codes, names and CRUD all stay intact.
+ * database `icon` field, badge codes, names and CRUD all stay intact.
  */
 
 import xpLevel01 from "../assets/badges/xp-levels/xp_level_01.png";
@@ -19,8 +19,8 @@ import xpLevel07 from "../assets/badges/xp-levels/xp_level_07.png";
 import xpLevel08 from "../assets/badges/xp-levels/xp_level_08.png";
 import xpLevel09 from "../assets/badges/xp-levels/xp_level_09.png";
 import xpLevel10 from "../assets/badges/xp-levels/xp_level_10.png";
-import xpLevel11 from "../assets/badges/xp-levels/xp_level_11.png";
-import xpLevel12 from "../assets/badges/xp-levels/xp_level_12.png";
+
+const MAX_XP_BADGE_LEVEL = 10;
 
 export const RANK_ART = {
   level_01: xpLevel01,
@@ -32,116 +32,65 @@ export const RANK_ART = {
   level_07: xpLevel07,
   level_08: xpLevel08,
   level_09: xpLevel09,
-  level_10: xpLevel10,
-  level_11: xpLevel11,
-  level_12: xpLevel12,
-
-  // Semantic aliases for non-numeric fallback matching.
-  bronze: xpLevel01,
-  silver: xpLevel03,
-  gold: xpLevel05,
-  platinum: xpLevel08,
-  diamond: xpLevel10,
-  champion: xpLevel12,
-  legendary: xpLevel12,
-  streak: xpLevel06,
-  strength: xpLevel07,
-  cardio: xpLevel07,
-  consistency: xpLevel08
+  level_10: xpLevel10
 };
 
+// Streak badge artwork is intentionally not implemented yet.
 export const STREAK_ART = {
-  streak_3: xpLevel06,
-  streak_7: xpLevel08,
-  streak_14: xpLevel10,
-  streak_30: xpLevel12
+  streak_3: null,
+  streak_7: null,
+  streak_14: null,
+  streak_30: null
 };
 
 export const BADGE_ART = {
-  ...RANK_ART,
-  ...STREAK_ART
+  ...RANK_ART
 };
-
-const DEFAULT_ART = xpLevel01;
 
 /**
  * Resolve the exact XP-level art key from a numeric level.
- * Levels above 12 use the level 12 final badge.
+ * Levels above 10 use the level 10 final badge.
  * @param {number} level
  * @returns {string}
  */
 export function tierFromLevel(level) {
-  const n = Math.max(1, Math.min(12, Math.floor(Number(level || 1))));
+  const n = Math.max(1, Math.min(MAX_XP_BADGE_LEVEL, Math.floor(Number(level || 1))));
   return `level_${String(n).padStart(2, "0")}`;
 }
 
-const KEYWORD_RULES = [
-  { key: "champion", patterns: ["champion", "elite", "legend", "master", "grandmaster", "mythic"] },
-  { key: "diamond", patterns: ["diamond", "crystal"] },
-  { key: "platinum", patterns: ["platinum", "plat"] },
-  { key: "gold", patterns: ["gold", "advanced", "expert"] },
-  { key: "silver", patterns: ["silver", "intermediate", "warm up", "warmup"] },
-  { key: "consistency", patterns: ["consistency", "consistent", "weekly", "habit", "dedication"] },
-  { key: "strength", patterns: ["strength", "strong", "lift", "power", "muscle", "iron"] },
-  { key: "cardio", patterns: ["cardio", "distance", "running", "run", "ride", "cycle", "swim", "endurance", "bolt", "heart"] },
-  { key: "streak", patterns: ["streak"] },
-  { key: "bronze", patterns: ["bronze", "beginner", "first", "starter", "rookie", "start"] }
-];
-
-function buildHaystack(badge) {
-  if (!badge) return "";
-  return [badge.code, badge.requirement, badge.requirementType, badge.type, badge.category, badge.name, badge.title, badge.icon]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
+function isLevelRequirement(requirementType) {
+  return requirementType === "level" || requirementType === "xp_level" || requirementType === "rank";
 }
 
 /**
- * Resolves the local image asset URL for a badge. Always returns a valid asset.
+ * Resolves the local XP-level image asset URL for a badge.
+ * Returns null for streak/category/workout achievements because XP art should
+ * not be reused for those badge families.
  * @param {object} badge backend badge/achievement object
- * @returns {string} importable image URL
+ * @returns {string|null} importable image URL for XP levels, otherwise null
  */
 export function getBadgeAsset(badge) {
-  if (!badge) return DEFAULT_ART;
+  if (!badge) return null;
 
   const levelValue = badge.level_number ?? badge.level;
   const requirementType = String(badge.requirement || badge.requirementType || "").toLowerCase();
   const code = String(badge.code || "").toLowerCase();
 
-  // Explicit numeric level / level_N code -> exact rank emblem.
+  // Explicit numeric level / level_N code -> exact XP-level emblem.
   if (levelValue !== undefined && levelValue !== null && !Number.isNaN(Number(levelValue))) {
     return RANK_ART[tierFromLevel(levelValue)];
   }
+
   const levelCodeMatch = code.match(/^level[_-]?(\d+)$/);
   if (levelCodeMatch) {
     return RANK_ART[tierFromLevel(levelCodeMatch[1])];
   }
-  if (requirementType === "level" && badge.value) {
+
+  if (isLevelRequirement(requirementType) && badge.value) {
     return RANK_ART[tierFromLevel(badge.value)];
   }
 
-  // Streak thresholds now reuse the single XP-level image family.
-  if (requirementType === "streak" || code.startsWith("streak") || /\bstreak\b/.test(String(badge.name || "").toLowerCase())) {
-    const value = Number(badge.value ?? badge.requirementValue ?? NaN);
-    if (!Number.isNaN(value)) {
-      if (value >= 30) return xpLevel12;
-      if (value >= 14) return xpLevel10;
-      if (value >= 7) return xpLevel08;
-      return xpLevel06;
-    }
-    return xpLevel06;
-  }
-
-  const haystack = buildHaystack(badge);
-  for (const rule of KEYWORD_RULES) {
-    if (rule.patterns.some((p) => haystack.includes(p))) {
-      return BADGE_ART[rule.key] || DEFAULT_ART;
-    }
-  }
-
-  if (requirementType === "workout") return xpLevel07;
-
-  return DEFAULT_ART;
+  return null;
 }
 
 export default getBadgeAsset;

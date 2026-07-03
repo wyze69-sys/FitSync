@@ -27,19 +27,13 @@ import gamificationService from "../services/gamificationService.js";
 import announcementService from "../services/announcementService.js";
 import nutritionService from "../services/nutritionService.js";
 import progressService from "../services/progressService.js";
-import { STREAK_ART } from "../utils/badgeAssets.js";
 
 /**
- * Picks the streak medal art for a celebration streak count, matching the
- * backend award thresholds (3/7/14/30). Returns null when no milestone art
- * applies so the caller can fall back to the generic flame.
+ * Streak artwork is intentionally not implemented yet. XP-level badge art is
+ * reserved for XP levels only, so streak celebrations stay blank until a
+ * separate streak badge family exists.
  */
-function streakArtForCount(streak) {
-  const n = Number(streak || 0);
-  if (n >= 30) return STREAK_ART.streak_30;
-  if (n >= 14) return STREAK_ART.streak_14;
-  if (n >= 7) return STREAK_ART.streak_7;
-  if (n >= 3) return STREAK_ART.streak_3;
+function streakArtForCount() {
   return null;
 }
 
@@ -1181,9 +1175,7 @@ function CelebrationModal({ celebration, onClose }) {
               />
             </div>
           ) : (
-            <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-3xl border border-streak/30 bg-streak/5 text-streak shadow-sm">
-              <span className="font-mono text-xl font-bold tracking-widest">STK</span>
-            </div>
+            <div className="mx-auto h-24 w-24 rounded-3xl border border-dashed border-border bg-bg/35 shadow-sm" aria-hidden="true" />
           )}
         </div>
         <h2 id="celebration-title" className="mt-6 text-2xl font-black text-text">
