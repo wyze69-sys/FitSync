@@ -9,7 +9,11 @@ import {
   Flame,
   Sparkles,
   Trophy,
-  Salad
+  Salad,
+  CheckCircle2,
+  Target,
+  TrendingUp,
+  Quote
 } from "lucide-react";
 
 const STAT_ICONS = {
@@ -17,6 +21,19 @@ const STAT_ICONS = {
   Minutes: HeartPulse,
   Calories: Flame,
   XP: Sparkles
+};
+
+const LEVEL_SUBTITLES = {
+  1: { xpDesc: "Starting your fitness journey.", badgeDesc: "Start showing up and build habits." },
+  2: { xpDesc: "Building momentum. Keep it up.", badgeDesc: "Habit foundation unlocked." },
+  3: { xpDesc: "Reliable. Consistent. Building momentum.", badgeDesc: "Keep showing up and level up." },
+  4: { xpDesc: "Establishing a solid routine.", badgeDesc: "Dedicated consistency." },
+  5: { xpDesc: "Unstoppable momentum. Keep pushing.", badgeDesc: "Pushing boundaries daily." },
+  6: { xpDesc: "Trained and disciplined athlete.", badgeDesc: "Perform like a champion." },
+  7: { xpDesc: "Specializing and refining your habits.", badgeDesc: "Dedication in every session." },
+  8: { xpDesc: "Pro athlete level. Serious results.", badgeDesc: "Leading by absolute example." },
+  9: { xpDesc: "Elite fitness performer.", badgeDesc: "Exceptional mastery of habits." },
+  10: { xpDesc: "Absolute legend. Peak consistency.", badgeDesc: "Inspirational commitment." },
 };
 import { useAuth } from "../context/AuthContext.jsx";
 import EmptyState from "../components/common/EmptyState.jsx";
@@ -174,7 +191,9 @@ export default function Dashboard() {
   }, [gamification.badges, gamification.title]);
 
   const badges = useMemo(() => {
-    return gamification.badges || [];
+    return (gamification.badges || []).filter(
+      (b) => String(b.requirement || "").toLowerCase() !== "streak"
+    );
   }, [gamification.badges]);
 
   const nextReward = useMemo(() => {
@@ -835,74 +854,101 @@ export default function Dashboard() {
         </article>
       </section>
 
-      <section className="grid gap-4 text-left grid-cols-1 md:grid-cols-12" aria-label="Athlete progress summary">
-        {/* Commit Streak Card */}
-        <article className="rounded-2xl border border-border bg-surface p-6 md:col-span-12 xl:col-span-3 flex flex-col justify-between min-h-[140px]">
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Commit streak</span>
-            <span className="rounded border border-border/40 bg-bg/50 px-2 py-0.5 font-mono text-[10px] font-bold uppercase text-muted">STK</span>
-          </div>
-          <div className="flex items-baseline gap-1 mt-3">
-            <span className="font-mono text-5xl font-black text-streak">{currentStreak}</span>
-            <span className="text-xs text-secondary font-medium lowercase">days</span>
-          </div>
-          <div className="text-xs text-muted mt-2">Longest {longestStreak} days</div>
-        </article>
-
-        {/* Athlete XP Card */}
-        <article className="rounded-2xl border border-border bg-surface p-6 md:col-span-8 xl:col-span-6 flex flex-col justify-between min-h-[140px]">
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Athlete XP · Level {level}</span>
-            <span className="rounded border border-primary/20 bg-primary/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase text-primary">
-              XP {totalXp} / {xpMax}
-            </span>
-          </div>
-          <div className="text-2xl font-black uppercase text-text tracking-tight mt-3">
-            {gamification.title || "Warm Up"}
-          </div>
-          <div className="mt-4">
-            <div className="h-1.5 overflow-hidden rounded-full bg-bg">
-              <div className="h-full rounded-full bg-primary transition-all duration-700" style={{ width: `${xpPct}%` }} />
+      {/* Connected Progress Summary Card */}
+      <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm text-left" aria-label="Athlete progress summary">
+        {/* Top part: Streak, XP Progress, Current Badge */}
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-12 items-stretch">
+          {/* Commit Streak Column */}
+          <div className="md:col-span-3 flex flex-col justify-between border-b md:border-b-0 md:border-r border-border/60 pb-6 md:pb-0 md:pr-6">
+            <div>
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Commit streak</span>
+              <div className="flex items-center gap-3 mt-4">
+                <div className="grid size-10 place-items-center rounded-xl bg-orange-500/10 text-streak">
+                  <Flame className="h-6 w-6" fill="currentColor" />
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="font-mono text-4xl font-black text-text leading-none">{currentStreak}</span>
+                  <span className="text-xs text-secondary font-semibold lowercase">
+                    {currentStreak === 1 ? "day" : "days"}
+                  </span>
+                </div>
+              </div>
             </div>
-            <div className="mt-2 flex justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
-              <span>{xpPct}% to Level {level + 1}</span>
-              <span>{xpRemaining} XP remaining</span>
+            <div className="text-[11px] font-mono uppercase tracking-wider text-muted mt-4">
+              Longest <span className="font-bold text-text">{longestStreak} {longestStreak === 1 ? "day" : "days"}</span>
             </div>
           </div>
-        </article>
 
-        {/* Badge Card */}
-        <article className="rounded-2xl border border-border bg-surface p-6 md:col-span-4 xl:col-span-3 flex flex-col items-center justify-center min-h-[140px]">
-          <div className="flex flex-col items-center justify-center py-2.5">
+          {/* Athlete XP / Level Progress Column */}
+          <div className="md:col-span-6 flex flex-col justify-between border-b md:border-b-0 md:border-r border-border/60 pb-6 md:pb-0 md:px-6">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Athlete XP · Level {level}</span>
+              <span className="rounded bg-primary/10 border border-primary/20 px-2 py-0.5 font-mono text-[10px] font-bold uppercase text-primary">
+                XP {totalXp} / {xpMax}
+              </span>
+            </div>
+            <div className="mt-3">
+              <div className="text-xl font-black uppercase text-text tracking-tight">
+                {gamification.title || "Warm Up"}
+              </div>
+              <p className="text-[11px] text-secondary font-medium mt-0.5 leading-relaxed">
+                {LEVEL_SUBTITLES[level]?.xpDesc || "Reliable. Consistent. Building momentum."}
+              </p>
+            </div>
+            <div className="mt-4">
+              <div className="h-2 overflow-hidden rounded-full bg-bg">
+                <div className="h-full rounded-full bg-primary transition-all duration-700" style={{ width: `${xpPct}%` }} />
+              </div>
+              <div className="mt-2 flex justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
+                <span>{xpPct}% to Level {level + 1}</span>
+                <span>{xpRemaining} XP remaining</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Current Badge Column */}
+          <div className="md:col-span-3 flex flex-col items-center justify-center text-center pt-4 md:pt-0 md:pl-6">
             <BadgeMedal level={level} size="md" showLevel={false} />
-            <div className="mt-4 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
-              {(gamification.title || "Warm Up").toUpperCase()} BADGE
+            <div className="mt-3">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] font-bold text-text">
+                {(gamification.title || "Warm Up")} Badge
+              </div>
+              <p className="text-[10px] text-muted font-medium mt-1 leading-snug">
+                {LEVEL_SUBTITLES[level]?.badgeDesc || "Keep showing up and level up."}
+              </p>
             </div>
           </div>
-        </article>
-      </section>
+        </div>
 
-      <section className="grid gap-4 text-left grid-cols-1 sm:grid-cols-2 xl:grid-cols-4" aria-label="Today's summary">
-        {todaySummary.map((item) => {
-          const IconComponent = STAT_ICONS[item.label];
-          return (
-            <article key={item.label} className="group flex items-center justify-between rounded-2xl border border-border bg-surface p-6 transition hover:border-primary/40">
-              <div className="min-w-0 space-y-1">
-                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">{item.label.toUpperCase()}</div>
-                <div className="font-mono text-3xl font-black text-text leading-none">{item.value}</div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted/70">{item.sub.toUpperCase()}</div>
-              </div>
-              <div className="grid size-10 shrink-0 place-items-center rounded-xl border border-primary/20 bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-contrast">
-                {IconComponent && <IconComponent className="h-5 w-5" aria-hidden="true" />}
-              </div>
-            </article>
-          );
-        })}
+        {/* Separator line */}
+        <div className="my-6 border-t border-border/60" />
+
+        {/* Bottom part: Today Snapshot Header & Metrics */}
+        <div>
+          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted block mb-4">Today Snapshot</span>
+          <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+            {todaySummary.map((item) => {
+              const IconComponent = STAT_ICONS[item.label];
+              return (
+                <div key={item.label} className="flex items-center gap-3.5 rounded-xl border border-border bg-bg/50 p-4 transition hover:border-primary/20">
+                  <div className="grid size-10 shrink-0 place-items-center rounded-xl border border-primary/10 bg-primary/5 text-primary">
+                    {IconComponent && <IconComponent className="h-5 w-5" aria-hidden="true" />}
+                  </div>
+                  <div className="min-w-0 space-y-0.5">
+                    <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-muted font-bold">{item.label}</div>
+                    <div className="font-mono text-2xl font-black text-text leading-none">{item.value}</div>
+                    <div className="font-mono text-[8px] uppercase tracking-widest text-muted/60">{item.sub}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </section>
 
       <section className="grid gap-6 grid-cols-1 lg:grid-cols-3 text-left">
         {/* Nutrition Card - Nutrition & Recovery Preview */}
-        <article className="rounded-2xl border border-border bg-surface p-6 lg:col-span-2 flex flex-col justify-between">
+        <article className="rounded-3xl border border-border bg-surface p-6 lg:col-span-2 flex flex-col justify-between">
           <div>
             <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
@@ -926,42 +972,51 @@ export default function Dashboard() {
             ) : (
               <>
                 <div className="mb-6 grid gap-4 md:grid-cols-2">
-                  <div className="rounded-xl border border-border/60 bg-bg p-4">
-                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Today's Target</div>
-                    <div className="mt-1 font-mono text-2xl font-bold text-text">
-                      {nutritionPlan.calculations?.todayAdjustedTarget || nutritionPlan.activePlan?.calories || 0}{" "}
-                      <span className="text-xs text-muted font-normal lowercase">kcal</span>
+                  <div className="rounded-2xl border border-border bg-bg/50 p-5 flex flex-col justify-between">
+                    <div>
+                      <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted font-bold">Calorie Target</div>
+                      <div className="mt-2 font-mono text-3xl font-black text-text flex items-baseline gap-1">
+                        {nutritionPlan.calculations?.todayAdjustedTarget || nutritionPlan.activePlan?.calories || 0}{" "}
+                        <span className="text-xs text-muted font-bold lowercase">kcal</span>
+                      </div>
                     </div>
-                    <div className="mt-2 text-xs text-muted">Adjusted based on today's workouts: +{nutritionPlan.calculations?.todayWorkoutCalories || 0} kcal burn</div>
+                    <div className="mt-3 text-[10px] leading-relaxed text-muted">
+                      Adjusted based on today's workouts: <span className="font-bold text-primary">+{nutritionPlan.calculations?.todayWorkoutCalories || 0} kcal</span> burn
+                    </div>
                   </div>
-                  <div className="rounded-xl border border-border/60 bg-bg p-4">
-                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Protein Target</div>
-                    <div className="mt-1 font-mono text-2xl font-bold text-text">
-                      {nutritionPlan.macros?.proteinG || 0}
-                      <span className="text-xs text-muted font-normal lowercase">g</span>
+
+                  <div className="rounded-2xl border border-border bg-bg/50 p-5 flex flex-col justify-between">
+                    <div>
+                      <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted font-bold">Protein Target</div>
+                      <div className="mt-2 font-mono text-3xl font-black text-text flex items-baseline gap-1">
+                        {nutritionPlan.macros?.proteinG || 0}
+                        <span className="text-xs text-muted font-bold lowercase">g</span>
+                      </div>
                     </div>
-                    <div className="mt-2 text-xs text-muted">Target: {nutritionPlan.macros?.proteinPct ?? 26}% of daily calorie intake</div>
+                    <div className="mt-3 text-[10px] leading-relaxed text-muted">
+                      Target: <span className="font-bold text-text">{nutritionPlan.macros?.proteinPct ?? 26}%</span> of daily calorie intake
+                    </div>
                   </div>
                 </div>
 
-                <div className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Recommended Foods</div>
+                <div className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-muted font-bold">Recommended Foods</div>
                 {Array.isArray(nutritionPlan.recommendations) && nutritionPlan.recommendations.length > 0 ? (
-                  <div className="space-y-2">
+                  <div className="space-y-2.5">
                     {nutritionPlan.recommendations.slice(0, 3).map((food) => (
-                      <div key={food.id} className="flex items-center justify-between gap-3 rounded-xl border border-border/50 bg-bg p-3">
+                      <div key={food.id} className="flex items-center justify-between gap-4 rounded-xl border border-border bg-bg/30 p-3 transition hover:border-primary/20">
                         <div className="flex min-w-0 items-center gap-3">
-                          <div className="grid size-10 shrink-0 place-items-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
-                            <Salad className="h-5 w-5" />
+                          <div className="grid size-9 shrink-0 place-items-center rounded-lg border border-primary/20 bg-primary/5 text-primary">
+                            <Salad className="h-4.5 w-4.5" />
                           </div>
                           <div className="min-w-0">
                             <div className="truncate text-sm font-bold text-text" title={food.name}>{food.name}</div>
-                            <span className="inline-block mt-1 rounded border border-border/40 bg-surface px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-widest text-muted">
+                            <span className="inline-block mt-0.5 rounded-md border border-border/40 bg-surface px-2 py-0.5 font-mono text-[8px] font-bold uppercase tracking-widest text-muted">
                               {prettyLabel(food.foodType)}
                             </span>
                           </div>
                         </div>
                         <div className="shrink-0 text-right font-mono">
-                          <div className="text-sm font-bold text-text">{food.calories} cal</div>
+                          <div className="text-xs font-bold text-text">{food.calories} cal</div>
                           <div className="text-[10px] font-bold text-primary">{food.proteinG}g P</div>
                         </div>
                       </div>
@@ -976,7 +1031,7 @@ export default function Dashboard() {
         </article>
 
         {/* AI Coaching / Wellness Card */}
-        <article className="flex flex-col rounded-2xl bg-primary p-6 text-primary-contrast lg:col-span-1 justify-between min-h-[350px]">
+        <article className="flex flex-col rounded-3xl bg-primary p-6 text-primary-contrast lg:col-span-1 justify-between min-h-[380px]">
           <div>
             <div className="mb-6 flex items-center justify-between gap-3">
               <h2 className="font-display text-sm font-bold uppercase tracking-widest text-primary-contrast/85">Weekly Coaching Note</h2>
@@ -984,9 +1039,42 @@ export default function Dashboard() {
             </div>
 
             {aiInsight ? (
-              <p className="mb-6 text-sm font-medium leading-relaxed italic text-primary-contrast">
-                “{aiInsight.summary}”
-              </p>
+              <div className="space-y-4">
+                <div className="flex gap-2.5 items-start">
+                  <Quote className="h-5 w-5 shrink-0 text-primary-contrast/40" />
+                  <p className="text-sm font-medium leading-relaxed italic text-primary-contrast">
+                    {aiInsight.summary}
+                  </p>
+                </div>
+
+                {aiInsight.recommendations && aiInsight.recommendations.length > 0 && (
+                  <div className="space-y-3.5 border-t border-primary-contrast/15 pt-4">
+                    {aiInsight.recommendations.slice(0, 3).map((rec, index) => {
+                      let title = "Tip";
+                      let Icon = Sparkles;
+                      if (index === 0) {
+                        title = "Keep it up";
+                        Icon = CheckCircle2;
+                      } else if (index === 1) {
+                        title = "Focus this week";
+                        Icon = Target;
+                      } else if (index === 2) {
+                        title = "Small steps";
+                        Icon = TrendingUp;
+                      }
+                      return (
+                        <div key={index} className="flex items-start gap-3 text-left">
+                          <Icon className="h-4.5 w-4.5 shrink-0 text-primary-contrast/85 mt-0.5" />
+                          <div className="min-w-0">
+                            <div className="text-xs font-bold text-primary-contrast">{title}</div>
+                            <div className="text-[11px] leading-relaxed text-primary-contrast/75 font-medium">{rec}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="mb-6">
                 <h3 className="text-lg font-black text-primary-contrast">{currentStreak > 0 ? "Your week in review" : "Start with a 30-minute base"}</h3>
@@ -1003,10 +1091,10 @@ export default function Dashboard() {
             type="button"
             onClick={handleGenerateInsight}
             disabled={aiLoading}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-primary-contrast/25 bg-primary-contrast/10 py-3 text-xs font-black uppercase tracking-widest text-primary-contrast hover:bg-primary-contrast/25 transition-all cursor-pointer disabled:opacity-50"
+            className="w-full mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-white py-3 text-xs font-black uppercase tracking-widest text-primary hover:bg-white/90 transition-all cursor-pointer disabled:opacity-50"
           >
             <Sparkles className="h-4 w-4" />
-            {aiLoading ? "Generating…" : "Generate Coaching Note"}
+            {aiLoading ? "Generating…" : "Generate New Coach Note"}
           </button>
         </article>
       </section>
@@ -1053,45 +1141,6 @@ export default function Dashboard() {
               </Link>
             }
           />
-        )}
-      </section>
-
-      <section className="rounded-2xl border border-border bg-surface p-6 text-left">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-primary" aria-hidden="true" />
-            <h2 className="text-md font-bold uppercase tracking-wider text-text">Next Reward Progress</h2>
-          </div>
-          <Link to="/you" className="text-xs font-bold uppercase tracking-widest text-primary hover:text-primary-bright transition-colors">
-            View All Achievements
-          </Link>
-        </div>
-
-        {(!nextReward || nextReward.allUnlocked) ? (
-          <div className="grid place-items-center rounded-xl border border-dashed border-border py-10 text-sm text-muted">
-            All achievements unlocked. You're a FitSync legend.
-          </div>
-        ) : (
-          <div className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-bg p-5 sm:flex-row sm:items-center">
-            <div className="shrink-0 flex items-center justify-center rounded-2xl border border-border/25 bg-surface p-2.5 h-24 w-24 shadow-sm">
-              <BadgeMedal badge={nextReward.badge} size="md" locked={true} showLevel={false} />
-            </div>
-            <div className="min-w-0 flex-1 space-y-2">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <div>
-                  <h3 className="text-base font-bold text-text">{nextReward.badge.name}</h3>
-                  <p className="text-xs leading-relaxed text-muted">{nextReward.badge.description}</p>
-                </div>
-                <span className="font-mono text-sm text-primary">{Math.round(nextReward.pct)}%</span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-surface">
-                <div className="h-full rounded-full bg-primary transition-all duration-700" style={{ width: `${nextReward.pct}%` }} />
-              </div>
-              <div className="font-mono text-[10px] uppercase tracking-widest text-muted">
-                Progress: {nextReward.currentVal} / {nextReward.target} {nextReward.badge.requirement === "streak" ? "days" : nextReward.badge.requirement === "level" ? "levels" : "workouts"}
-              </div>
-            </div>
-          </div>
         )}
       </section>
     </main>
