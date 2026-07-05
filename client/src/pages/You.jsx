@@ -37,7 +37,8 @@ export default function You() {
   const { user, refreshAll, push, gamification = {}, loading, error } = context;
   const { updateUser, logout } = useAuth();
   const navigate = useNavigate();
-  const badges = Array.isArray(gamification?.badges) ? gamification.badges : [];
+  const rawBadges = Array.isArray(gamification?.badges) ? gamification.badges : [];
+  const badges = rawBadges.filter((badge) => String(badge.requirement || "").toLowerCase() !== "streak");
   const earnedBadges = badges.filter((badge) => badge.isUnlocked);
   const completion = profileCompletion(user || {});
   const level = Number(gamification?.level || 1);
