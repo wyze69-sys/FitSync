@@ -1,12 +1,13 @@
 import { TrendingDown } from "lucide-react";
 import EmptyState from "../common/EmptyState.jsx";
+import { sortWeightLogsOldestFirst } from "../../utils/weightLogs.js";
 
 /**
  * Lightweight, dependency-free SVG line chart of recent body-weight entries.
  * Optionally overlays a dashed target-weight line.
  */
 export default function WeightProgressChart({ weightLogs = [], targetWeight, maxPoints = 8 }) {
-  const records = [...weightLogs].slice(0, maxPoints).reverse();
+  const records = sortWeightLogsOldestFirst(weightLogs).slice(-maxPoints);
   const hasData = records.length > 1;
 
   if (!hasData) {

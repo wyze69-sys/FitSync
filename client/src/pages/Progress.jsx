@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import { Scale, Target, TrendingDown } from "lucide-react";
 import { calculateBMI, resolveBmiCategory } from "../utils/metrics.js";
+import { sortWeightLogsOldestFirst } from "../utils/weightLogs.js";
 
 function getLatestWeight(cleanWeightLogs = [], profileWeight = 0) {
   if (cleanWeightLogs.length > 0) return Number(cleanWeightLogs[cleanWeightLogs.length - 1].weight);
@@ -55,18 +56,7 @@ export default function Progress() {
 
   // 1. Filter and validate weight logs (sorted oldest to newest chronologically)
   const cleanWeightLogs = useMemo(() => {
-    if (!Array.isArray(weightLogs)) return [];
-    return weightLogs
-      .filter(log => {
-        if (!log || typeof log !== "object") return false;
-        const w = Number(log.weight);
-        if (isNaN(w) || w <= 0) return false;
-        if (!log.date) return false;
-        const d = new Date(log.date.replace(/-/g, "/"));
-        if (isNaN(d.getTime())) return false;
-        return true;
-      })
-      .sort((a, b) => new Date(a.date.replace(/-/g, "/")) - new Date(b.date.replace(/-/g, "/")));
+    return sortWeightLogsOldestFirst(weightLogs);
   }, [weightLogs]);
 
   // Calculate workouts during this trend
