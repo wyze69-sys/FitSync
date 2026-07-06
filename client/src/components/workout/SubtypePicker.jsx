@@ -27,7 +27,7 @@ function trackingSummary(subtype) {
   return parts.slice(0, 2).join(" · ");
 }
 
-export default function SubtypePicker({ category, selectedSubtype, onSelect, onClose }) {
+export default function SubtypePicker({ category, selectedSubtype, workoutTitle, onSelect, onClose }) {
   const [query, setQuery] = useState("");
   // When true the user has explicitly asked to see the whole library; we keep
   // this sticky across search clears (per spec) but reset it on category change.
@@ -154,7 +154,7 @@ export default function SubtypePicker({ category, selectedSubtype, onSelect, onC
       ) : (
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {visibleSubtypes.map((subtype) => {
-            const active = selectedSubtype?.slug === subtype.slug;
+            const active = selectedSubtype?.slug === subtype.slug && (workoutTitle === undefined || workoutTitle.trim().toLowerCase() === subtype.name.toLowerCase());
             const meta = trackingSummary(subtype);
             return (
               <button
