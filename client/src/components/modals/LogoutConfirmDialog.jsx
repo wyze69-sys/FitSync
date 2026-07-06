@@ -1,17 +1,16 @@
 import { useEffect, useRef } from "react";
-import { AlertTriangle } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 /**
- * Accessible confirmation dialog used in place of window.confirm.
+ * Accessible confirmation dialog for logging out.
  * Supports Escape to cancel and focuses the confirm button on open.
  */
-export default function ConfirmDialog({
+export default function LogoutConfirmDialog({
   open,
-  title = "Are you sure?",
-  message,
-  confirmLabel = "Confirm",
+  title = "Log Out",
+  message = "Are you sure you want to log out of your account?",
+  confirmLabel = "Log Out",
   cancelLabel = "Cancel",
-  destructive = true,
   onConfirm,
   onCancel
 }) {
@@ -41,17 +40,17 @@ export default function ConfirmDialog({
         className="bg-surface relative w-full max-w-sm rounded-sm border border-border p-6 space-y-5 animate-slide-up shadow-2xl"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="confirm-dialog-title"
+        aria-labelledby="logout-dialog-title"
       >
         <div className="flex items-start gap-3">
           <span
-            className={`h-9 w-9 rounded-sm flex items-center justify-center shrink-0 border ${destructive ? "bg-red-950/30 border-red-900/40 text-red-300" : "bg-primary/10 border-primary/30 text-primary"}`}
+            className="h-9 w-9 rounded-sm flex items-center justify-center shrink-0 border bg-primary/10 border-primary/30 text-primary"
           >
-            <AlertTriangle className="h-4.5 w-4.5" />
+            <LogOut className="h-[18px] w-[18px]" />
           </span>
           <div className="space-y-1">
             <h3
-              id="confirm-dialog-title"
+              id="logout-dialog-title"
               className="text-sm text-text font-semibold"
             >
               {title}
@@ -72,7 +71,7 @@ export default function ConfirmDialog({
             type="button"
             ref={confirmRef}
             onClick={onConfirm}
-            className={`px-4 py-1.5 text-xs font-medium uppercase tracking-widest rounded-sm transition-all cursor-pointer ${destructive ? "bg-red-500 hover:bg-red-400 text-text" : "bg-primary text-white"}`}
+            className="px-4 py-1.5 text-xs font-medium uppercase tracking-widest rounded-sm transition-all cursor-pointer bg-primary hover:bg-primary/90 text-white"
           >
             {confirmLabel}
           </button>

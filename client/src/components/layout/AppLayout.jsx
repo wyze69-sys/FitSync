@@ -1,9 +1,10 @@
 import { Component, useState, useEffect, useCallback } from "react";
-import { Outlet, NavLink, Navigate } from "react-router-dom";
+import { Outlet, NavLink, Navigate, useNavigate } from "react-router-dom";
 import { Dumbbell, Home, BarChart3, User, Clock, Salad } from "lucide-react";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
 import Navbar from "../common/Navbar.jsx";
+import LogoutConfirmDialog from "../modals/LogoutConfirmDialog.jsx";
 import workoutService from "../../services/workoutService.js";
 import progressService from "../../services/progressService.js";
 import gamificationService from "../../services/gamificationService.js";
@@ -53,8 +54,15 @@ class RouteErrorBoundary extends Component {
  * keeps admin users on the separate admin shell.
  */
 export default function AppLayout() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { push } = useToast();
+  const navigate = useNavigate();
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+
+  function handleLogoutConfirm() {
+    logout();
+    navigate("/login", { replace: true });
+  }
 
   const [data, setData] = useState({
     workouts: [],
@@ -140,7 +148,7 @@ export default function AppLayout() {
 
   return (
     <div className="min-h-screen bg-bg text-text flex flex-col font-sans relative pb-20 md:pb-8 overflow-x-hidden">
-      <Navbar />
+      <Navbar onLogoutRequest={() => setIsLogoutDialogOpen(true)} />
 
       <main className="mx-auto w-full max-w-[1400px] px-4 sm:px-8 lg:px-12 pt-28 pb-6 bg-bg text-text flex-grow pb-24 md:pb-8">
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
@@ -177,6 +185,12 @@ export default function AppLayout() {
           <div>Auto XP and calories</div>
         </div>
       </footer>
+
+      <LogoutConfirmDialog
+        open={isLogoutDialogOpen}
+        onConfirm={handleLogoutConfirm}
+        onCancel={() => setIsLogoutDialogOpen(false)}
+      />
     </div>
   );
 }
