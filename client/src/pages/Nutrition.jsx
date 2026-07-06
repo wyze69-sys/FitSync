@@ -9,6 +9,7 @@ import {
   ArrowRight,
   SlidersHorizontal,
   Flame,
+  Info,
   X
 } from "lucide-react";
 import nutritionService from "../services/nutritionService.js";
@@ -175,7 +176,7 @@ function SectionCard({ icon, eyebrow, title, children, description, action, comp
   );
 }
 
-function MacroBar({ name, grams, percent, colorClass }) {
+function MacroBar({ name, grams, percent, colorClass, helperLabel }) {
   const pct = Math.max(0, Math.min(100, Number(percent) || 0));
   return (
     <div>
@@ -190,6 +191,9 @@ function MacroBar({ name, grams, percent, colorClass }) {
       <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-bg" role="presentation">
         <div className={`h-full rounded-full ${colorClass}`} style={{ width: `${pct}%` }} />
       </div>
+      {helperLabel && (
+        <p className="mt-1 text-[11px] leading-snug text-muted">{helperLabel}</p>
+      )}
     </div>
   );
 }
@@ -251,9 +255,129 @@ function FoodCard({ food }) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Main page                                                                   */
+/* Why This Target explanation card                                            */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Shown only when there is meaningful context to explain — e.g. a high-risk
+ * gain goal overridden to the safe target, or an explicit requested target
+ * that differs from the safe target. Uses only real API values.
+ */
+function WhyThisTargetCard({ plan }) {
+  const requested = plan.requestedPlan || {};
+  const safe = plan.safePlan || {};
+  const active = plan.activePlan || {};
+  const c = plan.calculations || {};
+
+  // Only show this card when there is something useful to explain.
+  const requestedIsHighRisk =
+    requested.safetyStatus === "high_risk" || requested.safetyStatus === "aggressive";
+  const requestedIsGain = requested.direction === "gain";
+  const activeIsSafe = active.label === "Safe";
+  const requestedDiffersFromSafe =
+    Number.isFinite(requested.calories) &&
+    Number.isFinite(safe.calories) &&
+    Math.abs(requested.calories - safe.calories) >= 50;
+
+  // Don't show if nothing meaningful to explain
+  if (!requestedDiffersFromSafe && !requestedIsHighRisk) return null;
+
+  // Compose headline based on situation
+  let headline = "Why this target?";
+  let bodyLines = [];
+
+  if (requestedIsHighRisk && requestedIsGain && activeIsSafe) {
+    headline = "Your requested pace is high risk";
+    bodyLines.push(
+      "FitSync is using the safe target for your daily plan. A moderate surplus better supports lean muscle gain while reducing the risk of excess fat gain."
+    );
+  } else if (requestedIsHighRisk && activeIsSafe) {
+    headline = "Your requested pace is high risk";
+    bodyLines.push(
+      "FitSync is using the safe target for your daily plan. The requested rate is very aggressive and may be difficult to sustain."
+    );
+  } else if (requestedDiffersFromSafe) {
+    headline = "How your target is built";
+  }
+
+  // Always show the breakdown when requested differs from safe
+  const showBreakdown = requestedDiffersFromSafe || requestedIsHighRisk;
+  const safeAdj = Number(safe.dailyCalorieAdjustment);
+
+  return (
+    <section
+      aria-label="Target explanation"
+      className="rounded-2xl border border-sky-500/25 bg-sky-500/5 p-5"
+    >
+      <div className="flex items-start gap-3">
+        <span
+          className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-600"
+          aria-hidden="true"
+        >
+          <Info className="h-4 w-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-sm font-semibold text-text">{headline}</h2>
+          {bodyLines.map((line, i) => (
+            <p key={i} className="mt-1.5 text-sm leading-relaxed text-muted">
+              {line}
+            </p>
+          ))}
+
+          {showBreakdown && (
+            <dl className="mt-4 space-y-1.5">
+              {Number.isFinite(c.tdee) && c.tdee > 0 && (
+                <div className="flex items-baseline justify-between gap-3 text-sm">
+                  <dt className="text-muted">Maintenance calories</dt>
+                  <dd className="shrink-0 font-semibold tabular-nums text-text">
+                    {formatInt(c.tdee)} cal
+                  </dd>
+                </div>
+              )}
+              {Number.isFinite(safeAdj) && safeAdj !== 0 && (
+                <div className="flex items-baseline justify-between gap-3 text-sm">
+                  <dt className="text-muted">
+                    Safe {safeAdj > 0 ? "surplus" : "deficit"}
+                  </dt>
+                  <dd className="shrink-0 font-semibold tabular-nums text-text">
+                    {safeAdj > 0 ? "+" : ""}{formatInt(safeAdj)} cal/day
+                  </dd>
+                </div>
+              )}
+              {Number.isFinite(safe.calories) && safe.calories > 0 && (
+                <div className="flex items-baseline justify-between gap-3 border-t border-sky-500/20 pt-1.5 text-sm">
+                  <dt className="font-medium text-text">Recommended daily target</dt>
+                  <dd className="shrink-0 font-bold tabular-nums text-text">
+                    {formatInt(safe.calories)} cal
+                  </dd>
+                </div>
+              )}
+              {requestedDiffersFromSafe && Number.isFinite(requested.calories) && (
+                <div className="flex items-baseline justify-between gap-3 text-sm">
+                  <dt className="text-muted">
+                    Requested target
+                    {requested.safetyStatus && requested.safetyStatus !== "safe" && (
+                      <span className="ml-1.5 inline-flex items-center rounded-full border border-red-400/30 bg-red-400/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-red-600">
+                        {requested.safetyStatus === "high_risk" ? "High risk" : "Aggressive"}
+                      </span>
+                    )}
+                  </dt>
+                  <dd className="shrink-0 tabular-nums text-muted">
+                    {formatInt(requested.calories)} cal
+                  </dd>
+                </div>
+              )}
+            </dl>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Main page                                                                   */
+/* -------------------------------------------------------------------------- */
 export default function Nutrition() {
   useOutletContext();
 
@@ -358,6 +482,11 @@ export default function Nutrition() {
           <div className="nutrition-side-stack">
             <GoalPaceSection plan={plan} mode={mode} onAdjust={() => setModalOpen(true)} />
             <WorkoutBalanceSection windows={plan.windows} />
+          </div>
+
+          {/* Why this target — shown only when there is something useful to explain */}
+          <div className="nutrition-full-width-section">
+            <WhyThisTargetCard plan={plan} />
           </div>
 
           {/* Bottom: full-width food suggestions */}
@@ -479,13 +608,39 @@ function HeroSection({ plan }) {
 
       {/* Macro split — sits directly under the target it belongs to. */}
       <div className="border-t border-border bg-bg px-5 py-5 sm:px-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <span className={EYEBROW}>Daily macros</span>
+          {active.label === "Safe" &&
+            plan.requestedPlan &&
+            (plan.requestedPlan.safetyStatus === "high_risk" ||
+              plan.requestedPlan.safetyStatus === "aggressive") && (
+              <span className="text-[11px] leading-snug text-muted">
+                Based on the safe target
+              </span>
+            )}
         </div>
         <div className="mt-4 space-y-3.5">
-          <MacroBar name="Protein" grams={macros.proteinG} percent={macros.proteinPct} colorClass="bg-primary" />
-          <MacroBar name="Carbs" grams={macros.carbsG} percent={macros.carbsPct} colorClass="bg-sky-500" />
-          <MacroBar name="Fat" grams={macros.fatG} percent={macros.fatPct} colorClass="bg-amber-500" />
+          <MacroBar
+            name="Protein"
+            grams={macros.proteinG}
+            percent={macros.proteinPct}
+            colorClass="bg-primary"
+            helperLabel="Supports muscle repair and growth"
+          />
+          <MacroBar
+            name="Carbs"
+            grams={macros.carbsG}
+            percent={macros.carbsPct}
+            colorClass="bg-sky-500"
+            helperLabel="Fuels training performance"
+          />
+          <MacroBar
+            name="Fat"
+            grams={macros.fatG}
+            percent={macros.fatPct}
+            colorClass="bg-amber-500"
+            helperLabel="Supports hormones and recovery"
+          />
         </div>
         <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted">
           <span>
@@ -521,8 +676,8 @@ function GoalPaceSection({ plan, mode, onAdjust }) {
   return (
     <SectionCard icon={ShieldCheck} eyebrow="Goal pace" title="Goal pace" action={adjustButton} compact>
       <div className="space-y-2.5">
-        <PlanSummary title="Safe target" plan={safe} highlight={mode === "safe"} />
-        {showRequested && <PlanSummary title="Requested target" plan={requested} highlight />}
+        <PlanSummary title="Safe target" plan={safe} highlight={plan?.activePlan?.label === "Safe"} />
+        {showRequested && <PlanSummary title="Requested target" plan={requested} highlight={plan?.activePlan?.label === "Requested"} />}
       </div>
 
       {warnings.length > 0 && (
@@ -569,7 +724,14 @@ function AdjustGoalModal({ initial, onApply, onClose }) {
       await onApply({ targetChangeKg, timeframeDays, mode, dietPreference, allergies });
       onClose();
     } catch (err) {
-      setError(err?.message || "Could not update your plan. Please try again.");
+      // Surface a clean user-facing message instead of raw server errors.
+      const raw = err?.message || "";
+      const isServerError = /status 5\d\d|500|server/i.test(raw);
+      setError(
+        isServerError
+          ? "Could not update plan. Please adjust your goal and try again."
+          : raw || "Could not update your plan. Please try again."
+      );
     } finally {
       setSubmitting(false);
     }

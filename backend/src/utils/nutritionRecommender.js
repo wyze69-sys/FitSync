@@ -62,10 +62,73 @@ function scoreFood(food, context = {}) {
 
   if (workout.minCalories && food.calories >= workout.minCalories) score += 1;
 
+  // --- Muscle Gain Specific Scoring Enhancements ---
+  if (goal.name === "muscle_gain") {
+    // 1. High absolute protein bonuses
+    if (food.proteinG >= 20) {
+      score += 2.0;
+      reasons.push("protein-dense option");
+    } else if (food.proteinG >= 12) {
+      score += 1.0;
+      reasons.push("lean bulk support protein");
+    }
+
+    // 2. High protein-to-calorie efficiency (at least 40% of calories from protein)
+    const proteinCaloriePercentage = (food.proteinG * 4) / (food.calories || 1);
+    if (proteinCaloriePercentage >= 0.4) {
+      score += 1.5;
+      reasons.push("balanced calorie-to-protein ratio");
+    }
+
+    // 3. Balanced training fuel carbs (10g to 35g) paired with meaningful protein (>= 8g)
+    if (food.carbsG >= 10 && food.carbsG <= 35 && food.proteinG >= 8) {
+      score += 1.0;
+      reasons.push("balanced training fuel");
+    }
+
+    // 4. Penalty: Carb-heavy but very low-protein foods (unbalanced muscle-gain choice)
+    if (food.carbsG > 40 && food.proteinG < 6) {
+      score -= 3.0;
+    }
+
+    // 5. Penalty: Fat-heavy but very low-protein foods
+    if (food.fatG > 15 && food.proteinG < 6) {
+      score -= 2.0;
+    }
+
+    // 6. Penalty: Empty-calorie foods (high calories, low protein, low fiber)
+    if (food.calories > 250 && food.proteinG < 4 && food.fiberG < 2) {
+      score -= 3.0;
+    }
+
+    // 7. Penalty: Extreme carb load — even if protein is decent, extremely
+    //    carb-heavy foods are not ideal muscle-gain recommendations.
+    //    Applied proportionally so they still appear but rank below balanced meals.
+    if (food.carbsG > 100) {
+      // Very high carb: always penalise regardless of protein
+      score -= 3.5;
+    } else if (food.carbsG > 80) {
+      // Moderately extreme carb: only penalise when protein density is weak
+      // (less than 25% of calories from protein)
+      const proteinRatio = (food.proteinG * 4) / (food.calories || 1);
+      if (proteinRatio < 0.25) {
+        score -= 2.0;
+      }
+    }
+
+    // 8. Penalty: High-fat dense snacks with extreme carbs
+    //    (e.g. chips, crackers, crisps that happen to list high protein on a dry-weight basis)
+    if (food.carbsG > 80 && food.fatG > 15) {
+      score -= 2.0;
+    }
+  }
+
 
   const name = normalize(food.name);
   const processedPenalty = /burger king|mcdonald|wendy|kfc|kentucky fried|pizza hut|whopper|big mac|fries|fried|crispy|donut|cake|candy|soda/.test(name);
-  const rawIngredientPenalty = /\b(raw|uncooked|unprepared|dehydrated|dried|powder|flour|yeast|starch|baking|spices|seasoning|lard|tallow|shortening|gjetost|catupiry|neufchatel|dry mix|broth|gravy|gelatin)\b/.test(name);
+  // Catch dry/uncooked/raw ingredients that should not rank as ready-to-eat muscle-gain meals.
+  // Added standalone \bdry\b so items like "couscous dry" or "oats dry" are downranked.
+  const rawIngredientPenalty = /\b(raw|uncooked|unprepared|dehydrated|dried|powder|flour|yeast|starch|baking|spices|seasoning|lard|tallow|shortening|gjetost|catupiry|neufchatel|dry mix|broth|gravy|gelatin|dry)\b/.test(name);
   if (food.calories <= 0) score -= 10;
   if (food.calories > 750 && goal.name !== "muscle_gain") score -= 3;
   if (food.calories > 1000) score -= 4;

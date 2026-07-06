@@ -290,7 +290,7 @@ function buildNutritionPlans({ profile = {}, targetChangeKg, timeframeDays, mode
   if (requestedSafetyStatus === "aggressive" || requestedSafetyStatus === "high_risk") {
     if (requestedSafety.direction === "gain") {
       warnings.push(
-        "Requested surplus is aggressive and may lead to excess fat gain and be hard to sustain."
+        "Requested surplus is aggressive and may lead to excess fat gain and be hard to sustain. Lean muscle gain is better supported by the safe target."
       );
     } else if (requestedSafety.direction === "lose") {
       warnings.push(
@@ -363,7 +363,14 @@ function buildNutritionPlans({ profile = {}, targetChangeKg, timeframeDays, mode
   // --- Active plan selection ---
   // Default to the safe plan. Only follow the requested plan when the caller
   // explicitly asks for "requested" mode (warnings still surface any risk).
-  const activePlan = mode === "requested" ? requestedPlan : safePlan;
+  // For aggressive/high-risk weight gain goals, we override the active plan to the safe plan
+  // so the user is guided by the recommended safe daily calorie and macro target,
+  // while still keeping the requested target visible in the sidebar/Goal Pace.
+  const requestedIsDangerousGain =
+    requestedPlan.direction === "gain" &&
+    (requestedPlan.safetyStatus === "high_risk" || requestedPlan.safetyStatus === "aggressive");
+
+  const activePlan = (mode === "requested" && !requestedIsDangerousGain) ? requestedPlan : safePlan;
 
   return {
     tdee,
@@ -409,7 +416,9 @@ function calculateMacroTargets({ profile = {}, plan = {} } = {}) {
     proteinPerKg = 1.8;
     fatPctOfCalories = 0.25;
   } else if (goalType === "gain") {
-    proteinPerKg = 2.0;
+    // Increased from 2.0 to 2.2 to support muscle protein synthesis/lean bulk cleanly,
+    // keeping it body-weight-based and realistic rather than scaling unsafely with high calories.
+    proteinPerKg = 2.2;
     fatPctOfCalories = 0.25;
   } else {
     proteinPerKg = 1.6;

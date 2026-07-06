@@ -148,9 +148,9 @@ test("macro targets change by goal", () => {
     plan
   });
 
-  // protein g/kg: lose 1.8, gain 2.0, maintain 1.6 -> at 80kg = 144, 160, 128
+  // protein g/kg: lose 1.8, gain 2.2, maintain 1.6 -> at 80kg = 144, 176, 128
   assert.strictEqual(loseMacros.proteinG, 144);
-  assert.strictEqual(gainMacros.proteinG, 160);
+  assert.strictEqual(gainMacros.proteinG, 176);
   assert.strictEqual(maintainMacros.proteinG, 128);
   assert.notStrictEqual(loseMacros.proteinG, gainMacros.proteinG);
 
@@ -228,4 +228,81 @@ test("classifyGoalSafety thresholds for loss and gain", () => {
       .safetyStatus,
     "high_risk"
   );
+});
+
+test("aggressive weight gain goals handle safety, warnings, and macro calculations correctly", () => {
+  const profile = {
+    weight: 80,
+    height: 180,
+    age: 30,
+    gender: "male",
+    goal: "Gain muscle",
+    activityLevel: "Sedentary"
+  };
+
+  // Case 1: Maintenance goal
+  const maintainResult = buildNutritionPlans({
+    profile: { ...profile, goal: "Maintain fitness" },
+    mode: "safe"
+  });
+  const maintainMacros = calculateMacroTargets({
+    profile: { ...profile, goal: "Maintain fitness" },
+    plan: maintainResult.activePlan
+  });
+  assert.strictEqual(maintainMacros.proteinG, 128); // 80 * 1.6
+  assert.strictEqual(maintainResult.activePlan.safetyStatus, "safe");
+
+  // Case 2: Moderate gain
+  const moderateResult = buildNutritionPlans({
+    profile,
+    targetChangeKg: 1.5, // 1.5kg over 30 days = 0.35kg/week (safe)
+    timeframeDays: 30,
+    mode: "requested"
+  });
+  const moderateMacros = calculateMacroTargets({
+    profile,
+    plan: moderateResult.activePlan
+  });
+  assert.strictEqual(moderateResult.activePlan.safetyStatus, "safe");
+  assert.strictEqual(moderateMacros.proteinG, 176); // 80 * 2.2
+  // fat target = 25% of calories
+  const expectedFatG = Math.round((moderateResult.activePlan.calories * 0.25) / 9);
+  assert.strictEqual(moderateMacros.fatG, expectedFatG);
+  // carbs fill remaining calories
+  const expectedCarbsG = Math.round((moderateResult.activePlan.calories - (176 * 4) - (expectedFatG * 9)) / 4);
+  assert.strictEqual(moderateMacros.carbsG, expectedCarbsG);
+
+  // Case 3: Aggressive gain (e.g. +10kg in 30 days = 2.33 kg/week -> high_risk)
+  const aggressiveResult = buildNutritionPlans({
+    profile,
+    targetChangeKg: 10,
+    timeframeDays: 30,
+    mode: "requested"
+  });
+  
+  const warningFound = aggressiveResult.warnings.some((w) => 
+    w.toLowerCase().includes("excess fat gain") && w.toLowerCase().includes("lean muscle gain is better supported by the safe target")
+  );
+  assert.ok(warningFound, "Warning copy should mention excess fat gain and lean bulk recommendation");
+
+  // Verify requestedPlan is marked high_risk
+  assert.strictEqual(aggressiveResult.requestedPlan.safetyStatus, "high_risk");
+
+  // Verify activePlan fallback to safePlan
+  assert.strictEqual(aggressiveResult.activePlan.label, "Safe");
+  assert.strictEqual(aggressiveResult.activePlan.calories, aggressiveResult.safePlan.calories);
+
+  // Calculate macros for activePlan (which is the safePlan)
+  const activeMacros = calculateMacroTargets({
+    profile,
+    plan: aggressiveResult.activePlan
+  });
+
+  // Verify macros are calculated based on safePlan, not the aggressive requested calories
+  assert.strictEqual(activeMacros.calories, aggressiveResult.safePlan.calories);
+  assert.strictEqual(activeMacros.proteinG, 176); // 80 * 2.2
+  const expectedSafeFatG = Math.round((aggressiveResult.safePlan.calories * 0.25) / 9);
+  assert.strictEqual(activeMacros.fatG, expectedSafeFatG);
+  const expectedSafeCarbsG = Math.round((aggressiveResult.safePlan.calories - (176 * 4) - (expectedSafeFatG * 9)) / 4);
+  assert.strictEqual(activeMacros.carbsG, expectedSafeCarbsG);
 });
