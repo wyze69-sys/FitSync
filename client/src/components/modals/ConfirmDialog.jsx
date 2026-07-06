@@ -32,38 +32,38 @@ export default function ConfirmDialog({
 
   return (
     <div
-      className="fixed inset-0 bg-black/80 z-[70] flex items-center justify-center p-4 animate-fade-in"
+      className="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-4 animate-fade-in"
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-dialog-title"
       onClick={onCancel}
     >
       <div
-        className="bg-surface w-full max-w-sm rounded-sm border border-border p-6 space-y-5 animate-slide-up"
+        className="bg-surface w-full max-w-sm rounded-md border border-border shadow-lg p-6 space-y-6 animate-slide-up"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-start gap-3">
-          <span
-            className={`h-9 w-9 rounded-sm flex items-center justify-center shrink-0 border ${destructive ? "bg-red-950/30 border-red-900/40 text-red-300" : "bg-primary/10 border-primary/30 text-primary"}`}
+        <div className="flex items-start gap-4">
+          <div
+            className={`h-10 w-10 rounded-md flex items-center justify-center shrink-0 border ${destructive ? "bg-red-500/10 border-red-500/20 text-red-500" : "bg-primary/10 border-primary/20 text-primary"}`}
           >
-            <AlertTriangle className="h-4.5 w-4.5" />
-          </span>
-          <div className="space-y-1">
+            <AlertTriangle className="h-5 w-5" />
+          </div>
+          <div className="space-y-1.5 pt-0.5">
             <h3
               id="confirm-dialog-title"
-              className="text-sm text-text font-semibold"
+              className="text-base text-text font-semibold"
             >
               {title}
             </h3>
-            {message && <p className="text-xs text-muted leading-relaxed">{message}</p>}
+            {message && <p className="text-sm text-muted leading-relaxed">{message}</p>}
           </div>
         </div>
 
-        <div className="flex justify-end gap-2.5">
+        <div className="flex justify-end gap-3">
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-1.5 text-xs font-medium uppercase tracking-widest text-muted hover:text-text rounded-sm border border-border hover:border-primary transition-all cursor-pointer"
+            className="px-4 py-2 text-xs font-semibold uppercase tracking-widest text-muted hover:text-text rounded-sm border border-border hover:border-text transition-colors cursor-pointer"
           >
             {cancelLabel}
           </button>
@@ -71,7 +71,7 @@ export default function ConfirmDialog({
             type="button"
             ref={confirmRef}
             onClick={onConfirm}
-            className={`px-4 py-1.5 text-xs font-medium uppercase tracking-widest rounded-sm transition-all cursor-pointer ${destructive ? "bg-red-500 hover:bg-red-400 text-text" : "bg-primary text-white"}`}
+            className={`px-4 py-2 text-xs font-semibold uppercase tracking-widest rounded-sm transition-colors cursor-pointer ${destructive ? "bg-red-500 hover:bg-red-600 text-white" : "bg-primary hover:bg-primary-bright text-white"}`}
           >
             {confirmLabel}
           </button>
