@@ -75,6 +75,8 @@ function buildActivityCategories(apiCategories, grouped) {
         baseMet: activity.baseMet,
         calorieMethod: activity.calorieMethod,
         intensityLevel: activity.intensityLevel,
+        equipment: activity.equipment || "",
+        primaryMuscles: activity.primaryMuscles || "",
         trackingFields: Array.isArray(activity.trackingFields) ? activity.trackingFields : ["duration"]
       }))
     };
@@ -303,6 +305,34 @@ export default function Log() {
     };
   }, [details.distance, duration, showDistance, subtypeForPreview, user]);
 
+  const derivedPaceAndSpeed = useMemo(() => {
+    const mins = Number(duration || 0);
+    const dist = Number(details.distance || 0);
+    if (mins <= 0 || dist <= 0) return null;
+    const speedKmh = dist / (mins / 60);
+    const paceMinKm = mins / dist;
+    const paceMins = Math.floor(paceMinKm);
+    const paceSecs = Math.round((paceMinKm - paceMins) * 60);
+    return {
+      speed: speedKmh.toFixed(1),
+      pace: `${paceMins}:${paceSecs < 10 ? "0" : ""}${paceSecs}`
+    };
+  }, [duration, details.distance]);
+
+  const isFormValid = useMemo(() => {
+    if (!workoutTitle.trim()) return false;
+    if (Number(duration) <= 0) return false;
+    if (showDistance) {
+      if (subtype?.calorieMethod === "distance_multiplier" && Number(details.distance) <= 0) return false;
+    }
+    if (showStrength) {
+      if (Number(details.sets) <= 0 || Number(details.reps) <= 0) return false;
+    }
+    if (showRepsOnly && Number(details.reps) <= 0) return false;
+    if (showHold && Number(details.holdTime) <= 0) return false;
+    return true;
+  }, [workoutTitle, duration, showDistance, showStrength, showRepsOnly, showHold, details, subtype]);
+
   const handleCategorySelect = useCallback((nextCategory) => {
     setSavedTotals(null);
     setCategory(nextCategory);
@@ -510,11 +540,20 @@ export default function Log() {
 
   return (
     <main className="log-page-container space-y-8 text-text animate-fade-in max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-      <PageHeader
-        eyebrow="Quick log"
-        title="Log a workout in 3 taps"
-        description="Choose a category, choose a subtype, and submit. Preview values are estimates; saved values always come from the backend."
-      />
+      <header className="relative overflow-hidden rounded-3xl bg-white border border-zinc-200/80 p-6 md:p-8 shadow-sm">
+        <div className="absolute -right-16 -top-16 h-36 w-36 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+        <div className="relative z-10">
+          <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary">
+            QUICK LOG
+          </p>
+          <h1 className="mt-2 text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl">
+            Log a workout in 3 taps
+          </h1>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-500">
+            Choose a category, pick an activity, add the right details, and submit.
+          </p>
+        </div>
+      </header>
 
       <div className="sr-only" aria-live="polite">{announcement}</div>
       {formError && <InlineError message={formError} />}
@@ -528,146 +567,272 @@ export default function Log() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
-        <div>
-          <div className="mb-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Step 1</p>
-            <h2 className="text-lg font-semibold text-text">Choose category</h2>
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs font-mono">
+              1
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-zinc-900 tracking-tight">Choose category</h2>
+              <p className="text-xs text-zinc-550">Select a fitness category for your workout</p>
+            </div>
           </div>
           <QuickLogGrid categories={finalCategories} selectedSlug={category.slug} onSelect={handleCategorySelect} />
         </div>
+
         <SubtypePicker category={category} selectedSubtype={subtype} workoutTitle={debouncedWorkoutTitle} onSelect={handleSubtypeSelect} />
 
-        <section className="rounded-2xl border border-border bg-surface p-5 md:p-6 shadow-lg shadow-black/10">
-          <div className="mb-5">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-muted" htmlFor="workout-title">
-              Workout Title
-            </label>
-            <input
-              id="workout-title"
-              type="text"
-              required
-              placeholder="e.g. Upper Body Push, Running"
-              value={workoutTitle}
-              onChange={(e) => _setWorkoutTitle(e.target.value)}
-              className="mt-2 w-full rounded-2xl border border-border bg-bg px-5 py-3 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            />
+        <section className="rounded-2xl border border-zinc-200/80 bg-white p-5 md:p-6 shadow-sm">
+          {/* Header block with metadata and estimate card */}
+          <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-zinc-100 pb-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs font-mono">
+                3
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-zinc-900 tracking-tight">
+                  Configure <span className="text-primary">{subtype?.name || category?.name}</span>
+                </h2>
+                <p className="text-xs text-zinc-550">
+                  Category: <span className="font-semibold text-zinc-700 capitalize">{category?.name}</span> • Add details to estimate calories and XP.
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/50 px-4 py-3 md:text-right shrink-0">
+              {savedTotals ? (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Saved Result</p>
+                  <p className="mt-0.5 text-sm font-bold text-primary">+{savedTotals.xp} XP • {savedTotals.calories} kcal</p>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500">Estimate before submit</p>
+                  <p className="mt-0.5 text-sm font-bold text-zinc-800">+{preview.xp} XP • {preview.calories} kcal</p>
+                  <p className="text-[9px] text-zinc-555 font-medium">Based on duration, intensity, and selected activity.</p>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted">Duration</p>
-              <div className="mt-2 flex flex-wrap gap-2.5" role="group" aria-label="Workout duration">
-                {[15, 30, 45, 60].map((minutes) => (
-                  <button
-                    type="button"
-                    key={minutes}
-                    onClick={() => {
-                      setDuration(minutes);
-                      setSavedTotals(null);
-                      store(LAST_CATEGORY_KEY, { categorySlug: category.slug, subtypeSlug: subtype.slug, duration: minutes });
-                    }}
-                    aria-pressed={duration === minutes}
-                    className={`min-h-[46px] min-w-[46px] rounded-full px-5 py-2.5 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${duration === minutes ? "bg-primary text-white" : "bg-bg text-text"}`}
-                  >
-                    {minutes}m
-                  </button>
-                ))}
-                <label className="sr-only" htmlFor="custom-duration">Custom duration</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left Column - Core Info */}
+            <div className="space-y-5">
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-zinc-500" htmlFor="workout-title">
+                  Workout Title <span className="text-red-500">*</span>
+                </label>
                 <input
-                  id="custom-duration"
-                  type="number"
-                  min="1"
-                  max="300"
-                  placeholder="Custom"
-                  value={[15, 30, 45, 60].includes(Number(duration)) ? "" : duration}
-                  onChange={(event) => handleCustomDuration(event.target.value)}
-                  className="min-h-[46px] w-32 rounded-full border border-border bg-bg px-5 py-2.5 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-primary"
+                  id="workout-title"
+                  type="text"
+                  required
+                  placeholder="e.g. Upper Body Push, Running"
+                  value={workoutTitle}
+                  onChange={(e) => _setWorkoutTitle(e.target.value)}
+                  className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                  Duration <span className="text-red-500">*</span>
+                </label>
+                <div className="mt-2 flex flex-wrap gap-2.5" role="group" aria-label="Workout duration">
+                  {[15, 30, 45, 60].map((minutes) => (
+                    <button
+                      type="button"
+                      key={minutes}
+                      onClick={() => {
+                        setDuration(minutes);
+                        setSavedTotals(null);
+                        store(LAST_CATEGORY_KEY, { categorySlug: category.slug, subtypeSlug: subtype.slug, duration: minutes });
+                      }}
+                      aria-pressed={duration === minutes}
+                      className={`min-h-[38px] min-w-[38px] rounded-full px-4 py-1.5 text-xs font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer transition-all duration-150 ${
+                        duration === minutes 
+                          ? "bg-primary text-white shadow-sm shadow-primary/20 scale-[1.02]" 
+                          : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
+                      }`}
+                    >
+                      {minutes}m
+                    </button>
+                  ))}
+                  <label className="sr-only" htmlFor="custom-duration">Custom duration</label>
+                  <input
+                    id="custom-duration"
+                    type="number"
+                    min="1"
+                    max="300"
+                    placeholder="Custom"
+                    value={[15, 30, 45, 60].includes(Number(duration)) ? "" : duration}
+                    onChange={(event) => handleCustomDuration(event.target.value)}
+                    className="min-h-[38px] w-24 rounded-full border border-zinc-200/80 bg-zinc-50 px-4 py-1.5 text-xs font-bold text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                    Date <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    type="date" 
+                    value={details.date} 
+                    onChange={(e) => setDetails((current) => ({ ...current, date: e.target.value }))} 
+                    className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" 
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                    Intensity <span className="text-red-500">*</span>
+                  </label>
+                  <select 
+                    value={details.intensity} 
+                    onChange={(e) => setDetails((current) => ({ ...current, intensity: e.target.value }))} 
+                    className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  >
+                    <option value="low">Low</option>
+                    <option value="med">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column - Metrics & Notes */}
+            <div className="space-y-5">
+              {/* Dynamic metrics block */}
+              {(showDistance || showStrength || showRepsOnly || showHold) && (
+                <div className="rounded-2xl bg-zinc-50/40 border border-zinc-150/80 p-4 space-y-4">
+                  <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500">
+                    Performance Metrics
+                  </p>
+                  
+                  {showDistance && (
+                    <div>
+                      <label className="text-xs font-semibold text-zinc-700">
+                        Distance (km{subtype?.calorieMethod === "distance_multiplier" ? " *" : ""})
+                      </label>
+                      <input 
+                        type="number" 
+                        min="0" 
+                        step="0.1" 
+                        inputMode="decimal" 
+                        value={details.distance} 
+                        onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, distance: e.target.value })); }} 
+                        className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
+                      />
+                      {derivedPaceAndSpeed && (
+                        <p className="mt-1.5 text-xs text-primary font-semibold">
+                          Derived Speed: {derivedPaceAndSpeed.speed} km/h • Derived Pace: {derivedPaceAndSpeed.pace} /km
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {showStrength && (
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-xs font-semibold text-zinc-700">
+                          Sets <span className="text-red-500">*</span>
+                        </label>
+                        <input 
+                          type="number" 
+                          min="1" 
+                          max="20" 
+                          value={details.sets} 
+                          onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, sets: e.target.value })); }} 
+                          className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-zinc-700">
+                          Reps <span className="text-red-500">*</span>
+                        </label>
+                        <input 
+                          type="number" 
+                          min="1" 
+                          max="100" 
+                          value={details.reps} 
+                          onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, reps: e.target.value })); }} 
+                          className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-zinc-700">
+                          Weight (kg)
+                        </label>
+                        <input 
+                          type="number" 
+                          min="0" 
+                          step="0.5" 
+                          value={details.weight} 
+                          onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, weight: e.target.value })); }} 
+                          className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {showRepsOnly && (
+                    <div>
+                      <label className="text-xs font-semibold text-zinc-700">
+                        Reps <span className="text-red-500">*</span>
+                      </label>
+                      <input 
+                        type="number" 
+                        min="1" 
+                        max="500" 
+                        value={details.reps} 
+                        onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, reps: e.target.value })); }} 
+                        className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
+                      />
+                    </div>
+                  )}
+
+                  {showHold && (
+                    <div>
+                      <label className="text-xs font-semibold text-zinc-700">
+                        Hold time (seconds) <span className="text-red-500">*</span>
+                      </label>
+                      <input 
+                        type="number" 
+                        min="1" 
+                        max="3600" 
+                        value={details.holdTime} 
+                        onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, holdTime: e.target.value })); }} 
+                        className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-zinc-500" htmlFor="workout-notes">
+                  Notes
+                </label>
+                <textarea 
+                  id="workout-notes"
+                  value={details.notes} 
+                  onChange={(e) => setDetails((current) => ({ ...current, notes: e.target.value }))} 
+                  rows="3" 
+                  placeholder="Optional details about the session"
+                  className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
                 />
               </div>
             </div>
-            <div className="rounded-2xl border border-border bg-bg p-4 text-sm font-medium">
-              {savedTotals ? (
-                <p className="font-bold text-primary">Saved XP: {savedTotals.xp} / Calories: {savedTotals.calories}</p>
-              ) : (
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted">Estimate before submit</p>
-                  <p className="mt-1 font-bold text-text">Estimated XP: {preview.xp} / Calories: {preview.calories}</p>
-                </div>
-              )}
-            </div>
           </div>
-
-          <button
-            type="button"
-            onClick={() => setShowDetails((value) => !value)}
-            className="mt-5 text-sm font-bold text-primary underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            aria-expanded={showDetails}
-          >
-            Add details
-          </button>
-
-          {showDetails && (
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <label className="text-sm text-text">
-                Date
-                <input type="date" value={details.date} onChange={(e) => setDetails((current) => ({ ...current, date: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
-              </label>
-              {showDistance && (
-                <label className="text-sm text-text">
-                  Distance (km{hasActivityMeta && trackingFields.includes("distance") && subtype?.calorieMethod === "distance_multiplier" ? "" : ", optional"})
-                  <input type="number" min="0" step="0.1" inputMode="decimal" value={details.distance} onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, distance: e.target.value })); }} className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" />
-                </label>
-              )}
-              <label className="text-sm text-text">
-                Intensity
-                <select value={details.intensity} onChange={(e) => setDetails((current) => ({ ...current, intensity: e.target.value }))} className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-                  <option value="low">Low</option>
-                  <option value="med">Medium</option>
-                  <option value="high">High</option>
-                </select>
-              </label>
-              {showStrength && (
-                <div className="grid gap-4 sm:col-span-2 sm:grid-cols-3">
-                  <label className="text-sm text-text">
-                    Sets
-                    <input type="number" min="1" max="20" value={details.sets} onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, sets: e.target.value })); }} className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" />
-                  </label>
-                  <label className="text-sm text-text">
-                    Reps
-                    <input type="number" min="1" max="100" value={details.reps} onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, reps: e.target.value })); }} className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" />
-                  </label>
-                  <label className="text-sm text-text">
-                    Weight (kg)
-                    <input type="number" min="0" step="0.5" value={details.weight} onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, weight: e.target.value })); }} className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" />
-                  </label>
-                </div>
-              )}
-              {showRepsOnly && (
-                <label className="text-sm text-text">
-                  Reps
-                  <input type="number" min="1" max="500" value={details.reps} onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, reps: e.target.value })); }} className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" />
-                </label>
-              )}
-              {showHold && (
-                <label className="text-sm text-text">
-                  Hold time (seconds)
-                  <input type="number" min="1" max="3600" value={details.holdTime} onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, holdTime: e.target.value })); }} className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" />
-                </label>
-              )}
-              <label className="text-sm text-text sm:col-span-2">
-                Notes
-                <textarea value={details.notes} onChange={(e) => setDetails((current) => ({ ...current, notes: e.target.value }))} rows="3" className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" />
-              </label>
-            </div>
-          )}
         </section>
 
         <button
           type="submit"
-          disabled={submitting}
-          className="w-full rounded-2xl bg-primary px-6 py-4.5 text-lg font-bold text-white shadow-lg shadow-primary/20 transition hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={submitting || !isFormValid}
+          className="w-full rounded-2xl bg-primary py-4 text-base font-bold text-white shadow-sm hover:bg-primary-bright transition duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary"
         >
-          {submitting ? "Logging…" : `Log ${typeof debouncedWorkoutTitle === 'string' ? debouncedWorkoutTitle.trim() : '' || subtype.name}`}
+          {submitting ? "Logging…" : `Log ${subtype?.name || category?.name || "Workout"}`}
         </button>
       </form>
 

@@ -49,7 +49,9 @@ export default function SubtypePicker({ category, selectedSubtype, workoutTitle,
     return subtypes.filter(
       (subtype) =>
         String(subtype.name || "").toLowerCase().includes(q) ||
-        String(subtype.slug || "").toLowerCase().includes(q)
+        String(subtype.slug || "").toLowerCase().includes(q) ||
+        String(subtype.equipment || "").toLowerCase().includes(q) ||
+        String(subtype.primaryMuscles || "").toLowerCase().includes(q)
     );
   }, [subtypes, query]);
 
@@ -98,12 +100,16 @@ export default function SubtypePicker({ category, selectedSubtype, workoutTitle,
   const canToggle = !hasQuery && total > COMPACT_COUNT;
 
   return (
-    <section className="animate-slide-up rounded-2xl border border-border bg-surface p-4 shadow-xl shadow-black/20" aria-label={`${category.name} activities`}>
+    <section className="animate-slide-up rounded-2xl border border-zinc-200/80 bg-white p-5 md:p-6 shadow-sm" aria-label={`${category.name} activities`}>
       <div className="mb-4 flex items-start justify-between gap-3">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Step 2</p>
-          <h2 className="text-lg font-semibold text-text">Choose activity</h2>
-          <p className="mt-0.5 text-xs text-muted">Pick a common activity, search the library, or show all.</p>
+        <div className="flex items-center gap-3">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-xs font-mono">
+            2
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-zinc-900 tracking-tight">Pick activity</h2>
+            <p className="text-xs text-zinc-550">Search or select an activity from the library</p>
+          </div>
         </div>
         {onClose && (
           <button type="button" onClick={onClose} className="rounded-full px-3 py-1 text-xs text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
@@ -128,8 +134,8 @@ export default function SubtypePicker({ category, selectedSubtype, workoutTitle,
               // Prevent Enter from submitting the surrounding workout form.
               if (event.key === "Enter") event.preventDefault();
             }}
-            placeholder={`Search ${category.name} activities`}
-            className="w-full rounded-2xl border border-border bg-bg py-2 pl-9 pr-9 text-sm font-medium text-text placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            placeholder={`Search by name, equipment, or muscles`}
+            className="w-full rounded-2xl border border-border bg-bg py-2.5 pl-9 pr-9 text-sm font-medium text-text placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           />
           {hasQuery && (
             <button
@@ -148,27 +154,53 @@ export default function SubtypePicker({ category, selectedSubtype, workoutTitle,
       </div>
 
       {shown === 0 ? (
-        <p className="rounded-2xl border border-border bg-bg px-4 py-6 text-center text-sm text-muted">
-          No {category.name.toLowerCase()} activities match “{query.trim()}”.
-        </p>
+        <div className="rounded-2xl border border-dashed border-zinc-200/80 bg-zinc-50/40 px-4 py-8 text-center">
+          <p className="text-sm font-semibold text-zinc-800">
+            No activities found in this category
+          </p>
+          <p className="mt-1 text-xs text-zinc-500">
+            No activities match “{query.trim()}”
+          </p>
+        </div>
       ) : (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {visibleSubtypes.map((subtype) => {
             const active = selectedSubtype?.slug === subtype.slug && (workoutTitle === undefined || workoutTitle.trim().toLowerCase() === subtype.name.toLowerCase());
             const meta = trackingSummary(subtype);
+            
+            // Build visual tags for muscles/equipment when not active.
+            const tags = [];
+            if (subtype.primaryMuscles) tags.push(subtype.primaryMuscles);
+            if (subtype.equipment && subtype.equipment !== "none") tags.push(subtype.equipment);
+            
             return (
               <button
                 type="button"
                 key={subtype.slug}
                 onClick={() => onSelect(subtype)}
                 aria-pressed={active}
-                className={`flex min-h-[44px] min-w-[44px] flex-col justify-center rounded-2xl border px-3 py-2.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                  active ? "border-primary bg-primary text-white" : "border-border bg-bg text-text hover:border-primary/60"
+                className={`group relative flex flex-col justify-between rounded-2xl border p-4 text-left transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                  active 
+                    ? "border-primary bg-primary text-white shadow-md shadow-primary/20 scale-[1.01]" 
+                    : "border-zinc-200/80 bg-zinc-50/40 text-zinc-800 hover:border-zinc-300 hover:bg-zinc-100/60 hover:-translate-y-[1px] hover:shadow-sm"
                 }`}
               >
-                <span className="text-sm font-semibold leading-tight">{subtype.name}</span>
+                <div>
+                  <span className="text-sm font-bold tracking-tight block">{subtype.name}</span>
+                  {tags.length > 0 && !active && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {tags.slice(0, 2).map((tag, idx) => (
+                        <span key={idx} className="inline-block text-[9px] font-semibold uppercase tracking-wider bg-zinc-200/60 text-zinc-600 px-2 py-0.5 rounded-full">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 {meta && (
-                  <span className={`mt-1 text-[11px] leading-tight ${active ? "text-white/70" : "text-muted"}`}>
+                  <span className={`mt-3 block text-[10px] font-semibold uppercase tracking-wide ${
+                    active ? "text-white/70" : "text-zinc-500"
+                  }`}>
                     {meta}
                   </span>
                 )}
