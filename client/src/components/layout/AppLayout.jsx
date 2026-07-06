@@ -12,9 +12,9 @@ import gamificationService from "../../services/gamificationService.js";
 const MOBILE_LINKS = [
   { to: "/", label: "Home", icon: Home },
   { to: "/log", label: "Log", icon: Dumbbell },
-  { to: "/workouts", label: "History", icon: Clock },
-  { to: "/progress", label: "Progress", icon: BarChart3 },
   { to: "/nutrition", label: "Nutrition", icon: Salad },
+  { to: "/progress", label: "Progress", icon: BarChart3 },
+  { to: "/workouts", label: "History", icon: Clock },
   { to: "/you", label: "You", icon: User }
 ];
 

@@ -3,9 +3,6 @@ import { NavLink } from "react-router-dom";
 import {
   Dumbbell,
   Home,
-  LayoutDashboard,
-  Users,
-  Layers,
   BarChart3,
   Clock,
   LogOut,
@@ -20,9 +17,9 @@ import ThemeToggle from "./ThemeToggle.jsx";
 const USER_LINKS = [
   { to: "/", label: "Home", icon: Home, end: true },
   { to: "/log", label: "Log", icon: Dumbbell },
-  { to: "/workouts", label: "History", icon: Clock },
-  { to: "/progress", label: "Progress", icon: BarChart3 },
   { to: "/nutrition", label: "Nutrition", icon: Salad },
+  { to: "/progress", label: "Progress", icon: BarChart3 },
+  { to: "/workouts", label: "History", icon: Clock },
   { to: "/you", label: "You", icon: User }
 ];
 
