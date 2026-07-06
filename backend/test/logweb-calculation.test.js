@@ -128,3 +128,30 @@ test("weekly streak bonus tiers", () => {
   assert.strictEqual(streakBonusForWeeklyStreak(6), 25);
   assert.strictEqual(streakBonusForWeeklyStreak(12), 25);
 });
+
+// ---------------------------------------------------------------------------
+// 6. Intensity Multipliers
+//    Low = 0.8, Med = 1.0, High = 1.2
+// ---------------------------------------------------------------------------
+test("intensity affects calorie and XP calculations consistently", () => {
+  const calLow = calculateCalories({ category: "cardio", duration_min: 30, intensity: "low" }, 80, { met: 5 });
+  assert.strictEqual(calLow, 168);
+
+  const calHigh = calculateCalories({ category: "cardio", duration_min: 30, intensity: "high" }, 80, { met: 5 });
+  assert.strictEqual(calHigh, 252);
+
+  const calMed = calculateCalories({ category: "cardio", duration_min: 30, intensity: "med" }, 80, { met: 5 });
+  assert.strictEqual(calMed, 210);
+
+  const xpLow = calculateXpBreakdown(
+    { category: "cardio", duration_min: 30, intensity: "low" },
+    { defaultMet: 5.0 }
+  );
+  assert.strictEqual(xpLow.intensityXp, 18);
+
+  const xpHigh = calculateXpBreakdown(
+    { category: "cardio", duration_min: 30, intensity: "high" },
+    { defaultMet: 5.0 }
+  );
+  assert.strictEqual(xpHigh.intensityXp, 27);
+});

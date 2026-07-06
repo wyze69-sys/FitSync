@@ -101,7 +101,8 @@ const workoutService = {
       sets: workoutData.sets,
       reps: workoutData.reps,
       weight: workoutData.weight,
-      holdTime: workoutData.holdTime ?? workoutData.hold_time
+      holdTime: workoutData.holdTime ?? workoutData.hold_time,
+      intensity: workoutData.intensity || "med"
     };
 
     const validationError = validateActivityInputs(activity, inputs);

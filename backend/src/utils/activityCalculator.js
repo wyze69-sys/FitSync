@@ -154,7 +154,8 @@ function computeActivityWorkout(activity, inputs, weightKg, options = {}) {
   const workout = {
     category: categorySlug,
     duration_min: durationMin,
-    distance_km: v.distanceKm
+    distance_km: v.distanceKm,
+    intensity: inputs.intensity ?? options.intensity ?? "med"
   };
 
   // Calorie options. categoryMeta carries the resolved MET so the strength

@@ -73,6 +73,13 @@ function getDistanceKm(workout = {}) {
   return Number(workout.distance_km ?? workout.distanceKm ?? 0) || 0;
 }
 
+function getIntensityMultiplier(intensity) {
+  const key = String(intensity || "").trim().toLowerCase();
+  if (key === "low") return 0.8;
+  if (key === "high" || key === "very_high") return 1.2;
+  return 1.0;
+}
+
 /**
  * Resolves a category profile with DB metadata overriding static defaults.
  * @param {string} slug Category slug.
@@ -180,8 +187,13 @@ function calculateCalories(workout, weightKg = DEFAULT_WEIGHT_KG, options = {}) 
     return Math.round(distanceKm * w * distanceMultiplier);
   }
 
+  // Adjust MET by intensity
+  const intensity = workout.intensity || options.intensity || "med";
+  const intensityMult = getIntensityMultiplier(intensity);
+  const adjustedMet = met * intensityMult;
+
   // Basic MET formula (PDF section 3).
-  let baseCalories = (met * 3.5 * w) / 200 * durationMin;
+  let baseCalories = (adjustedMet * 3.5 * w) / 200 * durationMin;
 
   // Strength training includes rest between sets, so the full duration is not
   // continuous effort. Scale duration-derived calories by the active-time factor
@@ -248,9 +260,14 @@ function calculateXpBreakdown(workout, options = {}) {
   );
   const weeklyStreak = Number(options.weeklyStreak || 0);
 
+  // Adjust defaultMet by intensity
+  const intensity = workout.intensity || options.intensity || "med";
+  const intensityMult = getIntensityMultiplier(intensity);
+  const adjustedMet = defaultMet * intensityMult;
+
   const baseCompletionXp = 20;
   const durationXp = Math.min(durationMin * 1.2, 90);
-  const intensityXp = Math.min(defaultMet * durationMin * 0.15, 60);
+  const intensityXp = Math.min(adjustedMet * durationMin * 0.15, 60);
 
   const cardioBonus = Math.min(distanceKm * 4, 40);
 

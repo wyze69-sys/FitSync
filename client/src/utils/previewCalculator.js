@@ -75,14 +75,25 @@ function calculateMet(slug, distanceKm, durationMin, fallbackMet) {
   return fallbackMet;
 }
 
-export function estimateCalories(subtype, duration, weightKg = DEFAULT_WEIGHT_KG, distanceKm = 0) {
+function getIntensityMultiplier(intensity) {
+  const key = String(intensity || "").trim().toLowerCase();
+  if (key === "low") return 0.8;
+  if (key === "high" || key === "very_high") return 1.2;
+  return 1.0;
+}
+
+export function estimateCalories(subtype, duration, weightKg = DEFAULT_WEIGHT_KG, distanceKm = 0, intensity = "med") {
   const minutes = Number(duration || 0);
   if (minutes <= 0) return 0;
   const slug = normalize(subtype);
   const profile = resolveProfile(subtype);
   const met = calculateMet(slug, Number(distanceKm || 0), minutes, profile.baseMet);
+  
+  const intensityMult = getIntensityMultiplier(intensity);
+  const adjustedMet = met * intensityMult;
+
   // logweb PDF s.3: calories = MET * 3.5 * weightKg / 200 * minutes
-  let calories = (met * 3.5 * Number(weightKg || DEFAULT_WEIGHT_KG)) / 200 * minutes;
+  let calories = (adjustedMet * 3.5 * Number(weightKg || DEFAULT_WEIGHT_KG)) / 200 * minutes;
   // Strength is not continuous effort — apply the active-time factor so the
   // estimate matches the backend and does not read like cardio.
   if (isStrengthFamily(subtype, slug, profile)) {
@@ -91,16 +102,20 @@ export function estimateCalories(subtype, duration, weightKg = DEFAULT_WEIGHT_KG
   return Math.round(calories);
 }
 
-export function estimateXP(subtype, duration, weightKg = DEFAULT_WEIGHT_KG, distanceKm = 0) {
+export function estimateXP(subtype, duration, weightKg = DEFAULT_WEIGHT_KG, distanceKm = 0, intensity = "med") {
   const minutes = Number(duration || 0);
   if (minutes <= 0) return 0;
   const profile = resolveProfile(subtype);
   const kilometres = Number(distanceKm || 0);
+  
+  const intensityMult = getIntensityMultiplier(intensity);
+  const adjustedMet = profile.baseMet * intensityMult;
+
   // logweb PDF s.4. Preview estimate only (no weekly streak bonus) — the
   // backend remains the source of truth and recomputes the authoritative XP.
   const baseCompletionXp = 20;
   const durationXp = Math.min(minutes * 1.2, 90);
-  const intensityXp = Math.min(profile.baseMet * minutes * 0.15, 60);
+  const intensityXp = Math.min(adjustedMet * minutes * 0.15, 60);
   const cardioBonus = Math.min(kilometres * 4, 40);
   const performanceBonus = Math.max(cardioBonus, 0);
   return Math.round(baseCompletionXp + durationXp + intensityXp + performanceBonus);

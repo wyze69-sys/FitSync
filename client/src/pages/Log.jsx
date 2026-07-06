@@ -300,10 +300,10 @@ export default function Log() {
     const weightKg = getProfileWeight(user);
     const distance = showDistance ? Number(details.distance || 0) : 0;
     return {
-      calories: estimateCalories(subtypeForPreview, duration, weightKg, distance),
-      xp: estimateXP(subtypeForPreview, duration, weightKg, distance)
+      calories: estimateCalories(subtypeForPreview, duration, weightKg, distance, details.intensity),
+      xp: estimateXP(subtypeForPreview, duration, weightKg, distance, details.intensity)
     };
-  }, [details.distance, duration, showDistance, subtypeForPreview, user]);
+  }, [details.distance, duration, showDistance, subtypeForPreview, user, details.intensity]);
 
   const derivedPaceAndSpeed = useMemo(() => {
     const mins = Number(duration || 0);
@@ -674,7 +674,7 @@ export default function Log() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-bold uppercase tracking-wider text-zinc-500">
-                    Date <span className="text-red-500">*</span>
+                    Date
                   </label>
                   <input 
                     type="date" 
