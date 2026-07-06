@@ -27,6 +27,27 @@ function trackingSummary(subtype) {
   return parts.slice(0, 2).join(" · ");
 }
 
+function getSubtypeTags(subtype) {
+  const list = [];
+  
+  if (subtype?.primaryMuscles) {
+    const muscles = subtype.primaryMuscles.split(",")
+      .map(m => m.trim())
+      .filter(Boolean)
+      .map(m => m.charAt(0).toUpperCase() + m.slice(1));
+    list.push(...muscles);
+  }
+  
+  if (subtype?.equipment && subtype.equipment !== "none") {
+    const eq = subtype.equipment.trim();
+    if (eq) {
+      list.push(eq.charAt(0).toUpperCase() + eq.slice(1));
+    }
+  }
+  
+  return list;
+}
+
 export default function SubtypePicker({ category, selectedSubtype, workoutTitle, onSelect, onClose }) {
   const [query, setQuery] = useState("");
   // When true the user has explicitly asked to see the whole library; we keep
@@ -167,11 +188,9 @@ export default function SubtypePicker({ category, selectedSubtype, workoutTitle,
           {visibleSubtypes.map((subtype) => {
             const active = selectedSubtype?.slug === subtype.slug && (workoutTitle === undefined || workoutTitle.trim().toLowerCase() === subtype.name.toLowerCase());
             const meta = trackingSummary(subtype);
-            
-            // Build visual tags for muscles/equipment when not active.
-            const tags = [];
-            if (subtype.primaryMuscles) tags.push(subtype.primaryMuscles);
-            if (subtype.equipment && subtype.equipment !== "none") tags.push(subtype.equipment);
+            const allTags = getSubtypeTags(subtype);
+            const visibleTags = allTags.slice(0, 2);
+            const plusCount = allTags.length - visibleTags.length;
             
             return (
               <button
@@ -187,13 +206,18 @@ export default function SubtypePicker({ category, selectedSubtype, workoutTitle,
               >
                 <div>
                   <span className="text-sm font-bold tracking-tight block">{subtype.name}</span>
-                  {tags.length > 0 && !active && (
+                  {visibleTags.length > 0 && !active && (
                     <div className="mt-2 flex flex-wrap gap-1">
-                      {tags.slice(0, 2).map((tag, idx) => (
-                        <span key={idx} className="inline-block text-[9px] font-semibold uppercase tracking-wider bg-zinc-200/60 text-zinc-600 px-2 py-0.5 rounded-full">
+                      {visibleTags.map((tag, idx) => (
+                        <span key={idx} className="inline-block text-[9px] font-medium text-zinc-550 bg-zinc-100 border border-zinc-200/30 px-1.5 py-0.5 rounded-md">
                           {tag}
                         </span>
                       ))}
+                      {plusCount > 0 && (
+                        <span className="inline-block text-[9px] font-medium text-zinc-400 bg-zinc-150/40 px-1.5 py-0.5 rounded-md">
+                          +{plusCount}
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
