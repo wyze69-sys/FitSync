@@ -103,9 +103,8 @@ export default function You() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:min-w-[520px]">
+          <div className="grid grid-cols-3 gap-3 lg:min-w-[390px]">
             <HeroMetric label="Level" value={level} badgeText="LVL" badgeColor="text-primary border-primary/20 bg-primary/10" />
-            <HeroMetric label="Total XP" value={totalXp} badgeText="XP" badgeColor="text-xp border-xp/20 bg-xp/10" />
             <HeroMetric label="Streak" value={`${currentStreak}d`} badgeText="STK" badgeColor="text-streak border-streak/20 bg-streak/10" />
             <HeroMetric label="Today" value={todayWorkouts} badgeText="FIT" badgeColor="text-primary border-primary/20 bg-primary/10" />
           </div>
