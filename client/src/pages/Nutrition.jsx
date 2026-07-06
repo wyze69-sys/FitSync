@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useOutletContext } from "react-router-dom";
 import {
   Salad,
@@ -164,9 +165,8 @@ function SectionHeader({ icon: Icon, eyebrow, title, action }) {
 function SectionCard({ icon, eyebrow, title, children, description, action, compact, fill }) {
   return (
     <section
-      className={`rounded-2xl border border-border bg-surface shadow-md ${compact ? "p-4" : "p-5 sm:p-6"} ${
-        fill ? "flex h-full flex-col" : ""
-      }`}
+      className={`rounded-2xl border border-border bg-surface shadow-md ${compact ? "p-4" : "p-5 sm:p-6"} ${fill ? "flex h-full flex-col" : ""
+        }`}
     >
       <SectionHeader icon={icon} eyebrow={eyebrow} title={title} action={action} />
       {description && <p className="mt-3 text-sm leading-relaxed text-muted">{description}</p>}
@@ -575,7 +575,7 @@ function AdjustGoalModal({ initial, onApply, onClose }) {
     }
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true" aria-label="Adjust goal">
       {/* Overlay */}
       <button
@@ -647,11 +647,10 @@ function AdjustGoalModal({ initial, onApply, onClose }) {
                   type="button"
                   onClick={() => setTimeframeDays(String(days))}
                   aria-pressed={activeChip}
-                  className={`rounded-2xl border px-3 py-1 text-xs font-semibold transition-all ${
-                    activeChip
-                      ? "border-primary bg-primary text-white"
-                      : "border-border bg-bg text-muted hover:border-primary hover:text-text"
-                  }`}
+                  className={`rounded-2xl border px-3 py-1 text-xs font-semibold transition-all ${activeChip
+                    ? "border-primary bg-primary text-white"
+                    : "border-border bg-bg text-muted hover:border-primary hover:text-text"
+                    }`}
                 >
                   {days} days
                 </button>
@@ -673,11 +672,10 @@ function AdjustGoalModal({ initial, onApply, onClose }) {
                     type="button"
                     onClick={() => setMode(option.value)}
                     aria-pressed={activeMode}
-                    className={`flex-1 rounded-2xl border px-3 py-2 text-xs font-semibold transition-all ${
-                      activeMode
-                        ? "border-primary bg-primary text-white"
-                        : "border-border bg-bg text-muted hover:border-primary hover:text-text"
-                    }`}
+                    className={`flex-1 rounded-2xl border px-3 py-2 text-xs font-semibold transition-all ${activeMode
+                      ? "border-primary bg-primary text-white"
+                      : "border-border bg-bg text-muted hover:border-primary hover:text-text"
+                      }`}
                   >
                     {option.label}
                   </button>
@@ -743,7 +741,8 @@ function AdjustGoalModal({ initial, onApply, onClose }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -751,9 +750,8 @@ function PlanSummary({ title, plan = {}, highlight }) {
   const info = safetyInfo(plan.safetyStatus);
   return (
     <div
-      className={`flex items-center justify-between gap-3 rounded-2xl border bg-bg px-4 py-3 ${
-        highlight ? "border-primary" : "border-border"
-      }`}
+      className={`flex items-center justify-between gap-3 rounded-2xl border bg-bg px-4 py-3 ${highlight ? "border-primary" : "border-border"
+        }`}
     >
       <div className="min-w-0">
         <div className="flex items-center gap-2">

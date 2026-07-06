@@ -37,7 +37,8 @@ export default function You() {
   const { user, refreshAll, push, gamification = {}, loading, error } = context;
   const { updateUser, logout } = useAuth();
   const navigate = useNavigate();
-  const badges = Array.isArray(gamification?.badges) ? gamification.badges : [];
+  const rawBadges = Array.isArray(gamification?.badges) ? gamification.badges : [];
+  const badges = rawBadges.filter((badge) => String(badge.requirement || "").toLowerCase() !== "streak");
   const earnedBadges = badges.filter((badge) => badge.isUnlocked);
   const completion = profileCompletion(user || {});
   const level = Number(gamification?.level || 1);
@@ -166,11 +167,10 @@ export default function You() {
                   return (
                     <article
                       key={badge.code || badge.name}
-                      className={`rounded-2xl border p-6 transition-all duration-300 ${
-                        locked
+                      className={`rounded-2xl border p-6 transition-all duration-300 ${locked
                           ? "border-border/30 bg-bg/30 opacity-40 shadow-inner"
                           : "border-primary/20 bg-surface shadow-md hover:border-primary/45 hover:-translate-y-0.5"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-start gap-4">
                         <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-surface border border-border/25 p-2 shadow-sm">
@@ -180,9 +180,8 @@ export default function You() {
                           <div className="flex items-start justify-between gap-2">
                             <h3 className="text-sm font-bold text-text">{badge.name || "Achievement"}</h3>
                             <span
-                              className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
-                                locked ? "bg-bg text-muted" : "bg-primary/15 text-primary"
-                              }`}
+                              className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${locked ? "bg-bg text-muted" : "bg-primary/15 text-primary"
+                                }`}
                             >
                               {locked ? "Locked" : "Earned"}
                             </span>

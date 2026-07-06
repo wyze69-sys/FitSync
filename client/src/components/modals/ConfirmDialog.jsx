@@ -23,8 +23,10 @@ export default function ConfirmDialog({
     function handleKey(event) {
       if (event.key === "Escape") onCancel();
     }
+
     document.addEventListener("keydown", handleKey);
     confirmRef.current?.focus();
+
     return () => document.removeEventListener("keydown", handleKey);
   }, [open, onCancel]);
 
@@ -44,10 +46,15 @@ export default function ConfirmDialog({
       >
         <div className="flex items-start gap-4">
           <div
-            className={`h-10 w-10 rounded-md flex items-center justify-center shrink-0 border ${destructive ? "bg-red-500/10 border-red-500/20 text-red-500" : "bg-primary/10 border-primary/20 text-primary"}`}
+            className={`h-10 w-10 rounded-md flex items-center justify-center shrink-0 border ${
+              destructive
+                ? "bg-red-500/10 border-red-500/20 text-red-500"
+                : "bg-primary/10 border-primary/20 text-primary"
+            }`}
           >
             <AlertTriangle className="h-5 w-5" />
           </div>
+
           <div className="space-y-1.5 pt-0.5">
             <h3
               id="confirm-dialog-title"
@@ -55,7 +62,10 @@ export default function ConfirmDialog({
             >
               {title}
             </h3>
-            {message && <p className="text-sm text-muted leading-relaxed">{message}</p>}
+
+            {message && (
+              <p className="text-sm text-muted leading-relaxed">{message}</p>
+            )}
           </div>
         </div>
 
@@ -67,11 +77,16 @@ export default function ConfirmDialog({
           >
             {cancelLabel}
           </button>
+
           <button
             type="button"
             ref={confirmRef}
             onClick={onConfirm}
-            className={`px-4 py-2 text-xs font-semibold uppercase tracking-widest rounded-sm transition-colors cursor-pointer ${destructive ? "bg-red-500 hover:bg-red-600 text-white" : "bg-primary hover:bg-primary-bright text-white"}`}
+            className={`px-4 py-2 text-xs font-semibold uppercase tracking-widest rounded-sm transition-colors cursor-pointer ${
+              destructive
+                ? "bg-red-500 hover:bg-red-600 text-white"
+                : "bg-primary hover:bg-primary-bright text-white"
+            }`}
           >
             {confirmLabel}
           </button>

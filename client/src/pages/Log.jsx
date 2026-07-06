@@ -176,7 +176,21 @@ export default function Log() {
   const [category, setCategory] = useState(null);
   const [subtype, setSubtype] = useState(null);
   const [duration, setDuration] = useState(DEFAULT_DURATION);
-  const [workoutTitle, setWorkoutTitle] = useState("");
+  const [workoutTitle, _setWorkoutTitle] = useState("");
+  const [debouncedWorkoutTitle, setDebouncedWorkoutTitle] = useState("");
+
+  const setWorkoutTitle = useCallback((val) => {
+    _setWorkoutTitle(val);
+    setDebouncedWorkoutTitle(val);
+  }, []);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedWorkoutTitle(workoutTitle);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [workoutTitle]);
+
   const [templates, setTemplates] = useState([]);
   const [showDetails, setShowDetails] = useState(false);
   const [details, setDetails] = useState({ date: todayStr(), distance: "", intensity: "med", notes: "", sets: "", reps: "", weight: "", holdTime: "" });
@@ -521,7 +535,7 @@ export default function Log() {
           </div>
           <QuickLogGrid categories={finalCategories} selectedSlug={category.slug} onSelect={handleCategorySelect} />
         </div>
-        <SubtypePicker category={category} selectedSubtype={subtype} onSelect={handleSubtypeSelect} />
+        <SubtypePicker category={category} selectedSubtype={subtype} workoutTitle={debouncedWorkoutTitle} onSelect={handleSubtypeSelect} />
 
         <section className="rounded-2xl border border-border bg-surface p-5 md:p-6 shadow-lg shadow-black/10">
           <div className="mb-5">
@@ -534,7 +548,7 @@ export default function Log() {
               required
               placeholder="e.g. Upper Body Push, Running"
               value={workoutTitle}
-              onChange={(e) => setWorkoutTitle(e.target.value)}
+              onChange={(e) => _setWorkoutTitle(e.target.value)}
               className="mt-2 w-full rounded-2xl border border-border bg-bg px-5 py-3 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             />
           </div>
@@ -653,7 +667,7 @@ export default function Log() {
           disabled={submitting}
           className="w-full rounded-2xl bg-primary px-6 py-4.5 text-lg font-bold text-white shadow-lg shadow-primary/20 transition hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {submitting ? "Logging…" : `Log ${subtype.name}`}
+          {submitting ? "Logging…" : `Log ${typeof debouncedWorkoutTitle === 'string' ? debouncedWorkoutTitle.trim() : '' || subtype.name}`}
         </button>
       </form>
 
