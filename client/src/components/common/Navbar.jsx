@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import {
   Dumbbell,
   Home,
@@ -35,28 +35,20 @@ function getInitials(name) {
   return name.slice(0, 2).toUpperCase();
 }
 
-export default function Navbar() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+export default function Navbar({ onLogoutRequest }) {
+  const { user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   if (!user) return null;
 
   const links = user.role === "admin" ? [] : USER_LINKS;
 
-  function handleLogout() {
-    logout();
-    navigate("/login", { replace: true });
-  }
-
   const desktopClass = ({ isActive }) =>
-    `h-14 flex items-center gap-2 font-black uppercase tracking-[0.22em] text-[12px] transition-all cursor-pointer ${
-      isActive ? "text-primary" : "text-muted hover:text-text"
+    `h-14 flex items-center gap-2 font-black uppercase tracking-[0.22em] text-[12px] transition-all cursor-pointer ${isActive ? "text-primary" : "text-muted hover:text-text"
     }`;
 
   const mobileClass = ({ isActive }) =>
-    `w-full text-left py-2 px-3 rounded-full font-medium flex items-center gap-2 uppercase tracking-widest ${
-      isActive ? "bg-primary text-white" : "text-muted hover:text-text hover:bg-bg"
+    `w-full text-left py-2 px-3 rounded-full font-medium flex items-center gap-2 uppercase tracking-widest ${isActive ? "bg-primary text-white" : "text-muted hover:text-text hover:bg-bg"
     }`;
 
   return (
@@ -85,16 +77,16 @@ export default function Navbar() {
                 {user.role} ACCOUNT
               </div>
             </div>
-            
+
             <div className="h-10 w-10 rounded-full bg-primary text-primary-contrast font-black text-sm flex items-center justify-center select-none shrink-0 shadow-lg shadow-primary/20">
               {getInitials(user.name)}
             </div>
-            
+
             <ThemeToggle />
-            
+
             <button
               type="button"
-              onClick={handleLogout}
+              onClick={onLogoutRequest}
               aria-label="Log out"
               title="Log out"
               className="h-10 w-10 rounded-full bg-surface border border-border/40 text-muted hover:text-text hover:border-primary flex items-center justify-center transition-all cursor-pointer shrink-0"
@@ -139,7 +131,10 @@ export default function Navbar() {
               <ThemeToggle />
               <button
                 type="button"
-                onClick={handleLogout}
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  if (onLogoutRequest) onLogoutRequest();
+                }}
                 className="py-1.5 px-3 bg-transparent border border-border/40 text-text font-medium rounded-full flex items-center gap-1 cursor-pointer hover:border-primary"
               >
                 <LogOut className="h-3.5 w-3.5" /> Logout
