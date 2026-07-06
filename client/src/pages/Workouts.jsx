@@ -11,7 +11,8 @@ import {
   ChevronRight,
   ArrowUp,
   ArrowDown,
-  Activity
+  Activity,
+  X
 } from "lucide-react";
 import PageHeader from "../components/common/PageHeader.jsx";
 import EmptyState from "../components/common/EmptyState.jsx";
@@ -99,7 +100,11 @@ function formatWorkout(workout) {
     duration: n(workout.durationTotal ?? workout.duration_min),
     calories: n(workout.calories ?? workout.caloriesTotal),
     xp: n(workout.xp ?? workout.xp_earned),
-    notes: workout.notes || ""
+    notes: workout.notes || "",
+    date: workout.date,
+    intensity: workout.intensity || "med",
+    userWeightAtLog: workout.userWeightAtLog,
+    exercises: workout.exercises || []
   };
 }
 
@@ -120,6 +125,22 @@ export default function Workouts() {
   const [toDate, setToDate] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [sortOrder, setSortOrder] = useState("date_desc");
+  const [selectedWorkout, setSelectedWorkout] = useState(null);
+
+  // Close modal on escape key
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setSelectedWorkout(null);
+      }
+    };
+    if (selectedWorkout) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedWorkout]);
 
   async function loadWorkouts(filters = {}) {
     setLoading(true);
@@ -439,7 +460,20 @@ export default function Workouts() {
                 const CatIcon = catDetails.icon;
 
                 return (
-                  <tr key={workout.id} className="border-b border-border last:border-b-0 hover:bg-bg/50">
+                  <tr
+                    key={workout.id}
+                    className="border-b border-border last:border-b-0 hover:bg-bg/50 cursor-pointer transition-colors focus-visible:bg-bg/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/50"
+                    onClick={() => setSelectedWorkout(workout)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setSelectedWorkout(workout);
+                      }
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`View details for ${workout.title}`}
+                  >
                     <td className="px-4 py-4">
                       <div className="font-bold text-text text-sm leading-tight">
                         {workout.monthDay}
@@ -488,6 +522,157 @@ export default function Workouts() {
           </table>
           <div className="flex justify-between items-center text-xs text-muted mt-4 px-2">
             <span>Showing {workouts.length} workouts loaded</span>
+          </div>
+        </div>
+      )}
+
+      {/* Detail Modal */}
+      {selectedWorkout && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in"
+          onClick={() => setSelectedWorkout(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
+        >
+          <div
+            className="w-full max-w-lg overflow-hidden rounded-3xl border border-border bg-surface shadow-2xl animate-slide-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between border-b border-border p-6">
+              <div className="space-y-1 text-left flex-1 pr-4">
+                <h3 id="modal-title" className="text-lg font-bold text-text break-words">
+                  {selectedWorkout.title}
+                </h3>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={getCategoryDetails(selectedWorkout.category).pillBg + " " + getCategoryDetails(selectedWorkout.category).pillText}>
+                    {getCategoryDetails(selectedWorkout.category).displayName}
+                  </span>
+                  <span className="text-xs text-muted font-medium">
+                    {selectedWorkout.monthDay}, {selectedWorkout.year || new Date(selectedWorkout.date).getFullYear()}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedWorkout(null)}
+                className="rounded-xl p-2 text-muted hover:bg-bg hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors shrink-0"
+                aria-label="Close modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto text-left">
+              {/* Summary Stats */}
+              <div className="grid grid-cols-3 gap-4 rounded-2xl border border-border bg-bg/40 p-4">
+                <div className="text-center">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-muted">Duration</span>
+                  <span className="mt-1 font-semibold text-text text-sm flex items-center justify-center gap-1">
+                    <Clock className="w-3.5 h-3.5 text-muted/65" />
+                    {selectedWorkout.duration}m
+                  </span>
+                </div>
+                <div className="text-center border-x border-border">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-muted">Calories</span>
+                  <span className="mt-1 font-semibold text-text text-sm flex items-center justify-center gap-1">
+                    <Flame className="w-3.5 h-3.5 text-orange-500/65" />
+                    {selectedWorkout.calories} kcal
+                  </span>
+                </div>
+                <div className="text-center">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-muted">XP Earned</span>
+                  <span className="mt-1 font-semibold text-text text-sm flex items-center justify-center gap-1">
+                    <Award className="w-3.5 h-3.5 text-primary/65" />
+                    {selectedWorkout.xp}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-muted">Intensity</span>
+                  <span className="mt-1 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold capitalize border bg-surface border-border text-text">
+                    {selectedWorkout.intensity}
+                  </span>
+                </div>
+                {selectedWorkout.userWeightAtLog && (
+                  <div>
+                    <span className="block text-[10px] font-bold uppercase tracking-wider text-muted">Weight At Log</span>
+                    <span className="mt-1 font-semibold text-text text-sm">{selectedWorkout.userWeightAtLog} kg</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Notes Section */}
+              {selectedWorkout.notes && (
+                <div className="space-y-1.5">
+                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted">Notes</h4>
+                  <p className="text-sm text-text bg-bg/30 border border-border p-3.5 rounded-2xl whitespace-pre-wrap break-words leading-relaxed">
+                    {selectedWorkout.notes}
+                  </p>
+                </div>
+              )}
+
+              {/* Exercises Section */}
+              {selectedWorkout.exercises && selectedWorkout.exercises.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted">Exercises</h4>
+                  <div className="space-y-4">
+                    {selectedWorkout.exercises.map((exercise, idx) => {
+                      const hasSets = exercise.sets && exercise.sets.length > 0;
+                      return (
+                        <div key={exercise.id || idx} className="rounded-2xl border border-border bg-surface p-4 space-y-3 shadow-sm">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <h5 className="font-semibold text-text text-sm break-words">{exercise.exerciseName}</h5>
+                              {exercise.categoryName && (
+                                <span className="text-[10px] font-semibold text-muted uppercase tracking-wider mt-0.5 block">
+                                  {exercise.categoryName}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-right shrink-0">
+                              {exercise.duration > 0 && (
+                                <span className="inline-flex items-center gap-1 text-xs text-muted font-medium bg-bg/50 px-2 py-1 rounded-xl">
+                                  <Clock className="w-3 h-3 text-muted/65" />
+                                  {exercise.duration}m
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {hasSets ? (
+                            <div className="border border-border/80 rounded-xl overflow-hidden">
+                              <table className="min-w-full divide-y divide-border/60 text-left text-xs">
+                                <thead className="bg-bg/40 font-bold text-muted uppercase tracking-wider text-[10px]">
+                                  <tr>
+                                    <th className="px-3 py-2">Set</th>
+                                    <th className="px-3 py-2 text-right">Reps</th>
+                                    <th className="px-3 py-2 text-right">Weight</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border/40 font-medium text-text">
+                                  {exercise.sets.map((set, sIdx) => (
+                                    <tr key={sIdx}>
+                                      <td className="px-3 py-2 text-muted">{sIdx + 1}</td>
+                                      <td className="px-3 py-2 text-right">{set.reps} reps</td>
+                                      <td className="px-3 py-2 text-right">{set.weight} kg</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
