@@ -20,7 +20,7 @@ const USER_LINKS = [
   { to: "/nutrition", label: "Nutrition", icon: Salad },
   { to: "/progress", label: "Progress", icon: BarChart3 },
   { to: "/workouts", label: "History", icon: Clock },
-  { to: "/you", label: "You", icon: User }
+  { to: "/you", label: "Profile", icon: User }
 ];
 
 function getInitials(name) {
