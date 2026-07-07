@@ -1,19 +1,20 @@
 # FitSync
 
-FitSync is a full-stack fitness tracking web app for logging workouts, tracking weight progress, managing streaks and badges, and generating weekly fitness insights.
+FitSync is a full-stack fitness tracking web app for logging workouts, tracking nutrition targets, monitoring weight progress, managing streaks and badges, and generating weekly fitness insights.
 
 The app uses a React + Vite client, an Express backend, a MySQL database, JWT authentication, and backend-only Google Gemini integration for weekly AI insight generation.
 
 ## Features
 
 - User registration and login with JWT authentication
-- Protected user dashboard with streaks, badges, BMI, target-weight progress, recent workouts, quick actions, active challenge banners, and system announcements
-- Workout logging with exercises, sets, reps, weights, duration, calories, notes, filtering, sorting, and pagination
-- Workout template pre-fill: users can select admin-published templates to pre-populate a new log entry
+- Compact protected dashboard with streaks, XP, weight progress, nutrition context, recent workouts, quick actions, active challenge banners, and system announcements
+- Adaptive workout logging with activity categories, exercise metadata, strength sets, duration, intensity, estimated calories/XP, notes, and post-workout food recommendations
+- Workout history with clickable keyboard-accessible rows, date filtering, sorting, summary cards, and responsive detail modals
+- Nutrition planning with calorie targets, macro splits, workout calorie context, and dataset-grounded food suggestions
 - Weight tracking with BMI calculation and progress chart
-- Daily wellness check-ins, activity streaks, and achievement badges
+- Daily wellness check-ins, activity streaks, XP levels, and achievement badges
 - Weekly AI insights generated on the backend with Google Gemini
-- Feedback backend/admin triage support: a submission endpoint exists, but a user-facing feedback form is not yet implemented
+- User-facing profile page with editable personal data/goals, badge showcase, readiness score, quick actions, feedback submission, and account controls
 - Admin portal for:
   - Platform activity dashboard and gamification statistics
   - User account management (search, role toggle, activate/deactivate)
@@ -58,7 +59,7 @@ FitSync/
 │   └── src/
 │       ├── components/       # Shared, layout, dashboard, chart, modal UI
 │       ├── context/          # Auth and toast providers
-│       ├── pages/            # Dashboard, Log, Progress, You, Admin, auth
+│       ├── pages/            # Dashboard, Log, Nutrition, Progress, Profile (/you), Admin, auth
 │       ├── services/         # API client and domain service wrappers
 │       └── utils/            # Metrics, constants, workout helpers
 ├── database/                 # Schema, seed, queries, privileges, migrations
@@ -198,6 +199,21 @@ Database files live in `database/`:
 | `backup-notes.md` | Backup and restore commands |
 | `migrations/` | Ordered migration files |
 
+Presentation docs live in `docs/`:
+
+| File | Purpose |
+| --- | --- |
+| `docs/database-erd.md` | Mermaid ERD and major table relationships |
+| `docs/database-dictionary.md` | Table-by-table purpose, columns, usage, and classification |
+| `docs/database-presentation-summary.md` | Student-friendly explanation of the database story for presentation |
+
+Key database notes:
+
+- `distance_km` / `holdTime` are calculation inputs only and are not stored in History.
+- `users.weight` and `users.weight_kg` are synchronized for compatibility.
+- `activity_library` and `nutrition_foods` are reference datasets seeded on startup.
+- Empty tables such as `workout_templates` and `challenges` are valid feature tables, not junk.
+
 Migration order:
 
 ```text
@@ -217,9 +233,10 @@ Frontend routes:
 | `/login` | Login screen |
 | `/register` | Registration screen |
 | `/` | User dashboard (streaks, badges, BMI, announcements, challenges) |
-| `/log` | Workout logging (with template pre-fill) |
+| `/log` | Adaptive workout logging with categories, activity search, estimates, and food recommendations |
+| `/nutrition` | Nutrition targets, macro split, workout calorie context, and food suggestions |
 | `/progress` | Weight and progress tracking |
-| `/you` | User profile |
+| `/you` | Profile page (navigation label: Profile) |
 | `/admin/dashboard` | Admin platform activity overview and gamification stats |
 | `/admin/users` | Admin user account management |
 | `/admin/categories` | Admin workout category management and usage analytics |
@@ -239,6 +256,7 @@ API routes:
 | Profile | `POST /api/profile/update` |
 | Workouts | `GET /api/workouts`, `POST /api/workouts`, `PUT /api/workouts/:id`, `DELETE /api/workouts/:id` |
 | Weights | `GET /api/weights`, `POST /api/weights`, `DELETE /api/weights/:id` |
+| Nutrition | `GET /api/nutrition/plan`, `GET /api/nutrition/foods`, `GET /api/nutrition/foods/:id`, `GET /api/nutrition/recommendations` |
 | Categories | `GET /api/categories` |
 | Gamification | `GET /api/gamification/summary`, `POST /api/gamification/checkin` |
 | AI Insights | `GET /api/ai/insights`, `POST /api/ai/generate-weekly-insight` |
@@ -260,7 +278,7 @@ Workout list filters include `category`, `search`, `from`, `to`, `sort`, `page`,
 
 Admin feedback filters include `status` (`new`/`in_progress`/`resolved`/`archived`) and `type` (`bug`/`feature`/`general`).
 
-`POST /api/feedback` is available for authenticated API requests, but the React client does not currently include a user-facing feedback form.
+`POST /api/feedback` is available for authenticated users and is used by the Profile page feedback form. Admins triage submissions in the admin feedback area.
 
 Admin analytics show aggregate platform counts, category usage, feedback status counts, and active content counts. They do not currently provide time-series user growth, workout volume trends, or weight-entry trends.
 
@@ -291,9 +309,9 @@ cd backend
 npm test
 ```
 
-The current tests cover authentication validation, password hashing behavior, and ownership protection for workout and weight-log operations.
+The backend test suite covers authentication validation, password hashing, ownership protection, activity calorie/XP formulas, nutrition planning, admin validation, streak badges, timezone helpers, and user weight synchronization.
 
-Core behavior was regression-checked with backend tests and frontend build. Some user-facing files were intentionally touched for templates, challenges, announcements, or dashboard display, so they should be manually reviewed before commit.
+Core behavior is regression-checked with backend tests and the frontend production build. Manual review is still recommended for visual UI changes before release.
 
 ## Manual Testing Checklist
 
@@ -346,9 +364,11 @@ Core behavior was regression-checked with backend tests and frontend build. Some
 - [ ] Update the feedback status to `in_progress`. Confirm the change persists.
 
 ### User Features (Regression)
-- [ ] Log a new workout. Confirm it appears in the workout list and dashboard.
+- [ ] Log a new workout. Confirm it appears in History and dashboard, and that calculated calories/XP are shown.
 - [ ] Log a weight entry. Confirm it appears in the progress chart.
 - [ ] Complete a daily wellness check-in. Confirm streak increments.
+- [ ] Open Nutrition and confirm targets, macros, workout balance, and food suggestions load.
+- [ ] Open Profile and confirm profile details, badges, feedback, and logout controls work.
 - [ ] View AI insight on the dashboard.
 - [ ] Activate/deactivate a test user account and verify they cannot log in while inactive.
 
