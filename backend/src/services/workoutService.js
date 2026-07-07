@@ -113,7 +113,7 @@ const workoutService = {
     const categoryMeta = await gamificationService.getCategoryMeta(activity.categorySlug);
 
     const [[userRow]] = await pool.execute("SELECT weight, weight_kg FROM users WHERE id = ?", [userId]);
-    const weightKg = Number(userRow?.weight_kg || userRow?.weight || 70);
+    const weightKg = Number(userRow?.weight || userRow?.weight_kg || 70);
 
     const [[gamRow]] = await pool.execute(
       "SELECT COALESCE(weekly_streak, 0) AS weekly_streak FROM user_gamification WHERE user_id = ? LIMIT 1",
@@ -203,7 +203,7 @@ const workoutService = {
     }
 
     const [[userRow]] = await pool.execute("SELECT weight, weight_kg FROM users WHERE id = ?", [userId]);
-    const weightKg = Number(userRow?.weight_kg || userRow?.weight || 70);
+    const weightKg = Number(userRow?.weight || userRow?.weight_kg || 70);
 
     // Aggregate strength volume and reps from the logged sets (PDF s.3.2/4).
     let totalVolumeKg = 0;

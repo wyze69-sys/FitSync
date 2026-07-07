@@ -84,10 +84,10 @@ async function createUser(user) {
 
     await connection.execute(
       `INSERT INTO users (
-         id, email, name, role, password_hash, age, gender, height, weight,
+         id, email, name, role, password_hash, age, gender, height, weight, weight_kg,
          target_weight, preferred_workout_type, goal, activity_level
        )
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         email,
@@ -97,6 +97,7 @@ async function createUser(user) {
         user.age || null,
         user.gender || null,
         user.height || null,
+        user.weight || null,
         user.weight || null,
         user.targetWeight || null,
         user.preferredWorkoutType || null,
@@ -180,6 +181,10 @@ async function updateUser(id, updates) {
     if (updates[key] !== undefined) {
       fields.push(`${column} = ?`);
       values.push(updates[key]);
+      if (key === "weight") {
+        fields.push("weight_kg = ?");
+        values.push(updates[key]);
+      }
     }
   }
 

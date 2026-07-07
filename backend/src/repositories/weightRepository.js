@@ -19,7 +19,7 @@ async function createWeightLog(log) {
     [id, log.userId, log.date, log.weight, log.bmi, log.notes || null]
   );
 
-  await pool.execute("UPDATE users SET weight = ? WHERE id = ?", [log.weight, log.userId]);
+  await pool.execute("UPDATE users SET weight = ?, weight_kg = ? WHERE id = ?", [log.weight, log.weight, log.userId]);
 
   const [rows] = await pool.execute("SELECT * FROM weight_logs WHERE id = ?", [id]);
   return mapWeightLogRow(rows[0]);

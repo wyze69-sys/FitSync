@@ -900,7 +900,7 @@ async function recordAutoWorkout(userId, payload) {
     const [userRows] = await connection.execute("SELECT weight, weight_kg FROM users WHERE id = ? LIMIT 1", [userId]);
     if (!userRows[0]) throw httpError("User not found.", 404);
 
-    const weightKg = Number(userRows[0].weight_kg || userRows[0].weight || 70);
+    const weightKg = Number(userRows[0].weight || userRows[0].weight_kg || 70);
     const workout = { ...payload, category: categoryMeta.slug, duration_min: durationMin };
     const profile = resolveCategoryProfile(categoryMeta.slug, categoryMeta);
     const met = calculateMet(categoryMeta.slug, getDistanceKm(payload), durationMin, profile.baseMet);
