@@ -166,12 +166,12 @@ function SectionHeader({ icon: Icon, eyebrow, title, action }) {
 function SectionCard({ icon, eyebrow, title, children, description, action, compact, fill }) {
   return (
     <section
-      className={`rounded-2xl border border-border bg-surface shadow-md ${compact ? "p-4" : "p-5 sm:p-6"} ${fill ? "flex h-full flex-col" : ""
+      className={`rounded-2xl border border-border bg-surface shadow-md ${compact ? "p-3 py-3 sm:p-3.5" : "p-4 sm:p-4.5"} ${fill ? "flex h-full flex-col" : ""
         }`}
     >
       <SectionHeader icon={icon} eyebrow={eyebrow} title={title} action={action} />
-      {description && <p className="mt-3 text-sm leading-relaxed text-muted">{description}</p>}
-      <div className={`${compact ? "mt-4" : "mt-5"} ${fill ? "flex-1" : ""}`}>{children}</div>
+      {description && <p className="mt-2 text-xs leading-relaxed text-muted">{description}</p>}
+      <div className={`${compact ? "mt-3" : "mt-3.5"} ${fill ? "flex-1" : ""}`}>{children}</div>
     </section>
   );
 }
@@ -179,7 +179,7 @@ function SectionCard({ icon, eyebrow, title, children, description, action, comp
 function MacroBar({ name, grams, percent, colorClass, helperLabel }) {
   const pct = Math.max(0, Math.min(100, Number(percent) || 0));
   return (
-    <div>
+    <div title={helperLabel}>
       <div className="flex items-baseline justify-between text-sm">
         <span className="font-medium text-text">{name}</span>
         <span className="tabular-nums text-muted">
@@ -188,12 +188,9 @@ function MacroBar({ name, grams, percent, colorClass, helperLabel }) {
           {pct}%
         </span>
       </div>
-      <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-bg" role="presentation">
+      <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-bg" role="presentation">
         <div className={`h-full rounded-full ${colorClass}`} style={{ width: `${pct}%` }} />
       </div>
-      {helperLabel && (
-        <p className="mt-1 text-[11px] leading-snug text-muted">{helperLabel}</p>
-      )}
     </div>
   );
 }
@@ -221,35 +218,28 @@ function FoodCard({ food }) {
   const category = prettyLabel(food.foodType);
 
   return (
-    <li className="flex flex-col gap-3 rounded-2xl border border-border bg-bg p-4 transition-colors hover:border-primary">
-      <div className="flex items-start justify-between gap-2">
-        <h3 className="text-sm font-semibold leading-snug text-text">{displayName(food.name)}</h3>
+    <li className="flex flex-col gap-2 rounded-2xl border border-border bg-bg p-3 transition-colors hover:border-primary">
+      <div className="flex items-start justify-between gap-1.5">
+        <h3 className="text-xs font-semibold leading-snug text-text truncate" title={displayName(food.name)}>{displayName(food.name)}</h3>
         {category && (
-          <span className="shrink-0 rounded-full bg-surface px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-muted">
+          <span className="shrink-0 rounded-full bg-surface px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-widest text-muted">
             {category}
           </span>
         )}
       </div>
 
-      <div className="flex items-baseline gap-1">
-        <span className="text-2xl font-bold tabular-nums text-text">{formatMacro(food.calories)}</span>
-        <span className="text-xs font-medium text-muted">cal</span>
+      <div className="flex items-baseline gap-0.5">
+        <span className="text-lg font-bold tabular-nums text-text">{formatMacro(food.calories)}</span>
+        <span className="text-[10px] font-medium text-muted">cal</span>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 border-t border-border pt-3 text-center">
-        {[
-          { label: "Protein", value: food.proteinG },
-          { label: "Carbs", value: food.carbsG },
-          { label: "Fat", value: food.fatG }
-        ].map((macro) => (
-          <div key={macro.label}>
-            <div className="text-sm font-semibold tabular-nums text-text">{formatMacro(macro.value)}g</div>
-            <div className="text-[9px] font-bold uppercase tracking-widest text-muted">{macro.label}</div>
-          </div>
-        ))}
+      <div className="flex justify-between border-t border-border pt-2 text-[10px] text-muted">
+        <span>Prot <strong className="font-semibold text-text">{formatMacro(food.proteinG)}g</strong></span>
+        <span>Carb <strong className="font-semibold text-text">{formatMacro(food.carbsG)}g</strong></span>
+        <span>Fat <strong className="font-semibold text-text">{formatMacro(food.fatG)}g</strong></span>
       </div>
 
-      {reason && <p className="text-[11px] capitalize text-muted">{reason}</p>}
+      {reason && <p className="text-[10px] capitalize text-muted truncate" title={reason}>{reason}</p>}
     </li>
   );
 }
@@ -307,27 +297,27 @@ function WhyThisTargetCard({ plan }) {
   return (
     <section
       aria-label="Target explanation"
-      className="rounded-2xl border border-sky-500/25 bg-sky-500/5 p-5"
+      className="rounded-2xl border border-sky-500/25 bg-sky-500/5 p-4"
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-2.5">
         <span
-          className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-600"
+          className="mt-0.5 flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-600"
           aria-hidden="true"
         >
-          <Info className="h-4 w-4" />
+          <Info className="h-3.5 w-3.5" />
         </span>
         <div className="min-w-0 flex-1">
           <h2 className="text-sm font-semibold text-text">{headline}</h2>
           {bodyLines.map((line, i) => (
-            <p key={i} className="mt-1.5 text-sm leading-relaxed text-muted">
+            <p key={i} className="mt-1 text-xs leading-relaxed text-muted">
               {line}
             </p>
           ))}
 
           {showBreakdown && (
-            <dl className="mt-4 space-y-1.5">
+            <dl className="mt-3 space-y-1">
               {Number.isFinite(c.tdee) && c.tdee > 0 && (
-                <div className="flex items-baseline justify-between gap-3 text-sm">
+                <div className="flex items-baseline justify-between gap-3 text-xs">
                   <dt className="text-muted">Maintenance calories</dt>
                   <dd className="shrink-0 font-semibold tabular-nums text-text">
                     {formatInt(c.tdee)} cal
@@ -335,7 +325,7 @@ function WhyThisTargetCard({ plan }) {
                 </div>
               )}
               {Number.isFinite(safeAdj) && safeAdj !== 0 && (
-                <div className="flex items-baseline justify-between gap-3 text-sm">
+                <div className="flex items-baseline justify-between gap-3 text-xs">
                   <dt className="text-muted">
                     Safe {safeAdj > 0 ? "surplus" : "deficit"}
                   </dt>
@@ -345,7 +335,7 @@ function WhyThisTargetCard({ plan }) {
                 </div>
               )}
               {Number.isFinite(safe.calories) && safe.calories > 0 && (
-                <div className="flex items-baseline justify-between gap-3 border-t border-sky-500/20 pt-1.5 text-sm">
+                <div className="flex items-baseline justify-between gap-3 border-t border-sky-500/20 pt-1 text-xs">
                   <dt className="font-medium text-text">Recommended daily target</dt>
                   <dd className="shrink-0 font-bold tabular-nums text-text">
                     {formatInt(safe.calories)} cal
@@ -353,7 +343,7 @@ function WhyThisTargetCard({ plan }) {
                 </div>
               )}
               {requestedDiffersFromSafe && Number.isFinite(requested.calories) && (
-                <div className="flex items-baseline justify-between gap-3 text-sm">
+                <div className="flex items-baseline justify-between gap-3 text-xs">
                   <dt className="text-muted">
                     Requested target
                     {requested.safetyStatus && requested.safetyStatus !== "safe" && (
@@ -437,17 +427,17 @@ export default function Nutrition() {
   const hasPlan = plan && !isIncomplete && plan.activePlan;
 
   return (
-    <main className="mx-auto max-w-[1400px] space-y-5 text-left text-text animate-fade-in">
-      <header className="flex items-start gap-3">
+    <main className="mx-auto max-w-[1400px] space-y-4 text-left text-text animate-fade-in">
+      <header className="flex items-start gap-2.5">
         <span
-          className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-surface text-primary shadow-md"
+          className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-surface text-primary shadow-md"
           aria-hidden="true"
         >
-          <Salad className="h-5 w-5" />
+          <Salad className="h-4.5 w-4.5" />
         </span>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text">Nutrition</h1>
-          <p className="text-sm text-muted">
+          <h1 className="text-xl font-bold tracking-tight text-text">Nutrition</h1>
+          <p className="text-xs text-muted">
             Your daily fuel target, tuned to your goal and the workouts you actually do.
           </p>
         </div>
@@ -566,16 +556,16 @@ function HeroSection({ plan }) {
 
   return (
     <section className="overflow-hidden rounded-2xl border border-border bg-surface shadow-md">
-      <div className="flex flex-col gap-6 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+      <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
         <div className="min-w-0">
           <span className={EYEBROW}>Today&rsquo;s target</span>
           <div className="mt-1.5 flex items-baseline gap-2">
-            <span className="text-5xl font-bold leading-none tabular-nums text-text">{formatInt(active.calories)}</span>
+            <span className="text-4xl sm:text-5xl font-bold leading-none tabular-nums text-text">{formatInt(active.calories)}</span>
             <span className="text-sm font-medium text-muted">cal / day</span>
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold ${info.badge}`}>
+            <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${info.badge}`}>
               <span className={`h-1.5 w-1.5 rounded-full ${info.dot}`} aria-hidden="true" />
               {info.label}
             </span>
@@ -590,13 +580,13 @@ function HeroSection({ plan }) {
         </div>
 
         {hasWorkoutBoost && (
-          <div className="shrink-0 rounded-2xl border border-primary/30 bg-primary/5 p-4 sm:w-52">
+          <div className="shrink-0 rounded-2xl border border-primary/30 bg-primary/5 p-3.5 sm:w-50">
             <div className="flex items-center gap-1.5 text-primary">
               <Flame className="h-4 w-4" aria-hidden="true" />
               <span className="text-[10px] font-bold uppercase tracking-widest">Eat today</span>
             </div>
             <div className="mt-1.5 flex items-baseline gap-1.5">
-              <span className="text-3xl font-bold tabular-nums text-text">{formatInt(c.todayAdjustedTarget)}</span>
+              <span className="text-2xl font-bold tabular-nums text-text">{formatInt(c.todayAdjustedTarget)}</span>
               <span className="text-xs font-medium text-muted">cal</span>
             </div>
             <p className="mt-1.5 text-[11px] leading-snug text-muted">
@@ -607,7 +597,7 @@ function HeroSection({ plan }) {
       </div>
 
       {/* Macro split — sits directly under the target it belongs to. */}
-      <div className="border-t border-border bg-bg px-5 py-5 sm:px-6">
+      <div className="border-t border-border bg-bg px-5 py-5.5 sm:px-6 sm:py-6">
         <div className="flex items-center justify-between gap-2">
           <span className={EYEBROW}>Daily macros</span>
           {active.label === "Safe" &&
@@ -675,13 +665,13 @@ function GoalPaceSection({ plan, mode, onAdjust }) {
 
   return (
     <SectionCard icon={ShieldCheck} eyebrow="Goal pace" title="Goal pace" action={adjustButton} compact>
-      <div className="space-y-2.5">
+      <div className="space-y-2">
         <PlanSummary title="Safe target" plan={safe} highlight={plan?.activePlan?.label === "Safe"} />
         {showRequested && <PlanSummary title="Requested target" plan={requested} highlight={plan?.activePlan?.label === "Requested"} />}
       </div>
 
       {warnings.length > 0 && (
-        <div className="mt-3">
+        <div className="mt-2">
           <WarningList warnings={warnings} />
         </div>
       )}
@@ -912,19 +902,19 @@ function PlanSummary({ title, plan = {}, highlight }) {
   const info = safetyInfo(plan.safetyStatus);
   return (
     <div
-      className={`flex items-center justify-between gap-3 rounded-2xl border bg-bg px-4 py-3 ${highlight ? "border-primary" : "border-border"
+      className={`flex items-center justify-between gap-2 rounded-2xl border bg-bg px-3 py-2.5 ${highlight ? "border-primary" : "border-border"
         }`}
     >
       <div className="min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-text">{title}</span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs font-semibold text-text">{title}</span>
           <span className={`rounded-full border px-1.5 py-0.5 text-[9px] font-bold ${info.badge}`}>{info.label}</span>
         </div>
-        <div className="mt-0.5 text-xs tabular-nums text-muted">Goal: {formatChangeKg(plan.targetChangeKg)}</div>
+        <div className="mt-0.5 text-[11px] tabular-nums text-muted">Goal: {formatChangeKg(plan.targetChangeKg)}</div>
       </div>
       <div className="shrink-0 text-right">
-        <span className="text-xl font-bold tabular-nums text-text">{formatInt(plan.calories)}</span>
-        <span className="ml-1 text-[11px] font-normal text-muted">cal</span>
+        <span className="text-lg font-bold tabular-nums text-text">{formatInt(plan.calories)}</span>
+        <span className="ml-1 text-[10px] font-normal text-muted">cal</span>
       </div>
     </div>
   );
@@ -940,16 +930,16 @@ function WorkoutBalanceSection({ windows }) {
   ];
 
   return (
-    <SectionCard icon={Dumbbell} eyebrow="Workout balance" title="Workout balance" compact fill>
-      <ul className="grid h-full grid-cols-2 grid-rows-2 gap-2.5">
+    <SectionCard icon={Dumbbell} eyebrow="Workout balance" title="Workout balance" compact>
+      <ul className="grid grid-cols-2 gap-2.5">
         {items.map(({ key, label, data = {} }) => (
-          <li key={key} className="flex flex-col justify-center rounded-2xl border border-border bg-bg p-3">
+          <li key={key} className="flex flex-col justify-center rounded-2xl border border-border bg-bg py-2.5 px-3">
             <span className={EYEBROW}>{label}</span>
-            <div className="mt-1 flex items-baseline gap-1">
-              <span className="text-lg font-bold tabular-nums text-text">{formatInt(data.totalCaloriesBurned)}</span>
-              <span className="text-[11px] font-medium text-muted">cal</span>
+            <div className="mt-0.5 flex items-baseline gap-1">
+              <span className="text-base font-bold tabular-nums text-text">{formatInt(data.totalCaloriesBurned)}</span>
+              <span className="text-[10px] font-medium text-muted">cal</span>
             </div>
-            <div className="mt-0.5 text-[11px] tabular-nums text-muted">
+            <div className="mt-0.5 text-[10px] tabular-nums text-muted">
               {formatInt(data.workoutCount)} {Number(data.workoutCount) === 1 ? "workout" : "workouts"}
               {Number(data.totalMinutes) > 0 && <> · {formatInt(data.totalMinutes)}m</>}
             </div>
@@ -970,11 +960,11 @@ function FoodSuggestionsSection({ recommendations }) {
       description="Simple options matched to your goal and today's training."
     >
       {foods.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-border bg-bg p-5 text-center text-sm text-muted">
+        <p className="rounded-2xl border border-dashed border-border bg-bg p-4 text-center text-xs text-muted">
           Finish your profile or log a workout and we&rsquo;ll suggest foods that fit your target.
         </p>
       ) : (
-        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
           {foods.map((food) => (
             <FoodCard key={food.id} food={food} />
           ))}

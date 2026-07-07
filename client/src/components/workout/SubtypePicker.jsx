@@ -121,15 +121,15 @@ export default function SubtypePicker({ category, selectedSubtype, workoutTitle,
   const canToggle = !hasQuery && total > COMPACT_COUNT;
 
   return (
-    <section className="animate-slide-up rounded-2xl border border-zinc-200/80 bg-white p-5 md:p-6 shadow-sm" aria-label={`${category.name} activities`}>
+    <section className="animate-slide-up rounded-2xl border border-border bg-surface p-5 md:p-6 shadow-sm" aria-label={`${category.name} activities`}>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-xs font-mono">
             2
           </div>
           <div>
-            <h2 className="text-lg font-bold text-zinc-900 tracking-tight">Pick activity</h2>
-            <p className="text-xs text-zinc-550">Search or select an activity from the library</p>
+            <h2 className="text-lg font-bold text-text tracking-tight">Pick activity</h2>
+            <p className="text-xs text-secondary">Search or select an activity from the library</p>
           </div>
         </div>
         {onClose && (
@@ -175,11 +175,11 @@ export default function SubtypePicker({ category, selectedSubtype, workoutTitle,
       </div>
 
       {shown === 0 ? (
-        <div className="rounded-2xl border border-dashed border-zinc-200/80 bg-zinc-50/40 px-4 py-8 text-center">
-          <p className="text-sm font-semibold text-zinc-800">
+        <div className="rounded-2xl border border-dashed border-border bg-bg/40 px-4 py-8 text-center">
+          <p className="text-sm font-semibold text-text">
             No activities found in this category
           </p>
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1 text-xs text-muted">
             No activities match “{query.trim()}”
           </p>
         </div>
@@ -201,7 +201,7 @@ export default function SubtypePicker({ category, selectedSubtype, workoutTitle,
                 className={`group relative flex flex-col justify-between rounded-2xl border p-4 text-left transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                   active 
                     ? "border-primary bg-primary text-white shadow-md shadow-primary/20 scale-[1.01]" 
-                    : "border-zinc-200/80 bg-zinc-50/40 text-zinc-800 hover:border-zinc-300 hover:bg-zinc-100/60 hover:-translate-y-[1px] hover:shadow-sm"
+                    : "border-border bg-bg/40 text-text hover:border-primary/50 hover:bg-bg/85 hover:-translate-y-[1px] hover:shadow-sm"
                 }`}
               >
                 <div>
@@ -209,12 +209,12 @@ export default function SubtypePicker({ category, selectedSubtype, workoutTitle,
                   {visibleTags.length > 0 && !active && (
                     <div className="mt-2 flex flex-wrap gap-1">
                       {visibleTags.map((tag, idx) => (
-                        <span key={idx} className="inline-block text-[9px] font-medium text-zinc-550 bg-zinc-100 border border-zinc-200/30 px-1.5 py-0.5 rounded-md">
+                        <span key={idx} className="inline-block text-[9px] font-medium text-secondary bg-surface border border-border/30 px-1.5 py-0.5 rounded-md">
                           {tag}
                         </span>
                       ))}
                       {plusCount > 0 && (
-                        <span className="inline-block text-[9px] font-medium text-zinc-400 bg-zinc-150/40 px-1.5 py-0.5 rounded-md">
+                        <span className="inline-block text-[9px] font-medium text-muted bg-surface/50 px-1.5 py-0.5 rounded-md">
                           +{plusCount}
                         </span>
                       )}
@@ -223,7 +223,7 @@ export default function SubtypePicker({ category, selectedSubtype, workoutTitle,
                 </div>
                 {meta && (
                   <span className={`mt-3 block text-[10px] font-semibold uppercase tracking-wide ${
-                    active ? "text-white/70" : "text-zinc-500"
+                    active ? "text-white/70" : "text-muted"
                   }`}>
                     {meta}
                   </span>

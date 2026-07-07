@@ -118,8 +118,8 @@
    ────────────────────────────────────────────────────────────────────────── */
 .nutrition-dashboard-grid {
   display: grid;
-  gap: 24px;
-  align-items: stretch;
+  gap: 16px;
+  align-items: start;
 }
 
 @media (min-width: 1024px) {
@@ -131,15 +131,6 @@
 .nutrition-side-stack {
   display: grid;
   gap: 16px;
-  height: 100%;
-}
-
-/* On desktop the right column mirrors the left Daily Target card height:
-   Goal Pace takes its natural height and Workout Balance fills the rest. */
-@media (min-width: 1024px) {
-  .nutrition-side-stack {
-    grid-template-rows: auto 1fr;
-  }
 }
 
 .nutrition-full-width-section {
@@ -378,66 +369,31 @@
   margin-right: auto !important;
 }
 
-/* PageHeader font size adjustments */
-.log-page-container header h1 {
-  font-size: 1.875rem !important; /* text-3xl */
-}
-@media (min-width: 640px) {
-  .log-page-container header h1 {
-    font-size: 2.25rem !important; /* text-4xl */
-    line-height: 2.5rem !important;
-  }
-}
-
-/* Category cards (QuickLogGrid) overrides */
-.log-page-container section[aria-label="Quick workout categories"] {
-  gap: 1.25rem !important; /* gap-5 */
-}
-@media (min-width: 640px) {
-  .log-page-container section[aria-label="Quick workout categories"] {
-    gap: 1.5rem !important; /* gap-6 */
-  }
-}
+/* Category cards (QuickLogGrid) overrides - adjusted for compactness */
 .log-page-container section[aria-label="Quick workout categories"] button {
-  padding: 1.5rem !important; /* p-6 */
-  min-height: 110px !important;
+  padding: 1rem !important; /* p-4 */
+  min-height: 84px !important;
 }
 .log-page-container section[aria-label="Quick workout categories"] button span.mt-3 {
-  font-size: 0.95rem !important;
-  margin-top: 1rem !important;
+  font-size: 0.875rem !important;
+  margin-top: 0.5rem !important;
 }
 
-/* Repeat last workout card override */
+/* Repeat last workout card override - adjusted for compactness */
 .log-page-container button[aria-label^="Repeat "] {
-  padding: 1.25rem 1.5rem !important;
-}
-
-/* Activity picker card padding override */
-.log-page-container section[aria-label$="activities"] {
-  padding: 1.5rem !important; /* p-6 */
-}
-
-/* Activity search input overrides (taller and wider) */
-.log-page-container #subtype-search {
-  padding-top: 0.75rem !important;
-  padding-bottom: 0.75rem !important;
-  padding-left: 2.5rem !important;
-  font-size: 0.95rem !important;
-}
-.log-page-container svg.pointer-events-none {
-  left: 0.875rem !important;
-  width: 1.15rem !important;
-  height: 1.15rem !important;
-}
-
-/* Activity selection buttons overrides (more padding and height) */
-.log-page-container section[aria-label$="activities"] .grid {
-  gap: 0.75rem !important; /* gap-3 */
-}
-.log-page-container section[aria-label$="activities"] .grid button {
   padding: 0.75rem 1rem !important;
-  min-height: 64px !important;
+}
+
+/* Activity picker card padding override - adjusted for compactness */
+.log-page-container section[aria-label$="activities"] {
+  padding: 1rem !important; /* p-4 */
+}
+
+/* Activity selection buttons overrides - adjusted for compactness */
+.log-page-container section[aria-label$="activities"] .grid button {
+  padding: 0.5rem 0.75rem !important;
+  min-height: 48px !important;
 }
 .log-page-container section[aria-label$="activities"] .grid button span {
-  font-size: 0.925rem !important;
+  font-size: 0.875rem !important;
 }

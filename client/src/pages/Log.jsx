@@ -539,17 +539,17 @@ export default function Log() {
   }
 
   return (
-    <main className="log-page-container space-y-8 text-text animate-fade-in max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-      <header className="relative overflow-hidden rounded-3xl bg-white border border-zinc-200/80 p-6 md:p-8 shadow-sm">
+    <main className="log-page-container space-y-4 text-text animate-fade-in max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+      <header className="relative overflow-hidden rounded-2xl bg-surface border border-border p-4 md:p-5 shadow-sm">
         <div className="absolute -right-16 -top-16 h-36 w-36 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
         <div className="relative z-10">
           <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary">
             QUICK LOG
           </p>
-          <h1 className="mt-2 text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl">
+          <h1 className="mt-2 text-2xl font-bold tracking-tight text-text sm:text-3xl">
             Log a workout in 3 taps
           </h1>
-          <p className="mt-2 text-sm leading-relaxed text-zinc-500">
+          <p className="mt-2 text-sm leading-relaxed text-secondary">
             Choose a category, pick an activity, add the right details, and submit.
           </p>
         </div>
@@ -561,20 +561,20 @@ export default function Log() {
       <RepeatLast workout={lastWorkout} onRepeat={handleRepeat} />
 
       {templates.length > 0 && (
-        <div className="mb-6">
+        <div className="mb-4">
           <DashboardWorkoutTemplates templates={templates} onSelectTemplate={handleSelectTemplate} />
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
-        <div className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
+        <div className="space-y-3">
           <div className="flex items-center gap-3">
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs font-mono">
               1
             </div>
             <div>
-              <h2 className="text-lg font-bold text-zinc-900 tracking-tight">Choose category</h2>
-              <p className="text-xs text-zinc-550">Select a fitness category for your workout</p>
+              <h2 className="text-lg font-bold text-text tracking-tight">Choose category</h2>
+              <p className="text-xs text-secondary">Select a fitness category for your workout</p>
             </div>
           </div>
           <QuickLogGrid categories={finalCategories} selectedSlug={category.slug} onSelect={handleCategorySelect} />
@@ -582,24 +582,24 @@ export default function Log() {
 
         <SubtypePicker category={category} selectedSubtype={subtype} workoutTitle={debouncedWorkoutTitle} onSelect={handleSubtypeSelect} />
 
-        <section className="rounded-2xl border border-zinc-200/80 bg-white p-5 md:p-6 shadow-sm">
+        <section className="rounded-2xl border border-border bg-surface p-4 md:p-5 shadow-sm">
           {/* Header block with metadata and estimate card */}
-          <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-zinc-100 pb-5">
+          <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-border/60 pb-3.5">
             <div className="flex items-center gap-3">
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs font-mono">
                 3
               </div>
               <div>
-                <h2 className="text-lg font-bold text-zinc-900 tracking-tight">
+                <h2 className="text-lg font-bold text-text tracking-tight">
                   Configure <span className="text-primary">{subtype?.name || category?.name}</span>
                 </h2>
-                <p className="text-xs text-zinc-550">
-                  Category: <span className="font-semibold text-zinc-700 capitalize">{category?.name}</span> • Add details to estimate calories and XP.
+                <p className="text-xs text-secondary">
+                  Category: <span className="font-semibold text-text capitalize">{category?.name}</span> • Add details to estimate calories and XP.
                 </p>
               </div>
             </div>
 
-            <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/50 px-4 py-3 md:text-right shrink-0">
+            <div className="rounded-xl border border-border bg-bg/50 px-3.5 py-2.5 md:text-right shrink-0">
               {savedTotals ? (
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Saved Result</p>
@@ -607,9 +607,9 @@ export default function Log() {
                 </div>
               ) : (
                 <div>
-                  <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500">Estimate before submit</p>
-                  <p className="mt-0.5 text-sm font-bold text-zinc-800">+{preview.xp} XP • {preview.calories} kcal</p>
-                  <p className="text-[9px] text-zinc-555 font-medium">Based on duration, intensity, and selected activity.</p>
+                  <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-muted">Estimate before submit</p>
+                  <p className="mt-0.5 text-sm font-bold text-text">+{preview.xp} XP • {preview.calories} kcal</p>
+                  <p className="text-[9px] text-muted font-medium">Based on duration, intensity, and selected activity.</p>
                 </div>
               )}
             </div>
@@ -617,9 +617,9 @@ export default function Log() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left Column - Core Info */}
-            <div className="space-y-5">
+            <div className="space-y-4">
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-zinc-500" htmlFor="workout-title">
+                <label className="text-xs font-bold uppercase tracking-wider text-secondary" htmlFor="workout-title">
                   Workout Title <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -629,12 +629,12 @@ export default function Log() {
                   placeholder="e.g. Upper Body Push, Running"
                   value={workoutTitle}
                   onChange={(e) => _setWorkoutTitle(e.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                <label className="text-xs font-bold uppercase tracking-wider text-secondary">
                   Duration <span className="text-red-500">*</span>
                 </label>
                 <div className="mt-2 flex flex-wrap gap-2.5" role="group" aria-label="Workout duration">
@@ -648,10 +648,10 @@ export default function Log() {
                         store(LAST_CATEGORY_KEY, { categorySlug: category.slug, subtypeSlug: subtype.slug, duration: minutes });
                       }}
                       aria-pressed={duration === minutes}
-                      className={`min-h-[38px] min-w-[38px] rounded-full px-4 py-1.5 text-xs font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer transition-all duration-150 ${
+                      className={`min-h-[34px] min-w-[34px] rounded-full px-3 py-1 text-xs font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer transition-all duration-150 ${
                         duration === minutes 
-                          ? "bg-primary text-white shadow-sm shadow-primary/20 scale-[1.02]" 
-                          : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
+                          ? "bg-primary text-primary-contrast shadow-sm shadow-primary/20 scale-[1.02]" 
+                          : "bg-bg text-secondary hover:bg-bg/85"
                       }`}
                     >
                       {minutes}m
@@ -666,32 +666,32 @@ export default function Log() {
                     placeholder="Custom"
                     value={[15, 30, 45, 60].includes(Number(duration)) ? "" : duration}
                     onChange={(event) => handleCustomDuration(event.target.value)}
-                    className="min-h-[38px] w-24 rounded-full border border-zinc-200/80 bg-zinc-50 px-4 py-1.5 text-xs font-bold text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="min-h-[34px] w-20 rounded-full border border-border bg-bg px-3 py-1 text-xs font-bold text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                  <label className="text-xs font-bold uppercase tracking-wider text-secondary">
                     Date
                   </label>
                   <input 
                     type="date" 
                     value={details.date} 
                     onChange={(e) => setDetails((current) => ({ ...current, date: e.target.value }))} 
-                    className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" 
+                    className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" 
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                  <label className="text-xs font-bold uppercase tracking-wider text-secondary">
                     Intensity <span className="text-red-500">*</span>
                   </label>
                   <select 
                     value={details.intensity} 
                     onChange={(e) => setDetails((current) => ({ ...current, intensity: e.target.value }))} 
-                    className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
                     <option value="low">Low</option>
                     <option value="med">Medium</option>
@@ -702,17 +702,17 @@ export default function Log() {
             </div>
 
             {/* Right Column - Metrics & Notes */}
-            <div className="space-y-5">
+            <div className="space-y-4">
               {/* Dynamic metrics block */}
               {(showDistance || showStrength || showRepsOnly || showHold) && (
-                <div className="rounded-2xl bg-zinc-50/40 border border-zinc-150/80 p-4 space-y-4">
-                  <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500">
+                <div className="rounded-xl bg-bg/40 border border-border p-3.5 space-y-3">
+                  <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-muted">
                     Performance Metrics
                   </p>
                   
                   {showDistance && (
                     <div>
-                      <label className="text-xs font-semibold text-zinc-700">
+                      <label className="text-xs font-semibold text-secondary">
                         Distance (km{subtype?.calorieMethod === "distance_multiplier" ? " *" : ""})
                       </label>
                       <input 
@@ -722,7 +722,7 @@ export default function Log() {
                         inputMode="decimal" 
                         value={details.distance} 
                         onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, distance: e.target.value })); }} 
-                        className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
+                        className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
                       />
                       {derivedPaceAndSpeed && (
                         <p className="mt-1.5 text-xs text-primary font-semibold">
@@ -735,7 +735,7 @@ export default function Log() {
                   {showStrength && (
                     <div className="grid grid-cols-3 gap-3">
                       <div>
-                        <label className="text-xs font-semibold text-zinc-700">
+                        <label className="text-xs font-semibold text-secondary">
                           Sets <span className="text-red-500">*</span>
                         </label>
                         <input 
@@ -744,11 +744,11 @@ export default function Log() {
                           max="20" 
                           value={details.sets} 
                           onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, sets: e.target.value })); }} 
-                          className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
+                          className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-semibold text-zinc-700">
+                        <label className="text-xs font-semibold text-secondary">
                           Reps <span className="text-red-500">*</span>
                         </label>
                         <input 
@@ -757,11 +757,11 @@ export default function Log() {
                           max="100" 
                           value={details.reps} 
                           onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, reps: e.target.value })); }} 
-                          className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
+                          className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-semibold text-zinc-700">
+                        <label className="text-xs font-semibold text-secondary">
                           Weight (kg)
                         </label>
                         <input 
@@ -770,7 +770,7 @@ export default function Log() {
                           step="0.5" 
                           value={details.weight} 
                           onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, weight: e.target.value })); }} 
-                          className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
+                          className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
                         />
                       </div>
                     </div>
@@ -778,7 +778,7 @@ export default function Log() {
 
                   {showRepsOnly && (
                     <div>
-                      <label className="text-xs font-semibold text-zinc-700">
+                      <label className="text-xs font-semibold text-secondary">
                         Reps <span className="text-red-500">*</span>
                       </label>
                       <input 
@@ -787,14 +787,14 @@ export default function Log() {
                         max="500" 
                         value={details.reps} 
                         onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, reps: e.target.value })); }} 
-                        className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
+                        className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
                       />
                     </div>
                   )}
 
                   {showHold && (
                     <div>
-                      <label className="text-xs font-semibold text-zinc-700">
+                      <label className="text-xs font-semibold text-secondary">
                         Hold time (seconds) <span className="text-red-500">*</span>
                       </label>
                       <input 
@@ -803,7 +803,7 @@ export default function Log() {
                         max="3600" 
                         value={details.holdTime} 
                         onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, holdTime: e.target.value })); }} 
-                        className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
+                        className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
                       />
                     </div>
                   )}
@@ -811,16 +811,16 @@ export default function Log() {
               )}
 
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-zinc-500" htmlFor="workout-notes">
+                <label className="text-xs font-bold uppercase tracking-wider text-secondary" htmlFor="workout-notes">
                   Notes
                 </label>
                 <textarea 
                   id="workout-notes"
                   value={details.notes} 
                   onChange={(e) => setDetails((current) => ({ ...current, notes: e.target.value }))} 
-                  rows="3" 
+                  rows="2" 
                   placeholder="Optional details about the session"
-                  className="mt-2 w-full rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
+                  className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
                 />
               </div>
             </div>
@@ -830,7 +830,7 @@ export default function Log() {
         <button
           type="submit"
           disabled={submitting || !isFormValid}
-          className="w-full rounded-2xl bg-primary py-4 text-base font-bold text-white shadow-sm hover:bg-primary-bright transition duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary"
+          className="w-full rounded-xl bg-primary py-2.5 text-base font-bold text-primary-contrast shadow-sm hover:bg-primary-bright transition duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary"
         >
           {submitting ? "Logging…" : `Log ${subtype?.name || category?.name || "Workout"}`}
         </button>
@@ -850,7 +850,7 @@ export default function Log() {
 }
 
 function InlineError({ message }) {
-  return <section role="alert" className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-700">{message}</section>;
+  return <section role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-200">{message}</section>;
 }
 
 function PageError({ message, onRetry }) {

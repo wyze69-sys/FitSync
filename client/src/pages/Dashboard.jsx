@@ -665,17 +665,17 @@ export default function Dashboard() {
   ];
 
   return (
-    <main className="mx-auto max-w-7xl space-y-6 text-text animate-fade-in">
+    <main className="mx-auto max-w-7xl space-y-5 text-text animate-fade-in">
       {celebration && (
         <CelebrationModal celebration={celebration} onClose={() => setCelebration(null)} />
       )}
 
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between pt-4 pb-2">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between pt-2 pb-1.5">
         <div className="space-y-2 text-left">
           <span className="font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-primary">
             DAILY FOCUS
           </span>
-          <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-text">
+          <h1 className="text-2xl md:text-4xl font-extrabold uppercase tracking-tight text-text">
             {timeOfDay}, {firstName} 
           </h1>
           <p className="text-sm leading-relaxed text-secondary max-w-xl">
@@ -685,14 +685,14 @@ export default function Dashboard() {
         <div className="flex flex-wrap items-center gap-3">
           <Link
             to="/log"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-xs font-black uppercase tracking-widest text-primary-contrast shadow-sm hover:bg-primary-bright focus-visible:outline-none transition-all cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-primary-contrast shadow-sm hover:bg-primary-bright focus-visible:outline-none transition-all cursor-pointer"
           >
             <span className="text-[14px] font-bold">+</span> LOG WORKOUT
           </Link>
           <button
             type="button"
             onClick={() => context.recordCheckin?.("Wellness check-in")}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-white/[0.02] px-6 py-3.5 text-xs font-black uppercase tracking-widest text-text hover:bg-white/[0.08] focus-visible:outline-none transition-all cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-white/[0.02] px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-text hover:bg-white/[0.08] focus-visible:outline-none transition-all cursor-pointer"
           >
             <HeartPulse className="h-4 w-4" /> WELLNESS CHECK-IN
           </button>
@@ -702,15 +702,15 @@ export default function Dashboard() {
       {visibleAnnouncements.map((ann) => (
         <div
           key={ann.id}
-          className="flex items-start justify-between gap-4 rounded-2xl border border-primary/20 bg-primary/10 p-5 text-left shadow-[0_18px_50px_rgba(0,0,0,0.16)] animate-slide-up"
+          className="flex items-start justify-between gap-3.5 rounded-xl border border-primary/20 bg-primary/10 p-4 text-left shadow-md animate-slide-up"
         >
           <div className="flex min-w-0 items-start gap-3">
             <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-primary/20 bg-primary/10 font-mono text-[10px] font-black text-primary">
               MSG
             </div>
-            <div className="space-y-1">
-              <h3 className="text-sm font-bold text-text md:text-base">{ann.title}</h3>
-              <p className="whitespace-pre-wrap text-xs leading-relaxed text-muted md:text-sm">
+            <div className="space-y-0.5">
+              <h3 className="text-xs font-bold text-text md:text-sm">{ann.title}</h3>
+              <p className="whitespace-pre-wrap text-[11px] leading-relaxed text-muted md:text-xs">
                 {ann.body}
               </p>
             </div>
@@ -727,15 +727,15 @@ export default function Dashboard() {
       ))}
 
       <section className="grid gap-5 text-left lg:grid-cols-[0.3fr_0.7fr]" aria-label="Body progress quick update">
-        <article className="relative min-h-[320px] overflow-hidden rounded-3xl border border-border bg-surface p-5">
+        <article className="relative min-h-[250px] overflow-hidden rounded-2xl border border-border bg-surface p-4">
           <div className="absolute inset-x-8 top-8 h-24 rounded-full bg-primary/10 blur-3xl" aria-hidden="true" />
-          <div className="relative flex h-full min-h-[280px] flex-col justify-between">
+          <div className="relative flex h-full min-h-[210px] flex-col justify-between">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <span className="font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-primary">
                   Motion slot
                 </span>
-                <h2 className="mt-2 text-xl font-black uppercase tracking-tight text-text">
+                <h2 className="mt-1.5 text-lg font-black uppercase tracking-tight text-text">
                   Progress Energy
                 </h2>
               </div>
@@ -743,12 +743,12 @@ export default function Dashboard() {
                 Live
               </span>
             </div>
-            <div className="mx-auto my-2 flex w-full max-w-[260px] flex-1 items-center justify-center">
+            <div className="mx-auto my-1.5 flex w-full max-w-[200px] flex-1 items-center justify-center">
               <DotLottieReact
                 src="https://lottie.host/0714f312-717f-4118-9651-e8d3c97e8607/WVW5n48chI.lottie"
                 loop
                 autoplay
-                className="h-full min-h-[190px] w-full"
+                className="h-full min-h-[140px] w-full"
               />
             </div>
             <p className="text-xs leading-relaxed text-muted">
@@ -757,66 +757,66 @@ export default function Dashboard() {
           </div>
         </article>
 
-        <article className="rounded-3xl border border-border bg-surface p-6 text-left shadow-[0_18px_50px_rgba(0,0,0,0.16)]">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+        <article className="rounded-2xl border border-border bg-surface p-5 text-left shadow-md">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="max-w-xl">
               <span className="font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-primary">
                 Body progress
               </span>
-              <h2 className="mt-2 text-2xl font-black uppercase tracking-tight text-text md:text-3xl">
+              <h2 className="mt-1 text-xl font-black uppercase tracking-tight text-text md:text-2xl">
                 Quick Weight Update
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-secondary">
                 Update today's weight and watch Home and Progress use the saved real log immediately.
               </p>
             </div>
-            <div className="rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3 text-right">
+            <div className="rounded-xl border border-primary/20 bg-primary/10 px-3.5 py-2 text-right">
               <div className="font-mono text-[10px] font-black uppercase tracking-[0.2em] text-primary">
                 Target
               </div>
-              <div className="mt-1 font-mono text-2xl font-black text-text">
+              <div className="mt-0.5 font-mono text-xl font-black text-text">
                 {formatKg(bodyProgress.targetWeight)}<span className="ml-1 text-xs font-bold text-muted">kg</span>
               </div>
             </div>
           </div>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-2xl border border-border/60 bg-bg p-4">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-xl border border-border/60 bg-bg p-3">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Current</div>
-              <div className="mt-2 font-mono text-3xl font-black text-text">
+              <div className="mt-1.5 font-mono text-2xl font-black text-text">
                 {formatKg(bodyProgress.currentWeight)}<span className="ml-1 text-xs font-bold text-muted">kg</span>
               </div>
               <div className="mt-1 text-[11px] text-muted">
                 {bodyProgress.latestDate ? `Latest ${formatShortDate(bodyProgress.latestDate)}` : "Profile weight"}
               </div>
             </div>
-            <div className="rounded-2xl border border-border/60 bg-bg p-4">
+            <div className="rounded-xl border border-border/60 bg-bg p-3">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Start</div>
-              <div className="mt-2 font-mono text-3xl font-black text-text">
+              <div className="mt-1.5 font-mono text-2xl font-black text-text">
                 {formatKg(bodyProgress.startWeight)}<span className="ml-1 text-xs font-bold text-muted">kg</span>
               </div>
               <div className="mt-1 text-[11px] text-muted">
                 {bodyProgress.logCount ? "First saved log" : "Profile start"}
               </div>
             </div>
-            <div className="rounded-2xl border border-border/60 bg-bg p-4">
+            <div className="rounded-xl border border-border/60 bg-bg p-3">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Change</div>
-              <div className={`mt-2 font-mono text-3xl font-black ${bodyProgress.totalChange < 0 ? "text-primary" : bodyProgress.totalChange > 0 ? "text-amber-400" : "text-text"}`}>
+              <div className={`mt-1.5 font-mono text-2xl font-black ${bodyProgress.totalChange < 0 ? "text-primary" : bodyProgress.totalChange > 0 ? "text-amber-400" : "text-text"}`}>
                 {bodyProgress.logCount >= 2 ? `${bodyProgress.totalChange > 0 ? "+" : ""}${bodyProgress.totalChange.toFixed(1)}` : "—"}
                 <span className="ml-1 text-xs font-bold text-muted">kg</span>
               </div>
               <div className="mt-1 text-[11px] text-muted">{bodyProgress.daysTracked}</div>
             </div>
-            <div className="rounded-2xl border border-border/60 bg-bg p-4">
+            <div className="rounded-xl border border-border/60 bg-bg p-3">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">To target</div>
-              <div className="mt-2 font-mono text-3xl font-black text-text">
+              <div className="mt-1.5 font-mono text-2xl font-black text-text">
                 {formatKg(bodyProgress.toTarget)}<span className="ml-1 text-xs font-bold text-muted">kg</span>
               </div>
               <div className="mt-1 text-[11px] text-muted">{bodyProgress.progressPct}% complete</div>
             </div>
           </div>
 
-          <div className="mt-5 overflow-hidden rounded-full bg-bg">
+          <div className="mt-4 overflow-hidden rounded-full bg-bg">
             <div className="h-2 rounded-full bg-primary transition-all duration-700" style={{ width: `${bodyProgress.progressPct}%` }} />
           </div>
           <div className="mt-2 flex justify-between font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
@@ -824,12 +824,12 @@ export default function Dashboard() {
             <span>Target {formatKg(bodyProgress.targetWeight)} kg</span>
           </div>
 
-          <form onSubmit={handleQuickWeightUpdate} className="mt-6 grid gap-3 rounded-2xl border border-border/60 bg-bg p-4 md:grid-cols-[1fr_auto] md:items-end">
+          <form onSubmit={handleQuickWeightUpdate} className="mt-4 grid gap-3 rounded-xl border border-border/60 bg-bg p-3 md:grid-cols-[1fr_auto] md:items-end">
             <label className="block">
               <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
                 Today's weight
               </span>
-              <div className="mt-2 flex items-center rounded-xl border border-border bg-surface px-4 py-3 focus-within:border-primary/60">
+              <div className="mt-1.5 flex items-center rounded-lg border border-border bg-surface px-3 py-2 focus-within:border-primary/60">
                 <input
                   type="number"
                   min="20"
@@ -838,7 +838,7 @@ export default function Dashboard() {
                   value={weightInput}
                   onChange={(event) => setWeightInput(event.target.value)}
                   placeholder={bodyProgress.currentWeight ? formatKg(bodyProgress.currentWeight) : "65"}
-                  className="w-full bg-transparent font-mono text-lg font-black text-text outline-none placeholder:text-muted"
+                  className="w-full bg-transparent font-mono text-sm font-bold text-text outline-none placeholder:text-muted"
                 />
                 <span className="ml-2 font-mono text-xs font-bold uppercase text-muted">kg</span>
               </div>
@@ -846,7 +846,7 @@ export default function Dashboard() {
             <button
               type="submit"
               disabled={weightSaving}
-              className="inline-flex min-h-[52px] items-center justify-center rounded-xl bg-primary px-6 py-3 font-mono text-[11px] font-black uppercase tracking-[0.18em] text-primary-contrast transition hover:bg-primary-bright disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-primary px-4 py-2 font-mono text-[11px] font-black uppercase tracking-[0.15em] text-primary-contrast transition hover:bg-primary-bright disabled:cursor-not-allowed disabled:opacity-60"
             >
               {weightSaving ? "Saving..." : "Update Weight"}
             </button>
@@ -855,47 +855,47 @@ export default function Dashboard() {
       </section>
 
       {/* Connected Progress Summary Card */}
-      <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm text-left" aria-label="Athlete progress summary">
+      <section className="rounded-2xl border border-border bg-surface p-5 shadow-sm text-left" aria-label="Athlete progress summary">
         {/* Top part: Streak, XP Progress, Current Badge */}
-        <div className="grid gap-6 grid-cols-1 md:grid-cols-12 items-stretch">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-12 items-stretch">
           {/* Commit Streak Column */}
-          <div className="md:col-span-3 flex flex-col justify-between border-b md:border-b-0 md:border-r border-border/60 pb-6 md:pb-0 md:pr-6">
+          <div className="md:col-span-3 flex flex-col justify-between border-b md:border-b-0 md:border-r border-border/60 pb-4 md:pb-0 md:pr-4">
             <div>
               <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Commit streak</span>
-              <div className="flex items-center gap-3 mt-4">
+              <div className="flex items-center gap-2.5 mt-3">
                 <div className="grid size-10 place-items-center rounded-xl bg-orange-500/10 text-streak">
                   <Flame className="h-6 w-6" fill="currentColor" />
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="font-mono text-4xl font-black text-text leading-none">{currentStreak}</span>
+                  <span className="font-mono text-3xl font-black text-text leading-none">{currentStreak}</span>
                   <span className="text-xs text-secondary font-semibold lowercase">
                     {currentStreak === 1 ? "day" : "days"}
                   </span>
                 </div>
               </div>
             </div>
-            <div className="text-[11px] font-mono uppercase tracking-wider text-muted mt-4">
+            <div className="text-[11px] font-mono uppercase tracking-wider text-muted mt-3">
               Longest <span className="font-bold text-text">{longestStreak} {longestStreak === 1 ? "day" : "days"}</span>
             </div>
           </div>
 
           {/* Athlete XP / Level Progress Column */}
-          <div className="md:col-span-6 flex flex-col justify-between border-b md:border-b-0 md:border-r border-border/60 pb-6 md:pb-0 md:px-6">
+          <div className="md:col-span-6 flex flex-col justify-between border-b md:border-b-0 md:border-r border-border/60 pb-4 md:pb-0 md:px-4">
             <div className="flex items-center justify-between">
               <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Athlete XP · Level {level}</span>
               <span className="rounded bg-primary/10 border border-primary/20 px-2 py-0.5 font-mono text-[10px] font-bold uppercase text-primary">
                 XP {totalXp} / {xpMax}
               </span>
             </div>
-            <div className="mt-3">
-              <div className="text-xl font-black uppercase text-text tracking-tight">
+            <div className="mt-2.5">
+              <div className="text-lg font-black uppercase text-text tracking-tight">
                 {gamification.title || "Warm Up"}
               </div>
               <p className="text-[11px] text-secondary font-medium mt-0.5 leading-relaxed">
                 {LEVEL_SUBTITLES[level]?.xpDesc || "Reliable. Consistent. Building momentum."}
               </p>
             </div>
-            <div className="mt-4">
+            <div className="mt-3.5">
               <div className="h-2 overflow-hidden rounded-full bg-bg">
                 <div className="h-full rounded-full bg-primary transition-all duration-700" style={{ width: `${xpPct}%` }} />
               </div>
@@ -907,9 +907,9 @@ export default function Dashboard() {
           </div>
 
           {/* Current Badge Column */}
-          <div className="md:col-span-3 flex flex-col items-center justify-center text-center pt-4 md:pt-0 md:pl-6">
+          <div className="md:col-span-3 flex flex-col items-center justify-center text-center pt-3 md:pt-0 md:pl-4">
             <BadgeMedal level={level} size="md" showLevel={false} />
-            <div className="mt-3">
+            <div className="mt-2.5">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] font-bold text-text">
                 {(gamification.title || "Warm Up")} Badge
               </div>
@@ -921,22 +921,22 @@ export default function Dashboard() {
         </div>
 
         {/* Separator line */}
-        <div className="my-6 border-t border-border/60" />
+        <div className="my-4.5 border-t border-border/60" />
 
         {/* Bottom part: Today Snapshot Header & Metrics */}
         <div>
-          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted block mb-4">Today Snapshot</span>
-          <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted block mb-2.5">Today Snapshot</span>
+          <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
             {todaySummary.map((item) => {
               const IconComponent = STAT_ICONS[item.label];
               return (
-                <div key={item.label} className="flex items-center gap-3.5 rounded-xl border border-border bg-bg/50 p-4 transition hover:border-primary/20">
+                <div key={item.label} className="flex items-center gap-2.5 rounded-lg border border-border bg-bg/50 p-3.5 transition hover:border-primary/20">
                   <div className="grid size-10 shrink-0 place-items-center rounded-xl border border-primary/10 bg-primary/5 text-primary">
                     {IconComponent && <IconComponent className="h-5 w-5" aria-hidden="true" />}
                   </div>
                   <div className="min-w-0 space-y-0.5">
                     <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-muted font-bold">{item.label}</div>
-                    <div className="font-mono text-2xl font-black text-text leading-none">{item.value}</div>
+                    <div className="font-mono text-lg font-black text-text leading-none">{item.value}</div>
                     <div className="font-mono text-[8px] uppercase tracking-widest text-muted/60">{item.sub}</div>
                   </div>
                 </div>
@@ -946,11 +946,11 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <section className="grid gap-6 grid-cols-1 lg:grid-cols-3 text-left">
+      <section className="grid gap-4 grid-cols-1 lg:grid-cols-3 text-left">
         {/* Nutrition Card - Nutrition & Recovery Preview */}
-        <article className="rounded-3xl border border-border bg-surface p-6 lg:col-span-2 flex flex-col justify-between">
+        <article className="rounded-2xl border border-border bg-surface p-5 lg:col-span-2 flex flex-col justify-between">
           <div>
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <Salad className="h-5 w-5 text-primary" aria-hidden="true" />
                 <h2 className="text-md font-bold uppercase tracking-wider text-text">Nutrition & Recovery Preview</h2>
@@ -964,46 +964,46 @@ export default function Dashboard() {
               <div className="flex items-center justify-center py-12 text-sm text-muted">Loading nutrition plan...</div>
             ) : !nutritionPlan || nutritionPlan.profile?.isIncomplete ? (
               <div className="flex flex-col items-center justify-center py-10 text-center space-y-3">
-                <p className="text-sm text-muted">Complete your profile in the You tab to build your nutrition plan.</p>
+                <p className="text-sm text-muted">Complete your profile in the Profile tab to build your nutrition plan.</p>
                 <Link to="/you" className="inline-flex rounded-xl bg-primary/10 border border-primary/20 px-4 py-2 text-xs font-bold text-primary hover:bg-primary/20 transition-all">
                   Complete Profile
                 </Link>
               </div>
             ) : (
               <>
-                <div className="mb-6 grid gap-4 md:grid-cols-2">
-                  <div className="rounded-2xl border border-border bg-bg/50 p-5 flex flex-col justify-between">
+                <div className="mb-4 grid gap-3 md:grid-cols-2">
+                  <div className="rounded-xl border border-border bg-bg/50 p-4 flex flex-col justify-between">
                     <div>
                       <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted font-bold">Calorie Target</div>
-                      <div className="mt-2 font-mono text-3xl font-black text-text flex items-baseline gap-1">
+                      <div className="mt-1.5 font-mono text-2xl font-black text-text flex items-baseline gap-1">
                         {nutritionPlan.calculations?.todayAdjustedTarget || nutritionPlan.activePlan?.calories || 0}{" "}
                         <span className="text-xs text-muted font-bold lowercase">kcal</span>
                       </div>
                     </div>
-                    <div className="mt-3 text-[10px] leading-relaxed text-muted">
+                    <div className="mt-2 text-[10px] leading-relaxed text-muted">
                       Adjusted based on today's workouts: <span className="font-bold text-primary">+{nutritionPlan.calculations?.todayWorkoutCalories || 0} kcal</span> burn
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-border bg-bg/50 p-5 flex flex-col justify-between">
+                  <div className="rounded-xl border border-border bg-bg/50 p-4 flex flex-col justify-between">
                     <div>
                       <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted font-bold">Protein Target</div>
-                      <div className="mt-2 font-mono text-3xl font-black text-text flex items-baseline gap-1">
+                      <div className="mt-1.5 font-mono text-2xl font-black text-text flex items-baseline gap-1">
                         {nutritionPlan.macros?.proteinG || 0}
                         <span className="text-xs text-muted font-bold lowercase">g</span>
                       </div>
                     </div>
-                    <div className="mt-3 text-[10px] leading-relaxed text-muted">
+                    <div className="mt-2 text-[10px] leading-relaxed text-muted">
                       Target: <span className="font-bold text-text">{nutritionPlan.macros?.proteinPct ?? 26}%</span> of daily calorie intake
                     </div>
                   </div>
                 </div>
 
-                <div className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-muted font-bold">Recommended Foods</div>
+                <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted font-bold">Recommended Foods</div>
                 {Array.isArray(nutritionPlan.recommendations) && nutritionPlan.recommendations.length > 0 ? (
-                  <div className="space-y-2.5">
+                  <div className="space-y-2">
                     {nutritionPlan.recommendations.slice(0, 3).map((food) => (
-                      <div key={food.id} className="flex items-center justify-between gap-4 rounded-xl border border-border bg-bg/30 p-3 transition hover:border-primary/20">
+                      <div key={food.id} className="flex items-center justify-between gap-4 rounded-lg border border-border bg-bg/30 p-2.5 transition hover:border-primary/20">
                         <div className="flex min-w-0 items-center gap-3">
                           <div className="grid size-9 shrink-0 place-items-center rounded-lg border border-primary/20 bg-primary/5 text-primary">
                             <Salad className="h-4.5 w-4.5" />
@@ -1031,15 +1031,15 @@ export default function Dashboard() {
         </article>
 
         {/* AI Coaching / Wellness Card */}
-        <article className="flex flex-col rounded-3xl bg-primary p-6 text-primary-contrast lg:col-span-1 justify-between min-h-[380px]">
+        <article className="flex flex-col rounded-2xl bg-primary p-5 text-primary-contrast lg:col-span-1 justify-between h-full">
           <div>
-            <div className="mb-6 flex items-center justify-between gap-3">
+            <div className="mb-4 flex items-center justify-between gap-3">
               <h2 className="font-display text-sm font-bold uppercase tracking-widest text-primary-contrast/85">Weekly Coaching Note</h2>
               <Sparkles className="h-4 w-4 text-primary-contrast/80" aria-hidden="true" />
             </div>
 
             {aiInsight ? (
-              <div className="space-y-4">
+              <div className="space-y-3.5">
                 <div className="flex gap-2.5 items-start">
                   <Quote className="h-5 w-5 shrink-0 text-primary-contrast/40" />
                   <p className="text-sm font-medium leading-relaxed italic text-primary-contrast">
@@ -1048,19 +1048,19 @@ export default function Dashboard() {
                 </div>
 
                 {aiInsight.recommendations && aiInsight.recommendations.length > 0 && (
-                  <div className="space-y-3.5 border-t border-primary-contrast/15 pt-4">
+                  <div className="space-y-2.5 border-t border-primary-contrast/15 pt-3">
                     {aiInsight.recommendations.slice(0, 3).map((rec, index) => {
                       let title = "Tip";
                       let Icon = Sparkles;
                       if (index === 0) {
-                        title = "Keep it up";
-                        Icon = CheckCircle2;
+                         title = "Keep it up";
+                         Icon = CheckCircle2;
                       } else if (index === 1) {
-                        title = "Focus this week";
-                        Icon = Target;
+                         title = "Focus this week";
+                         Icon = Target;
                       } else if (index === 2) {
-                        title = "Small steps";
-                        Icon = TrendingUp;
+                         title = "Small steps";
+                         Icon = TrendingUp;
                       }
                       return (
                         <div key={index} className="flex items-start gap-3 text-left">
@@ -1076,7 +1076,7 @@ export default function Dashboard() {
                 )}
               </div>
             ) : (
-              <div className="mb-6">
+              <div className="mb-4">
                 <h3 className="text-lg font-black text-primary-contrast">{currentStreak > 0 ? "Your week in review" : "Start with a 30-minute base"}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-primary-contrast/80">
                   {recentWorkouts.length > 0
@@ -1091,7 +1091,7 @@ export default function Dashboard() {
             type="button"
             onClick={handleGenerateInsight}
             disabled={aiLoading}
-            className="w-full mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-white py-3 text-xs font-black uppercase tracking-widest text-primary hover:bg-white/90 transition-all cursor-pointer disabled:opacity-50"
+            className="w-full mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-white py-2.5 text-xs font-black uppercase tracking-widest text-primary hover:bg-white/90 transition-all cursor-pointer disabled:opacity-50"
           >
             <Sparkles className="h-4 w-4" />
             {aiLoading ? "Generating…" : "Generate New Coach Note"}
@@ -1099,8 +1099,8 @@ export default function Dashboard() {
         </article>
       </section>
 
-      <section className="rounded-2xl border border-border bg-surface p-6 text-left">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <section className="rounded-xl border border-border bg-surface p-5 text-left">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-primary" aria-hidden="true" />
             <h2 className="text-md font-bold uppercase tracking-wider text-text">Last 3 Workouts</h2>
@@ -1112,7 +1112,7 @@ export default function Dashboard() {
         {recentWorkouts.length > 0 ? (
           <div className="space-y-2">
             {recentWorkouts.map((workout) => (
-              <div key={workout.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-transparent p-3 transition hover:border-border hover:bg-white/[0.03] sm:grid-cols-12">
+              <div key={workout.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-transparent p-2 transition hover:border-border hover:bg-white/[0.03] sm:grid-cols-12">
                 <div className="flex min-w-0 items-center gap-4 sm:col-span-6">
                   <span className="shrink-0 font-mono text-xs text-muted">{workout.date}</span>
                   <div className="min-w-0">
