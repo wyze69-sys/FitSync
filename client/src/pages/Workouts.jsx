@@ -310,7 +310,7 @@ export default function Workouts() {
         className="rounded-2xl border border-border bg-surface p-4 shadow-lg shadow-black/5 flex flex-col gap-3 relative overflow-hidden"
       >
         <div className="flex items-start gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-green-50 dark:bg-green-950/20 text-primary border border-green-100 dark:border-green-900/30">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-green-50 dark:bg-green-600/20 text-primary border border-green-100 dark:border-green-900/30">
             <Calendar className="w-4.5 h-4.5" />
           </div>
           <div>
