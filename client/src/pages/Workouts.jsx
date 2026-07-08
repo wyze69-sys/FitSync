@@ -68,7 +68,7 @@ function getCategoryDetails(category) {
     border: "border-zinc-100 dark:border-zinc-800/30",
     text: "text-zinc-600 dark:text-zinc-400",
     pillBg: "bg-zinc-100 dark:bg-zinc-700/30 border border-zinc-200 dark:border-zinc-700/30",
-    pillText: "text-zinc-800 dark:text-zinc-500 font-bold text-[10px] px-2.5 py-0.5 rounded-full inline-block uppercase tracking-wider",
+    pillText: "text-zinc-800 dark:text-zinc-00 font-bold text-[10px] px-2.5 py-0.5 rounded-full inline-block uppercase tracking-wider",
     displayName: category || "Workout"
   };
 }
