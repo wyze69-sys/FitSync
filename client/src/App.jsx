@@ -5,6 +5,7 @@ import AppLayout from "./components/layout/AppLayout.jsx";
 import AdminLayout from "./components/layout/AdminLayout.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
+import LandingPage from "./pages/LandingPage.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Log from "./pages/Log.jsx";
 import Progress from "./pages/Progress.jsx";
@@ -22,12 +23,13 @@ import NotFound from "./pages/NotFound.jsx";
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/log" element={<Log />} />
           <Route path="/workouts" element={<Workouts />} />
           <Route path="/progress" element={<Progress />} />

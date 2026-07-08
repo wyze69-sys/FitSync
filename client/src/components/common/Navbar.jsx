@@ -15,7 +15,7 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import ThemeToggle from "./ThemeToggle.jsx";
 
 const USER_LINKS = [
-  { to: "/", label: "Home", icon: Home, end: true },
+  { to: "/dashboard", label: "Home", icon: Home, end: true },
   { to: "/log", label: "Log", icon: Dumbbell },
   { to: "/nutrition", label: "Nutrition", icon: Salad },
   { to: "/progress", label: "Progress", icon: BarChart3 },

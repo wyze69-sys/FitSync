@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitSync — Track consistency, reveal potential</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.14/dist/dotlottie-wc.js" type="module"></script>
+</head>
+
+<body>
+
+  <!-- ===== HERO SECTION (FULL WIDTH) ===== -->
+  <section class="hero-full" id="home">
+    <!-- Navbar -->
+    <header class="site-header" id="siteHeader">
+      <div class="header-inner">
+        <a href="#home" class="logo">
+          <span class="logo-icon">
+            <svg viewBox="0 0 24 24" width="30" height="30" fill="none">
+              <path d="M2 12h3M19 12h3M5 8v8M19 8v8M8 12h8M8 9v6M16 9v6" stroke="currentColor" stroke-width="2.4"
+                stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+          FitSync
+        </a>
+        <nav class="main-nav" id="mainNav">
+          <a href="#home" class="nav-link active">Home</a>
+          <a href="#about" class="nav-link">How It Works</a>
+          <a href="#services" class="nav-link">Features</a>
+          <a href="#badges" class="nav-link">Streaks & XP</a>
+        </nav>
+        <div class="landing-auth-actions"><a href="/login" target="_parent" class="btn btn-glass btn-sm" data-magnetic>Log In</a><a href="/register" target="_parent" class="btn btn-primary btn-header" data-magnetic>Start Your Journey</a></div>
+      </div>
+    </header>
+
+    <div class="hero-bg">
+      <div class="hero-img-wrap">
+        <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" class="hero-svg-animated">
+          <defs>
+            <linearGradient id="hbg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#16231F"/>
+              <stop offset="100%" stop-color="#0B1310"/>
+            </linearGradient>
+            <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#1E8E5A"/>
+              <stop offset="100%" stop-color="#16231F" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+
+          <rect width="1200" height="800" fill="url(#hbg)"/>
+
+          <!-- AI Grid Background -->
+          <g opacity="0.15" stroke="#1E8E5A" stroke-width="1.5">
+            <path d="M0 100 L1200 100 M0 200 L1200 200 M0 300 L1200 300 M0 400 L1200 400 M0 500 L1200 500 M0 600 L1200 600 M0 700 L1200 700"/>
+            <path d="M100 0 L100 800 M200 0 L200 800 M300 0 L300 800 M400 0 L400 800 M500 0 L500 800 M600 0 L600 800 M700 0 L700 800 M800 0 L800 800 M900 0 L900 800 M1000 0 L1000 800 M1100 0 L1100 800"/>
+          </g>
+
+          <!-- Animated node paths -->
+          <g fill="none" stroke="#E3A83B" stroke-width="2" opacity="0.6">
+            <path d="M200 600 L400 400 L700 400 L900 200" class="hero-path-draw"/>
+            <path d="M100 200 L300 400 L500 600 L800 600" class="hero-path-draw path-delay"/>
+          </g>
+
+          <!-- Pulsing AI nodes -->
+          <g fill="#E3A83B">
+            <circle cx="200" cy="600" r="6" class="hero-node node-1"/>
+            <circle cx="400" cy="400" r="8" class="hero-node node-2"/>
+            <circle cx="700" cy="400" r="6" class="hero-node node-3"/>
+            <circle cx="900" cy="200" r="10" class="hero-node node-4"/>
+            <circle cx="100" cy="200" r="6" class="hero-node node-5"/>
+            <circle cx="300" cy="400" r="5" class="hero-node node-6"/>
+            <circle cx="500" cy="600" r="8" class="hero-node node-7"/>
+            <circle cx="800" cy="600" r="6" class="hero-node node-8"/>
+          </g>
+
+          <!-- Pulsing Data Orbs -->
+          <circle cx="900" cy="400" r="250" fill="url(#glow)" opacity="0.4" class="hero-orb orb-1"/>
+          <circle cx="500" cy="600" r="300" fill="url(#glow)" opacity="0.2" class="hero-orb orb-2"/>
+          <circle cx="1050" cy="150" r="150" fill="#E3A83B" opacity="0.1" class="hero-orb orb-3"/>
+
+          <!-- Dashboard Cards -->
+          <g transform="translate(650, 180)">
+
+            <!-- Card 1: Analytics Chart -->
+            <g transform="translate(50, 0)" class="hero-card card-1">
+              <rect x="0" y="0" width="340" height="220" rx="15" fill="#2B3F38" opacity="0.9" stroke="#1E8E5A" stroke-width="2"/>
+              <rect x="20" y="20" width="80" height="15" rx="5" fill="#1E8E5A"/>
+              <rect x="20" y="45" width="120" height="8" rx="4" fill="#B9B6AC" opacity="0.5"/>
+
+              <!-- Animated Graph Line -->
+              <path d="M 20 180 L 80 140 L 140 160 L 200 80 L 260 100 L 310 40" fill="none" stroke="#E3A83B" stroke-width="6" stroke-linecap="round" class="hero-chart-line"/>
+              <circle cx="80" cy="140" r="6" fill="#ffffff" class="chart-dot dot-1"/>
+              <circle cx="200" cy="80" r="6" fill="#ffffff" class="chart-dot dot-2"/>
+              <circle cx="310" cy="40" r="8" fill="#ffffff" class="chart-dot dot-3"/>
+
+              <!-- Graph Fill -->
+              <path d="M 20 180 L 80 140 L 140 160 L 200 80 L 260 100 L 310 40 L 310 220 L 20 220 Z" fill="url(#glow)" opacity="0.3" class="chart-fill-anim"/>
+            </g>
+
+            <!-- Card 2: 85% Circular Progress -->
+            <g transform="translate(180, 260)" class="hero-card card-2">
+              <rect x="0" y="0" width="280" height="150" rx="15" fill="#16231F" opacity="0.95" stroke="#E3A83B" stroke-width="2"/>
+              <circle cx="70" cy="75" r="40" fill="none" stroke="#2B3F38" stroke-width="10"/>
+              <circle cx="70" cy="75" r="40" fill="none" stroke="#E3A83B" stroke-width="10" stroke-dasharray="0 251" stroke-linecap="round" transform="rotate(-90 70 75)" class="hero-progress-ring"/>
+              <text x="70" y="82" font-family="Arial" font-size="20" font-weight="bold" fill="#ffffff" text-anchor="middle" class="hero-pct-text">0%</text>
+
+              <rect x="130" y="50" width="100" height="12" rx="6" fill="#1E8E5A"/>
+              <rect x="130" y="75" width="120" height="8" rx="4" fill="#B9B6AC" opacity="0.6"/>
+              <rect x="130" y="95" width="80" height="8" rx="4" fill="#B9B6AC" opacity="0.6"/>
+            </g>
+
+            <!-- Card 3: Checkmark -->
+            <g transform="translate(-20, 240)" class="hero-card card-3">
+              <rect x="0" y="0" width="170" height="180" rx="15" fill="#DEF2E4" opacity="0.9"/>
+              <circle cx="85" cy="50" r="25" fill="#1E8E5A"/>
+              <path d="M75 50 L82 58 L95 42" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" class="hero-checkmark"/>
+              <rect x="25" y="100" width="120" height="8" rx="4" fill="#16231F" opacity="0.8"/>
+              <rect x="25" y="120" width="100" height="8" rx="4" fill="#16231F" opacity="0.5"/>
+              <rect x="25" y="140" width="80" height="8" rx="4" fill="#16231F" opacity="0.5"/>
+            </g>
+
+          </g>
+        </svg>
+      </div>
+      <div class="hero-overlay"></div>
+    </div>
+
+    <div class="container hero-content">
+
+      <h1 class="hero-title reveal stagger-item">
+        Track your <em>consistency,</em><br>
+        <em>reveal</em> your potential
+      </h1>
+
+      <p class="hero-sub reveal stagger-item">FitSync helps you log workouts, track nutrition targets, and earn XP — then turns that data into clear progress insights.</p>
+
+      <div class="hero-actions reveal stagger-item">
+        <a href="/register" target="_parent" class="btn btn-primary btn-lg" data-magnetic>Start Your Journey</a>
+        <a href="/login" target="_parent" class="btn btn-glass" data-magnetic>Log In</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== BELIEF & MODULES ===== -->
+  <section class="belief-section" id="about">
+    <div class="container">
+      <div class="belief-header reveal stagger-parent">
+        <h2 class="stagger-item">At FitSync, <em>consistency</em> is the foundation of real progress</h2>
+        <div class="belief-desc stagger-item">
+          <p>Track workouts, hit nutrition goals, build streaks, and watch your levels grow — all in one dashboard.</p>
+          <a href="/register" target="_parent" class="btn btn-primary" data-magnetic>Start Your Journey</a>
+        </div>
+      </div>
+
+      <div class="modules-carousel reveal stagger-parent" id="services">
+        <article class="module-card stagger-item spotlight-card">
+          <dotlottie-wc src="https://lottie.host/2ea27c54-6095-4c9b-8aeb-adfd773eca02/nqPl19VSUW.lottie"
+            class="module-img ken-burns" autoplay loop></dotlottie-wc>
+          <div class="module-overlay"></div>
+          <div class="module-content">
+            <div>
+              <h4>Smart Workout Logger</h4>
+              <p class="module-card-desc">Log sessions, track sets, and keep your consistency clear.</p>
+            </div>
+            <a href="/register" target="_parent" class="btn btn-glass btn-sm" data-magnetic>Learn More</a>
+          </div>
+        </article>
+
+        <article class="module-card stagger-item spotlight-card">
+          <dotlottie-wc src="https://lottie.host/e445674b-4bed-4875-888c-9263e136d779/WrIpeQ4wup.lottie"
+            class="module-img ken-burns" autoplay loop></dotlottie-wc>
+          <div class="module-overlay"></div>
+          <div class="module-content">
+            <div>
+              <h4>Weight & BMI Tracking</h4>
+              <p class="module-card-desc">Monitor body changes with interactive dashboard charts.</p>
+            </div>
+            <a href="/register" target="_parent" class="btn btn-glass btn-sm" data-magnetic>Learn More</a>
+          </div>
+        </article>
+
+        <article class="module-card stagger-item spotlight-card">
+          <dotlottie-wc src="https://lottie.host/2460a625-8451-419a-98c4-1bf6c66bb5e0/UQ7qMLnavM.lottie"
+            class="module-img ken-burns" autoplay loop></dotlottie-wc>
+          <div class="module-overlay"></div>
+          <div class="module-content">
+            <div>
+              <h4>Progress & Insights</h4>
+              <p class="module-card-desc">Review workout history, track streaks, and see how consistency translates to real progress.</p>
+            </div>
+            <a href="/register" target="_parent" class="btn btn-glass btn-sm" data-magnetic>Learn More</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== BENTO GRID SECTION ===== -->
+  <section class="bento-section">
+    <div class="container bento-grid stagger-parent">
+
+      <div class="bento-box bento-tracker reveal stagger-item spotlight-card">
+        <div class="tracker-head">
+          <h4>Routine Tracker</h4>
+          <span class="pct">0%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="fill"></div>
+        </div>
+        <ul class="tracker-list">
+          <li><span class="dot"></span> Workouts Logged</li>
+          <li><span class="dot"></span> Streak Days Logged</li>
+          <li><span class="dot"></span> Nutrition Targets Hit</li>
+        </ul>
+      </div>
+
+      <div class="bento-box bento-orange reveal stagger-item spotlight-card">
+        <h3>Track your progress</h3>
+        <p>Our tracking system helps you monitor workouts, weight history, and consistency so you can see real results.
+        </p>
+        <a href="/register" target="_parent" class="btn btn-white" data-magnetic>Get Started</a>
+      </div>
+
+      <div class="bento-box bento-dark reveal stagger-item spotlight-card">
+        <h3>Your Personal <em>Dashboard</em></h3>
+        <p>See your workouts, nutrition, streaks, and XP progress at a glance from one central dashboard.</p>
+        <a href="/register" target="_parent" class="btn btn-primary" data-magnetic>Learn More</a>
+      </div>
+
+      <div class="bento-box bento-photo reveal stagger-item spotlight-card">
+        <dotlottie-wc src="https://lottie.host/17cb2965-2486-468c-8c36-10449a56fcc8/xXUW6MUVvJ.lottie"
+          class="bento-img ken-burns" autoplay loop></dotlottie-wc>
+        <div class="photo-overlay">
+          <h4>Your complete progress system at your fingertips</h4>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== CONSISTENCY & STREAK SECTION ===== -->
+  <section class="streak-section" id="badges">
+    <div class="container streak-inner">
+      <div class="streak-deco-wrap">
+        <span class="deco deco-ring deco-1"></span>
+        <span class="deco deco-dot deco-2"></span>
+        <span class="deco deco-ring deco-3"></span>
+        <span class="deco deco-dot deco-4"></span>
+        <span class="deco deco-plus deco-5"></span>
+        <span class="deco deco-dot deco-6"></span>
+        <dotlottie-wc src="https://lottie.host/4d684e64-da39-46f9-8214-7d7da7d211ae/i9PzXHA4Cf.lottie"
+          class="deco-lottie-float" autoplay loop></dotlottie-wc>
+        <div class="streak-image reveal spotlight-card" data-tilt>
+          <dotlottie-wc src="https://lottie.host/8d1e6b88-5d6a-4fc9-9151-166b8432d71f/xBTyyIzyK4.lottie"
+            style="width: 100%; height: auto;" autoplay loop></dotlottie-wc>
+        </div>
+      </div>
+      <div class="streak-content reveal">
+        <h2>Stay Consistent, Keep Your Streak</h2>
+        <p class="lead-text">FitSync AI leverages the psychology of streak tracking to help you maintain momentum and
+          stay committed to your goals.</p>
+        <ul class="streak-features">
+          <li>
+            <span class="icon-wrap">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" style="color: var(--green);">
+                <path
+                  d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z">
+                </path>
+              </svg>
+            </span>
+            <div>
+              <h4>Dynamic Streaks</h4>
+              <p>Keep your daily momentum visual. See your streak grow with every workout logged.</p>
+            </div>
+          </li>
+          <li>
+            <span class="icon-wrap">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" style="color: var(--green);">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+            </span>
+            <div>
+              <h4>Accountability Logs</h4>
+              <p>Avoid inconsistent tracking. Easily review what days you trained and check your training patterns.</p>
+            </div>
+          </li>
+          <li>
+            <span class="icon-wrap">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" style="color: var(--green);">
+                <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                <circle cx="12" cy="5" r="2"></circle>
+                <path d="M12 7v4"></path>
+                <line x1="8" y1="16" x2="8" y2="16"></line>
+                <line x1="16" y1="16" x2="16" y2="16"></line>
+              </svg>
+            </span>
+            <div>
+              <h4>Insight Boosts</h4>
+              <p>The longer your streak, the more precisely our AI tracks your training balance and outputs advice.</p>
+            </div>
+          </li>
+        </ul>
+        <a href="/register" target="_parent" class="btn btn-primary" data-magnetic>Start Your Streak Today</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FINAL CTA ===== -->
+  <section class="final-cta-section" id="signup">
+    <div class="container">
+      <div class="final-cta-box reveal spotlight-card">
+        <span class="deco deco-dot cta-deco-1"></span>
+        <span class="deco deco-ring cta-deco-2"></span>
+        <span class="deco deco-dot cta-deco-3"></span>
+        <h2>Ready to <em>Start Tracking?</em></h2>
+        <p class="lead-text">Start logging workouts, tracking calories, and building streaks that actually stick.</p>
+        <a href="/register" target="_parent" class="btn btn-primary btn-lg" data-magnetic>Start Tracking with FitSync</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>© 2026 FitSync. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
