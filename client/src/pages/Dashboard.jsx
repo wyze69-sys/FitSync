@@ -757,7 +757,7 @@ export default function Dashboard() {
           </div>
         </article>
 
-        <article className="rounded-2xl border border-border bg-surface p-5 text-left shadow-md">
+        <article className="rounded-2xl border border-border bg-surface p-5 text-left">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="max-w-xl">
               <span className="font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-primary">
@@ -855,7 +855,7 @@ export default function Dashboard() {
       </section>
 
       {/* Connected Progress Summary Card */}
-      <section className="rounded-2xl border border-border bg-surface p-5 shadow-sm text-left" aria-label="Athlete progress summary">
+      <section className="rounded-2xl border border-border bg-surface p-5 text-left" aria-label="Athlete progress summary">
         {/* Top part: Streak, XP Progress, Current Badge */}
         <div className="grid gap-4 grid-cols-1 md:grid-cols-12 items-stretch">
           {/* Commit Streak Column */}
