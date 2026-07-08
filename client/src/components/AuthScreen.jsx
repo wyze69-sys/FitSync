@@ -6,7 +6,6 @@ import {
   Check,
   Eye,
   EyeOff,
-  HeartPulse,
   Loader2,
   Lock,
   Mail,
@@ -84,9 +83,11 @@ export default function AuthScreen({ defaultMode = "login", onAuthSuccess }) {
         <aside className="relative hidden h-[calc(100vh-1.5rem)] min-h-0 flex-col justify-between overflow-hidden py-5 lg:flex">
           <div className="relative z-10 space-y-8">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#2d9271] text-white shadow-lg shadow-emerald-900/15">
-                <HeartPulse className="h-7 w-7" aria-hidden="true" />
-              </div>
+              <img
+                src="/brand/fitsync-logo.png"
+                alt="FitSync logo"
+                className="h-12 w-12 rounded-xl object-contain"
+              />
               <span className="text-3xl font-black tracking-[-0.04em] text-[#10141c]">FitSync</span>
             </div>
 
@@ -121,9 +122,11 @@ export default function AuthScreen({ defaultMode = "login", onAuthSuccess }) {
             {/* Top brand header */}
             <div className="flex items-center justify-between mb-5 px-1">
               <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#2d9271] text-white shadow-md shadow-emerald-900/15">
-                  <HeartPulse className="h-4 w-4" aria-hidden="true" />
-                </div>
+                <img
+                  src="/brand/fitsync-logo.png"
+                  alt="FitSync logo"
+                  className="h-7 w-7 rounded-lg object-contain"
+                />
                 <span className="text-sm font-black tracking-tight text-[#10141c]">FitSync</span>
               </div>
               <a href="/" className="text-xs font-semibold text-[#556b5c] hover:text-[#2d9271] transition duration-200">

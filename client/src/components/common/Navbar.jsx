@@ -52,7 +52,12 @@ export default function Navbar({ onLogoutRequest }) {
     <nav className="fixed top-4 left-0 right-0 z-40 mx-auto max-w-[1400px] w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] lg:w-[calc(100%-6rem)] rounded-[2.25rem] border border-border/40 bg-surface/95 backdrop-blur-md shadow-xl shadow-black/20">
       <div className="max-w-[1400px] mx-auto px-7 lg:px-8">
         <div className="flex justify-between h-[72px] items-center">
-          <div className="flex items-center">
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/brand/fitsync-logo.png"
+              alt="FitSync logo"
+              className="h-9 w-9 rounded-lg object-contain"
+            />
             <span className="font-display tracking-tight text-xl lg:text-2xl font-black text-primary select-none">
               FITSYNC.
             </span>

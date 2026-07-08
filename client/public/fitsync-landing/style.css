@@ -303,7 +303,12 @@ em {
 }
 
 .logo-icon {
-  color: var(--green);
+  display: block;
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: 8px;
+  flex-shrink: 0;
 }
 
 .main-nav {
