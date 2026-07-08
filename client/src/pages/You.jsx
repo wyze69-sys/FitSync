@@ -262,17 +262,6 @@ export default function You() {
             )}
           </section>
 
-          <section className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
-              Quick Actions
-            </p>
-            <div className="mt-3 grid gap-2">
-              <QuickAction to="/log" mark="LOG" title="Log workout" text="Add today’s training and earn XP." />
-              <QuickAction to="/nutrition" mark="FOOD" title="View nutrition" text="Check calories, macros, and food suggestions." />
-              <QuickAction to="/progress" mark="HIST" title="Review progress" text="Track streaks, weight, and performance history." />
-            </div>
-          </section>
-
           <section className="rounded-2xl border border-border bg-surface p-4 text-xs text-muted shadow-sm">
             <div className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4 text-primary" aria-hidden="true" />
@@ -292,7 +281,7 @@ export default function You() {
               value={fbMessage}
               onChange={(event) => setFbMessage(event.target.value)}
               placeholder="Tell us what you think."
-              rows={2}
+              rows={4}
               maxLength={5000}
               className="mt-2 w-full resize-none rounded-lg border border-border/80 bg-bg px-3 py-2 text-xs text-text placeholder:text-muted/50 focus:border-primary focus:outline-none"
             />
@@ -343,22 +332,5 @@ function HeroMetric({ label, value, badgeText, badgeColor = "text-primary border
       <div className="mt-1.5 text-xl font-bold font-mono tabular-nums text-text leading-tight">{value}</div>
       <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">{label}</div>
     </div>
-  );
-}
-
-function QuickAction({ to, mark, title, text }) {
-  return (
-    <Link
-      to={to}
-      className="group flex items-center gap-3 rounded-2xl border border-border bg-bg/60 py-2 px-3 transition hover:-translate-y-0.5 hover:border-primary hover:bg-white/[0.03]"
-    >
-      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-primary/20 bg-primary/10 font-mono text-[10px] font-bold text-primary transition group-hover:bg-primary group-hover:text-primary-contrast">
-        {mark}
-      </div>
-      <div>
-        <div className="text-xs font-bold text-text">{title}</div>
-        <div className="mt-0.5 text-[11px] text-muted">{text}</div>
-      </div>
-    </Link>
   );
 }
