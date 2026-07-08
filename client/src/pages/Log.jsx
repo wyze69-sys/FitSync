@@ -721,7 +721,7 @@ export default function Log() {
                         inputMode="decimal" 
                         value={details.distance} 
                         onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, distance: e.target.value })); }} 
-                        className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
+                        className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" 
                       />
                       {derivedPaceAndSpeed && (
                         <p className="mt-1.5 text-xs text-primary font-semibold">
@@ -743,7 +743,7 @@ export default function Log() {
                           max="20" 
                           value={details.sets} 
                           onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, sets: e.target.value })); }} 
-                          className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
+                          className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" 
                         />
                       </div>
                       <div>
@@ -756,7 +756,7 @@ export default function Log() {
                           max="100" 
                           value={details.reps} 
                           onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, reps: e.target.value })); }} 
-                          className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
+                          className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" 
                         />
                       </div>
                       <div>
@@ -769,7 +769,7 @@ export default function Log() {
                           step="0.5" 
                           value={details.weight} 
                           onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, weight: e.target.value })); }} 
-                          className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
+                          className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" 
                         />
                       </div>
                     </div>
@@ -786,7 +786,7 @@ export default function Log() {
                         max="500" 
                         value={details.reps} 
                         onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, reps: e.target.value })); }} 
-                        className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
+                        className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" 
                       />
                     </div>
                   )}
@@ -802,7 +802,7 @@ export default function Log() {
                         max="3600" 
                         value={details.holdTime} 
                         onChange={(e) => { setSavedTotals(null); setDetails((current) => ({ ...current, holdTime: e.target.value })); }} 
-                        className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
+                        className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" 
                       />
                     </div>
                   )}
@@ -819,7 +819,7 @@ export default function Log() {
                   onChange={(e) => setDetails((current) => ({ ...current, notes: e.target.value }))} 
                   rows="2" 
                   placeholder="Optional details about the session"
-                  className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:ring-2 focus-visible:ring-primary" 
+                  className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" 
                 />
               </div>
             </div>
