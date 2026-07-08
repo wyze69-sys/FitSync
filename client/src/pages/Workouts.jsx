@@ -32,8 +32,8 @@ function getCategoryDetails(category) {
       bg: "bg-green-50 dark:bg-green-950/20",
       border: "border-green-100 dark:border-green-900/30",
       text: "text-green-600 dark:text-green-400",
-      pillBg: "bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800/30",
-      pillText: "text-green-800 dark:text-green-200 font-bold text-[10px] px-2.5 py-0.5 rounded-full inline-block uppercase tracking-wider",
+      pillBg: "bg-green-100 dark:bg-green-700/30 border border-green-200 dark:border-green-800/30",
+      pillText: "text-green-800 dark:text-green-500 font-bold text-[10px] px-2.5 py-0.5 rounded-full inline-block uppercase tracking-wider",
       displayName: "Strength"
     };
   }
@@ -44,8 +44,8 @@ function getCategoryDetails(category) {
       bg: "bg-blue-50 dark:bg-blue-950/20",
       border: "border-blue-100 dark:border-blue-900/30",
       text: "text-blue-600 dark:text-blue-400",
-      pillBg: "bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/30",
-      pillText: "text-blue-800 dark:text-blue-200 font-bold text-[10px] px-2.5 py-0.5 rounded-full inline-block uppercase tracking-wider",
+      pillBg: "bg-blue-100 dark:bg-blue-700/30 border border-blue-200 dark:border-blue-800/30",
+      pillText: "text-blue-800 dark:text-blue-400 font-bold text-[10px] px-2.5 py-0.5 rounded-full inline-block uppercase tracking-wider",
       displayName: "Mobility"
     };
   }
@@ -56,8 +56,8 @@ function getCategoryDetails(category) {
       bg: "bg-orange-50 dark:bg-orange-950/20",
       border: "border-orange-100 dark:border-orange-900/30",
       text: "text-orange-600 dark:text-orange-400",
-      pillBg: "bg-orange-100 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800/30",
-      pillText: "text-orange-800 dark:text-orange-200 font-bold text-[10px] px-2.5 py-0.5 rounded-full inline-block uppercase tracking-wider",
+      pillBg: "bg-orange-100 dark:bg-orange-700/30 border border-orange-200 dark:border-orange-800/30",
+      pillText: "text-orange-800 dark:text-orange-400 font-bold text-[10px] px-2.5 py-0.5 rounded-full inline-block uppercase tracking-wider",
       displayName: "Cardio"
     };
   }
@@ -67,8 +67,8 @@ function getCategoryDetails(category) {
     bg: "bg-zinc-50 dark:bg-zinc-900/20",
     border: "border-zinc-100 dark:border-zinc-800/30",
     text: "text-zinc-600 dark:text-zinc-400",
-    pillBg: "bg-zinc-100 dark:bg-zinc-800/30 border border-zinc-200 dark:border-zinc-700/30",
-    pillText: "text-zinc-800 dark:text-zinc-200 font-bold text-[10px] px-2.5 py-0.5 rounded-full inline-block uppercase tracking-wider",
+    pillBg: "bg-zinc-100 dark:bg-zinc-700/30 border border-zinc-200 dark:border-zinc-700/30",
+    pillText: "text-zinc-800 dark:text-zinc-600 font-bold text-[10px] px-2.5 py-0.5 rounded-full inline-block uppercase tracking-wider",
     displayName: category || "Workout"
   };
 }
