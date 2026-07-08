@@ -183,7 +183,6 @@ export default function Log() {
 
   const setWorkoutTitle = useCallback((val) => {
     _setWorkoutTitle(val);
-    setDebouncedWorkoutTitle(val);
   }, []);
 
   useEffect(() => {
@@ -591,7 +590,7 @@ export default function Log() {
               </div>
               <div>
                 <h2 className="text-lg font-bold text-text tracking-tight">
-                  Configure <span className="text-primary">{subtype?.name || category?.name}</span>
+                  Configure <span className="text-primary">{debouncedWorkoutTitle || subtype?.name || category?.name}</span>
                 </h2>
                 <p className="text-xs text-secondary">
                   Category: <span className="font-semibold text-text capitalize">{category?.name}</span> • Add details to estimate calories and XP.
@@ -832,7 +831,7 @@ export default function Log() {
           disabled={submitting || !isFormValid}
           className="w-full rounded-xl bg-primary py-2.5 text-base font-bold text-primary-contrast shadow-sm hover:bg-primary-bright transition duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary"
         >
-          {submitting ? "Logging…" : `Log ${subtype?.name || category?.name || "Workout"}`}
+          {submitting ? "Logging…" : `Log ${debouncedWorkoutTitle || subtype?.name || category?.name || "Workout"}`}
         </button>
       </form>
 
