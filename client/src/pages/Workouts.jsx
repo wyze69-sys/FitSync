@@ -17,6 +17,7 @@ import PageHeader from "../components/common/PageHeader.jsx";
 import EmptyState from "../components/common/EmptyState.jsx";
 import LoadingSpinner from "../components/common/LoadingSpinner.jsx";
 import workoutService from "../services/workoutService.js";
+import ConfirmDialog from "../components/modals/ConfirmDialog.jsx";
 
 function n(value) {
   return Number(value || 0);
@@ -128,6 +129,7 @@ export default function Workouts() {
 
   const { push, refreshAll } = useOutletContext() || {};
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState(false);
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -146,13 +148,10 @@ export default function Workouts() {
     }
   };
 
-  async function handleDeleteWorkout() {
+  async function handleConfirmDelete() {
     if (!selectedWorkout) return;
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${selectedWorkout.title}"? This action cannot be undone.`
-    );
-    if (!confirmed) return;
 
+    setIsConfirmDeleteDialogOpen(false);
     setIsDeleting(true);
     try {
       await workoutService.deleteWorkout(selectedWorkout.id);
@@ -768,7 +767,7 @@ export default function Workouts() {
             <div className="flex items-center justify-between border-t border-border bg-bg/20 p-4 shrink-0">
               <button
                 type="button"
-                onClick={handleDeleteWorkout}
+                onClick={() => setIsConfirmDeleteDialogOpen(true)}
                 disabled={isDeleting}
                 className="inline-flex items-center gap-1.5 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-500/15 disabled:opacity-50 transition-all cursor-pointer"
               >
@@ -786,6 +785,16 @@ export default function Workouts() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={isConfirmDeleteDialogOpen}
+        title="Delete Workout"
+        message={`Are you sure you want to delete "${selectedWorkout?.title}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        destructive={true}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setIsConfirmDeleteDialogOpen(false)}
+      />
     </main>
   );
 }
