@@ -34,7 +34,7 @@ export default function ConfirmDialog({
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-4 animate-fade-in"
+      className="fixed inset-0 bg-black/60 z-[999] flex items-center justify-center p-4 animate-fade-in"
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-dialog-title"
