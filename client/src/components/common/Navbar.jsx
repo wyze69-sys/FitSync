@@ -80,7 +80,7 @@ export default function Navbar({ onLogoutRequest }) {
             </span>
           </div>
 
-          <div className="hidden md:flex items-center justify-center space-x-7 lg:space-x-8 flex-1 mx-6">
+          <div className="hidden xl:flex items-center justify-center space-x-7 lg:space-x-8 flex-1 mx-6">
             {links.map(({ to, label, icon: Icon, end }) => (
               <NavLink key={to} to={to} end={end} className={desktopClass}>
                 <Icon className="h-4 w-4" aria-hidden="true" />
@@ -89,7 +89,7 @@ export default function Navbar({ onLogoutRequest }) {
             ))}
           </div>
 
-          <div className="hidden md:flex items-center gap-5 border-l border-border/30 pl-5 font-sans text-xs">
+          <div className="hidden xl:flex items-center gap-5 border-l border-border/30 pl-5 font-sans text-xs">
             <div className="text-right">
               <div className="font-black text-text line-clamp-1 text-[14px] leading-tight">{user.name}</div>
               <div className="text-[9px] uppercase font-mono tracking-widest text-muted mt-1">
@@ -114,7 +114,7 @@ export default function Navbar({ onLogoutRequest }) {
             </button>
           </div>
 
-          <div className="flex items-center md:hidden">
+          <div className="flex items-center xl:hidden">
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen((open) => !open)}
@@ -129,7 +129,7 @@ export default function Navbar({ onLogoutRequest }) {
       </div>
 
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-surface border-t border-border/40 px-6 py-4 space-y-1 font-sans text-xs rounded-b-[2rem]">
+        <div className="xl:hidden bg-surface border-t border-border/40 px-6 py-4 space-y-1 font-sans text-xs rounded-b-[2rem]">
           {links.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
