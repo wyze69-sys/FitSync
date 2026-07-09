@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import {
   Dumbbell,
   Clock,
@@ -9,10 +9,9 @@ import {
   Search,
   RotateCcw,
   ChevronRight,
-  ArrowUp,
-  ArrowDown,
   Activity,
-  X
+  X,
+  Trash2
 } from "lucide-react";
 import PageHeader from "../components/common/PageHeader.jsx";
 import EmptyState from "../components/common/EmptyState.jsx";
@@ -25,50 +24,50 @@ function n(value) {
 
 function getCategoryDetails(category) {
   const name = String(category || "").toLowerCase();
-  
+
   if (name.includes("strength") || name.includes("power") || name.includes("weight")) {
     return {
       icon: Dumbbell,
-      bg: "bg-green-50 dark:bg-green-950/20",
-      border: "border-green-100 dark:border-green-900/30",
-      text: "text-green-600 dark:text-green-400",
-      pillBg: "bg-green-100 dark:bg-green-700/30 border border-green-200 dark:border-green-800/30",
-      pillText: "text-green-800 dark:text-green-500 font-bold text-[10px] px-2.5 py-0.5 rounded-full inline-block uppercase tracking-wider",
+      bg: "bg-emerald-50 dark:bg-emerald-950/30",
+      border: "border-emerald-200 dark:border-emerald-900/40",
+      text: "text-emerald-700 dark:text-emerald-400",
+      pillBg: "bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20",
+      pillText: "text-emerald-800 dark:text-emerald-300 font-bold text-[10px] px-2.5 py-0.5 rounded-full inline-block uppercase tracking-wider",
       displayName: "Strength"
     };
   }
-  
+
   if (name.includes("mobility") || name.includes("stretch") || name.includes("flexibility") || name.includes("yoga")) {
     return {
       icon: Activity,
-      bg: "bg-blue-50 dark:bg-blue-950/20",
-      border: "border-blue-100 dark:border-blue-900/30",
-      text: "text-blue-600 dark:text-blue-400",
-      pillBg: "bg-blue-100 dark:bg-blue-700/30 border border-blue-200 dark:border-blue-800/30",
-      pillText: "text-blue-800 dark:text-blue-400 font-bold text-[10px] px-2.5 py-0.5 rounded-full inline-block uppercase tracking-wider",
+      bg: "bg-sky-50 dark:bg-sky-950/30",
+      border: "border-sky-200 dark:border-sky-900/40",
+      text: "text-sky-700 dark:text-sky-400",
+      pillBg: "bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/20",
+      pillText: "text-sky-800 dark:text-sky-300 font-bold text-[10px] px-2.5 py-0.5 rounded-full inline-block uppercase tracking-wider",
       displayName: "Mobility"
     };
   }
-  
+
   if (name.includes("cardio") || name.includes("run") || name.includes("cycle") || name.includes("swim") || name.includes("walk")) {
     return {
       icon: Flame,
-      bg: "bg-orange-50 dark:bg-orange-950/20",
-      border: "border-orange-100 dark:border-orange-900/30",
-      text: "text-orange-600 dark:text-orange-400",
-      pillBg: "bg-orange-100 dark:bg-orange-700/30 border border-orange-200 dark:border-orange-800/30",
-      pillText: "text-orange-800 dark:text-orange-400 font-bold text-[10px] px-2.5 py-0.5 rounded-full inline-block uppercase tracking-wider",
+      bg: "bg-amber-50 dark:bg-amber-950/30",
+      border: "border-amber-200 dark:border-amber-900/40",
+      text: "text-amber-700 dark:text-amber-400",
+      pillBg: "bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20",
+      pillText: "text-amber-800 dark:text-amber-300 font-bold text-[10px] px-2.5 py-0.5 rounded-full inline-block uppercase tracking-wider",
       displayName: "Cardio"
     };
   }
-  
+
   return {
     icon: Dumbbell,
-    bg: "bg-zinc-50 dark:bg-zinc-900/20",
-    border: "border-zinc-100 dark:border-zinc-800/30",
-    text: "text-zinc-600 dark:text-zinc-400",
-    pillBg: "bg-zinc-100 dark:bg-zinc-700/30 border border-zinc-200 dark:border-zinc-700/30",
-    pillText: "text-zinc-800 dark:text-zinc-600 font-bold text-[10px] px-2.5 py-0.5 rounded-full inline-block uppercase tracking-wider",
+    bg: "bg-zinc-50 dark:bg-zinc-900/30",
+    border: "border-zinc-200 dark:border-zinc-800/40",
+    text: "text-zinc-700 dark:text-zinc-400",
+    pillBg: "bg-zinc-50 dark:bg-zinc-500/10 border border-zinc-200 dark:border-zinc-500/20",
+    pillText: "text-zinc-800 dark:text-zinc-300 font-bold text-[10px] px-2.5 py-0.5 rounded-full inline-block uppercase tracking-wider",
     displayName: category || "Workout"
   };
 }
@@ -76,7 +75,7 @@ function getCategoryDetails(category) {
 function formatWorkout(workout) {
   const title = workout.title || workout.exercises?.[0]?.exerciseName || "Workout";
   const category = workout.exercises?.[0]?.categoryName || "";
-  
+
   let monthDay = "Today";
   let year = "";
   if (workout.date) {
@@ -127,6 +126,56 @@ export default function Workouts() {
   const [sortOrder, setSortOrder] = useState("date_desc");
   const [selectedWorkout, setSelectedWorkout] = useState(null);
 
+  const { push, refreshAll } = useOutletContext() || {};
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const LIMIT = 10;
+
+  const handlePrevPage = async () => {
+    if (page > 1) {
+      await loadWorkouts({ page: page - 1 });
+    }
+  };
+
+  const handleNextPage = async () => {
+    if (page < totalPages) {
+      await loadWorkouts({ page: page + 1 });
+    }
+  };
+
+  async function handleDeleteWorkout() {
+    if (!selectedWorkout) return;
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${selectedWorkout.title}"? This action cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    try {
+      await workoutService.deleteWorkout(selectedWorkout.id);
+      push?.("Workout deleted successfully.", "success");
+      setSelectedWorkout(null);
+      refreshAll?.();
+
+      const isLastItemOnPage = workouts.length === 1;
+      const targetPage = isLastItemOnPage && page > 1 ? page - 1 : page;
+
+      await loadWorkouts({
+        from: fromDate || undefined,
+        to: toDate || undefined,
+        sort: sortOrder,
+        page: targetPage
+      });
+    } catch (err) {
+      push?.(err.message || "Failed to delete workout.", "info");
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
   // Close modal on escape key
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -146,16 +195,26 @@ export default function Workouts() {
     setLoading(true);
     setError("");
 
+    const targetPage = filters.page !== undefined ? filters.page : page;
+    const targetLimit = filters.limit !== undefined ? filters.limit : LIMIT;
+
     try {
       const result = await workoutService.getWorkouts({
-        limit: 100,
-        sort: sortOrder,
+        page: targetPage,
+        limit: targetLimit,
+        sort: filters.sort || sortOrder,
         ...filters
       });
       setWorkouts((result.items || []).map(formatWorkout));
+      setPage(result.page || 1);
+      setTotalPages(result.totalPages || 1);
+      setTotal(result.total || 0);
     } catch (err) {
       setError(err.message || "Could not load workout history.");
       setWorkouts([]);
+      setPage(1);
+      setTotalPages(1);
+      setTotal(0);
     } finally {
       setLoading(false);
       setIsSearching(false);
@@ -184,7 +243,8 @@ export default function Workouts() {
     setIsSearching(true);
     await loadWorkouts({
       from: fromDate || undefined,
-      to: toDate || undefined
+      to: toDate || undefined,
+      page: 1
     });
   };
 
@@ -192,7 +252,11 @@ export default function Workouts() {
     setFromDate("");
     setToDate("");
     setIsSearching(true);
-    await loadWorkouts();
+    await loadWorkouts({
+      from: undefined,
+      to: undefined,
+      page: 1
+    });
   };
 
   const toggleSort = async () => {
@@ -201,11 +265,12 @@ export default function Workouts() {
     await loadWorkouts({
       from: fromDate || undefined,
       to: toDate || undefined,
-      sort: nextSort
+      sort: nextSort,
+      page: 1
     });
   };
 
-  const totalWorkouts = workouts.length;
+  const totalWorkouts = total;
   const totalCalories = workouts.reduce((sum, w) => sum + w.calories, 0);
   const totalXp = workouts.reduce((sum, w) => sum + w.xp, 0);
   const totalDuration = workouts.reduce((sum, w) => sum + w.duration, 0);
@@ -257,7 +322,7 @@ export default function Workouts() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Total Workouts Card */}
         <div className="rounded-2xl border border-border bg-surface p-4 shadow-lg shadow-black/5 flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-50 dark:bg-green-600/20 text-[#0f9b73] dark:text-[#2dd4a8] border border-green-100 dark:border-green-900/30">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-zinc-950/20 text-[#0f9b73] dark:text-[#2dd4a8] border border-transparent">
             <Dumbbell className="h-4.5 w-4.5" />
           </div>
           <div>
@@ -269,7 +334,7 @@ export default function Workouts() {
 
         {/* Calories Card */}
         <div className="rounded-2xl border border-border bg-surface p-4 shadow-lg shadow-black/5 flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 dark:bg-orange-600/20 text-orange-600 dark:text-orange-400 border border-orange-100 dark:border-orange-900/30">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-zinc-950/20 text-orange-600 dark:text-orange-400 border border-transparent">
             <Flame className="h-4.5 w-4.5" />
           </div>
           <div>
@@ -281,7 +346,7 @@ export default function Workouts() {
 
         {/* XP Card */}
         <div className="rounded-2xl border border-border bg-surface p-4 shadow-lg shadow-black/5 flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-50 dark:bg-green-600/20 text-[#0f9b73] dark:text-[#2dd4a8] border border-green-100 dark:border-green-900/30">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-zinc-950/20 text-[#0f9b73] dark:text-[#2dd4a8] border border-transparent">
             <Award className="h-4.5 w-4.5" />
           </div>
           <div>
@@ -293,7 +358,7 @@ export default function Workouts() {
 
         {/* Total Duration Card */}
         <div className="rounded-2xl border border-border bg-surface p-4 shadow-lg shadow-black/5 flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-50 dark:bg-green-600/20 text-[#0f9b73] dark:text-[#2dd4a8] border border-green-100 dark:border-green-900/30">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-zinc-950/20 text-[#0f9b73] dark:text-[#2dd4a8] border border-transparent">
             <Clock className="h-4.5 w-4.5" />
           </div>
           <div>
@@ -310,7 +375,7 @@ export default function Workouts() {
         className="rounded-2xl border border-border bg-surface p-4 shadow-lg shadow-black/5 flex flex-col gap-3 relative overflow-hidden"
       >
         <div className="flex items-start gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-green-50 dark:bg-green-600/20 text-primary border border-green-100 dark:border-green-900/30">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-zinc-950/20 text-primary border border-transparent">
             <Calendar className="w-4.5 h-4.5" />
           </div>
           <div>
@@ -336,8 +401,13 @@ export default function Workouts() {
             />
           </div>
 
-          <div className="hidden md:flex items-center justify-center h-9 text-primary">
-            <ChevronRight className="w-4 h-4" />
+          <div className="hidden md:flex flex-col items-center text-primary">
+            <span className="block text-[10px] font-bold uppercase tracking-wider invisible select-none" aria-hidden="true">
+              &nbsp;
+            </span>
+            <div className="mt-1 flex h-[38px] items-center justify-center">
+              <ChevronRight className="w-4 h-4" />
+            </div>
           </div>
 
           <div className="flex-1">
@@ -425,11 +495,6 @@ export default function Workouts() {
                     className="inline-flex items-center gap-1.5 hover:text-primary font-bold transition-colors cursor-pointer"
                   >
                     <span>Date</span>
-                    {sortOrder === "date_desc" ? (
-                      <ArrowDown className="w-3.5 h-3.5 text-primary" />
-                    ) : (
-                      <ArrowUp className="w-3.5 h-3.5 text-primary" />
-                    )}
                   </button>
                 </th>
                 <th className="px-4 py-3">Workout</th>
@@ -520,8 +585,33 @@ export default function Workouts() {
               })}
             </tbody>
           </table>
-          <div className="flex justify-between items-center text-xs text-muted mt-4 px-2">
-            <span>Showing {workouts.length} workouts loaded</span>
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-muted mt-4 px-2 pt-2 border-t border-border/40">
+            <div>
+              Showing <span className="font-semibold text-text font-mono">{total === 0 ? 0 : (page - 1) * LIMIT + 1}-{Math.min(page * LIMIT, total)}</span> of{" "}
+              <span className="font-semibold text-text font-mono">{total}</span> workouts
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handlePrevPage}
+                disabled={page <= 1}
+                className="px-3 py-1.5 rounded-lg border border-border bg-bg hover:border-primary disabled:opacity-50 disabled:hover:border-border transition-all cursor-pointer text-xs font-semibold text-text"
+              >
+                Previous
+              </button>
+              <span className="font-semibold text-text text-xs">
+                Page <span className="font-mono">{page}</span> of <span className="font-mono">{totalPages}</span>
+              </span>
+              <button
+                type="button"
+                onClick={handleNextPage}
+                disabled={page >= totalPages}
+                className="px-3 py-1.5 rounded-lg border border-border bg-bg hover:border-primary disabled:opacity-50 disabled:hover:border-border transition-all cursor-pointer text-xs font-semibold text-text"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -529,14 +619,14 @@ export default function Workouts() {
       {/* Detail Modal */}
       {selectedWorkout && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in"
           onClick={() => setSelectedWorkout(null)}
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-title"
         >
           <div
-            className="w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl animate-slide-up"
+            className="relative z-[101] w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl animate-slide-up"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -565,7 +655,7 @@ export default function Workouts() {
             </div>
 
             {/* Modal Content */}
-            <div className="p-4 space-y-4 max-h-[85vh] overflow-y-auto text-left">
+            <div className="p-4 space-y-4 max-h-[65vh] overflow-y-auto text-left">
               {/* Summary Stats */}
               <div className="grid grid-cols-3 gap-4 rounded-xl border border-border bg-bg/40 p-3">
                 <div className="text-center">
@@ -672,6 +762,26 @@ export default function Workouts() {
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* Footer / Actions */}
+            <div className="flex items-center justify-between border-t border-border bg-bg/20 p-4 shrink-0">
+              <button
+                type="button"
+                onClick={handleDeleteWorkout}
+                disabled={isDeleting}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-500/15 disabled:opacity-50 transition-all cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{isDeleting ? "Deleting…" : "Delete Workout"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedWorkout(null)}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-bg px-4 py-2.5 text-xs font-semibold text-text hover:border-primary transition-all cursor-pointer"
+              >
+                <span>Close</span>
+              </button>
             </div>
           </div>
         </div>

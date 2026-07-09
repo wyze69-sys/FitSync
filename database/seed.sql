@@ -40,7 +40,17 @@ INSERT INTO achievements (code, name, description, requirement_type, requirement
 ('streak_3', 'Three Day Start', 'Maintained a 3-day activity streak.', 'streak', 3, 1),
 ('streak_7', 'One Week Streak', 'Maintained a 7-day activity streak.', 'streak', 7, 2),
 ('streak_14', 'Two Week Habit', 'Maintained a 14-day activity streak.', 'streak', 14, 3),
-('streak_30', 'Thirty Day Streak', 'Maintained a 30-day activity streak.', 'streak', 30, 4)
+('streak_30', 'Thirty Day Streak', 'Maintained a 30-day activity streak.', 'streak', 30, 4),
+('level_1', 'Starter', 'Reach level 1.', 'level', 1, 1),
+('level_2', 'Warm Up', 'Reach level 2.', 'level', 2, 2),
+('level_3', 'Builder', 'Reach level 3.', 'level', 3, 3),
+('level_4', 'Regular', 'Reach level 4.', 'level', 4, 4),
+('level_5', 'Momentum', 'Reach level 5.', 'level', 5, 5),
+('level_6', 'Athlete', 'Reach level 6.', 'level', 6, 6),
+('level_7', 'Specialist', 'Reach level 7.', 'level', 7, 7),
+('level_8', 'Pro', 'Reach level 8.', 'level', 8, 8),
+('level_9', 'Elite', 'Reach level 9.', 'level', 9, 9),
+('level_10', 'Legend', 'Reach level 10.', 'level', 10, 10)
 ON DUPLICATE KEY UPDATE
     name = VALUES(name),
     description = VALUES(description),

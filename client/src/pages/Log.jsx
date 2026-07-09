@@ -11,8 +11,6 @@ import { WORKOUT_MAP } from "../utils/constants.js";
 import { estimateCalories, estimateXP, getProfileWeight } from "../utils/previewCalculator.js";
 import workoutService from "../services/workoutService.js";
 import activityService from "../services/activityService.js";
-import templateService from "../services/templateService.js";
-import DashboardWorkoutTemplates from "../components/dashboard/DashboardWorkoutTemplates.jsx";
 import FoodRecommendations from "../components/nutrition/FoodRecommendations.jsx";
 import { todayStr } from "../utils/workoutUtils.js";
 
@@ -192,7 +190,6 @@ export default function Log() {
     return () => clearTimeout(handler);
   }, [workoutTitle]);
 
-  const [templates, setTemplates] = useState([]);
   const [showDetails, setShowDetails] = useState(false);
   const [details, setDetails] = useState({ date: todayStr(), distance: "", intensity: "med", notes: "", sets: "", reps: "", weight: "", holdTime: "" });
   const [submitting, setSubmitting] = useState(false);
@@ -222,26 +219,7 @@ export default function Log() {
     setLastWorkout(getStored(LAST_WORKOUT_KEY));
   }, [finalCategories]);
 
-  useEffect(() => {
-    let isMounted = true;
-    async function loadTemplates() {
-      try {
-        const data = await templateService.getActiveTemplates();
-        if (isMounted) {
-          setTemplates(data || []);
-        }
-      } catch (err) {
-        console.error("Failed to load active templates:", err);
-        if (isMounted) {
-          setTemplates([]);
-        }
-      }
-    }
-    loadTemplates();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+
 
   useEffect(() => {
     let isMounted = true;
@@ -386,63 +364,7 @@ export default function Log() {
     store(LAST_CATEGORY_KEY, { categorySlug: category?.slug, subtypeSlug: subtype?.slug, duration: nextDuration });
   }, [category?.slug, subtype?.slug]);
 
-  const handleSelectTemplate = useCallback((template) => {
-    const catId = template.categoryId || template.exercises?.[0]?.categoryId;
-    const catName = template.categoryName || template.exercises?.[0]?.categoryName;
-    const targetCategory = finalCategories.find((c) =>
-      (catId && c.id === catId) ||
-      (catName && normalize(c.name) === normalize(catName)) ||
-      (catName && normalize(c.slug) === normalize(catName))
-    ) || finalCategories[0];
 
-    const subtypeName = template.subtype || template.exercises?.[0]?.exerciseName || "";
-    let targetSubtype = targetCategory?.subtypes?.find((s) =>
-      normalize(s.slug) === normalize(subtypeName) ||
-      normalize(s.name) === normalize(subtypeName)
-    );
-
-    if (!targetSubtype && subtypeName) {
-      targetSubtype = {
-        name: subtypeName,
-        slug: normalize(subtypeName).replace(/\s+/g, "-"),
-        categoryId: targetCategory.id
-      };
-    } else if (!targetSubtype) {
-      targetSubtype = targetCategory?.subtypes?.[0];
-    }
-
-    setSavedTotals(null);
-    setCategory(targetCategory);
-    setSubtype(targetSubtype);
-
-    const templateDuration = template.durationMin || template.exercises?.[0]?.duration;
-    if (templateDuration) {
-      setDuration(Number(templateDuration));
-    }
-
-    setWorkoutTitle(template.title || subtypeName || "");
-
-    const firstEx = template.exercises?.[0];
-    const firstSet = firstEx?.sets?.[0];
-    const templateDesc = template.description || template.desc || "";
-
-    setDetails((current) => ({
-      ...current,
-      distance: template.distance || firstEx?.distance || "",
-      intensity: template.intensity || firstEx?.intensity || "med",
-      notes: templateDesc || firstEx?.notes || "",
-      sets: firstEx && firstEx.sets ? String(firstEx.sets.length) : "",
-      reps: firstSet ? String(firstSet.reps || "") : "",
-      weight: firstSet ? String(firstSet.weight || "") : ""
-    }));
-
-    const hasDetails = template.distance || firstEx?.distance || templateDesc || (firstEx && firstEx.sets);
-    if (hasDetails) {
-      setShowDetails(true);
-    }
-
-    setAnnouncement(`Prefilled form with template: ${template.title}.`);
-  }, [finalCategories]);
 
   const handleSubmit = useCallback(async (event) => {
     event.preventDefault();
@@ -559,11 +481,7 @@ export default function Log() {
 
       <RepeatLast workout={lastWorkout} onRepeat={handleRepeat} />
 
-      {templates.length > 0 && (
-        <div className="mb-4">
-          <DashboardWorkoutTemplates templates={templates} onSelectTemplate={handleSelectTemplate} />
-        </div>
-      )}
+
 
       <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
         <div className="space-y-3">

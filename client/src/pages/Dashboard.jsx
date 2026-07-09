@@ -130,13 +130,22 @@ function formatWorkout(workout) {
       ? rawTitle.slice(0, rawTitle.length - categoryName.length - 1).trim()
       : rawTitle;
   const group = categoryName;
+  let formattedDate = "Today";
+  if (workout.date) {
+    const parts = String(workout.date).split("-");
+    if (parts.length === 3) {
+      const [y, m, d] = parts.map(Number);
+      formattedDate = new Date(y, m - 1, d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    } else {
+      formattedDate = new Date(workout.date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    }
+  }
+
   return {
     id: workout.id,
     activity,
     group,
-    date: workout.date
-      ? new Date(workout.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-      : "Today",
+    date: formattedDate,
     calories: n(workout.calories ?? workout.caloriesTotal),
     xp: n(workout.xp ?? workout.xp_earned),
     minutes: n(workout.durationTotal ?? workout.duration_min)

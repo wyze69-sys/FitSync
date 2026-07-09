@@ -17,6 +17,7 @@ import {
   UserCheck,
   UserX,
   X,
+  Target,
   Award,
   Megaphone,
   MessageSquare,
@@ -70,7 +71,6 @@ export default function AdminPortalView() {
     statistics: "stats",
     users: "users",
     categories: "categories",
-    templates: "templates",
     badges: "badges",
     challenges: "challenges",
     announcements: "announcements",
@@ -134,6 +134,7 @@ export default function AdminPortalView() {
 
   // Badges state
   const [badges, setBadges] = useState([]);
+  const levelBadges = badges.filter(badge => badge && badge.code && badge.code.startsWith("level_"));
   const [badgesLoading, setBadgesLoading] = useState(false);
   const [badgesError, setBadgesError] = useState(null);
   const [isAddingBadge, setIsAddingBadge] = useState(false);
@@ -950,7 +951,6 @@ export default function AdminPortalView() {
     { key: "stats", label: "Dashboard", icon: BarChart3, path: "/admin/dashboard" },
     { key: "users", label: "Users", icon: Users, path: "/admin/users" },
     { key: "categories", label: "Workout Categories", icon: Layers, path: "/admin/categories" },
-    { key: "templates", label: "Workout Templates", icon: FileCheck, path: "/admin/templates" },
     { key: "badges_challenges", label: "Badges & Challenges", icon: Award, path: "/admin/badges" },
     { key: "announcements", label: "Announcements", icon: Megaphone, path: "/admin/announcements" },
     { key: "feedback", label: "User Feedback", icon: MessageSquare, path: "/admin/feedback" },
@@ -965,6 +965,13 @@ export default function AdminPortalView() {
     feedback: "User Feedback",
     analytics: "Analytics"
   };
+
+  if (section === "workouts" || section === "templates") {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+  if (section === "achievements") {
+    return <Navigate to="/admin/badges" replace />;
+  }
 
   if (!activeTab) {
     return <Navigate to="/admin/dashboard" replace />;
@@ -2012,11 +2019,11 @@ export default function AdminPortalView() {
                         </button>
                       </div>
 
-                      {badgesLoading && badges.length === 0 ? (
+                      {badgesLoading && levelBadges.length === 0 ? (
                         <Spinner label="Loading badges..." className="py-12" />
                       ) : badgesError ? (
                         <ErrorBanner message={badgesError} onRetry={loadBadges} />
-                      ) : badges.length === 0 ? (
+                      ) : levelBadges.length === 0 ? (
                         <div className="bg-surface p-12 rounded-sm border border-border text-center space-y-4">
                           <div className="h-12 w-12 bg-bg border border-border rounded-sm flex items-center justify-center mx-auto text-muted">
                             <Award className="h-6 w-6 text-primary" aria-hidden="true" />
@@ -2040,7 +2047,7 @@ export default function AdminPortalView() {
                         </div>
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {badges.map(badge => (
+                          {levelBadges.map(badge => (
                             <div key={badge.code} className={`bg-surface rounded-sm border p-5 flex flex-col justify-between transition-all ${badge.isActive ? "border-border hover:border-primary/50" : "border-border/60 opacity-75 hover:opacity-100"}`}>
                               <div className="space-y-3">
                                 <div className="flex items-start justify-between gap-4">

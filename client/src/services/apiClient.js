@@ -69,6 +69,16 @@ async function request(endpoint, { method = "GET", body, params, headers = {} } 
 
   if (!response.ok) {
     const message = (data && data.error) || `Request failed with status ${response.status}`;
+    
+    // Auto-logout mid-session for invalid token or account deactivation
+    const isDeactivated = response.status === 403 && String(message).toLowerCase().includes("deactivated");
+    if (response.status === 401 || isDeactivated) {
+      tokenStore.clear();
+      if (window.location.pathname !== "/login" && window.location.pathname !== "/register") {
+        window.location.href = "/login";
+      }
+    }
+
     const error = new Error(message);
     error.status = response.status;
     throw error;

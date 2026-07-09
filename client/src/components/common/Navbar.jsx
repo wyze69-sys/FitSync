@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import {
   Dumbbell,
@@ -35,6 +35,15 @@ function getInitials(name) {
 export default function Navbar({ onLogoutRequest }) {
   const { user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   if (!user) return null;
 
@@ -48,8 +57,16 @@ export default function Navbar({ onLogoutRequest }) {
     `w-full text-left py-2 px-3 rounded-full font-medium flex items-center gap-2 uppercase tracking-widest ${isActive ? "bg-primary text-white" : "text-muted hover:text-text hover:bg-bg"
     }`;
 
+  const showGlass = isScrolled || isMobileMenuOpen;
+
   return (
-    <nav className="fixed top-4 left-0 right-0 z-40 mx-auto max-w-[1400px] w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] lg:w-[calc(100%-6rem)] rounded-[2.25rem] border border-border/40 bg-surface/95 backdrop-blur-md shadow-xl shadow-black/20">
+    <nav
+      className={`fixed top-4 left-0 right-0 z-40 mx-auto max-w-[1400px] w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] lg:w-[calc(100%-6rem)] rounded-[2.25rem] border transition-all duration-300 ${
+        showGlass
+          ? "border-border/40 bg-surface/95 backdrop-blur-2xl supports-[backdrop-filter]:bg-surface/75 shadow-xl shadow-black/20"
+          : "border-transparent bg-transparent shadow-none backdrop-blur-none"
+      }`}
+    >
       <div className="max-w-[1400px] mx-auto px-7 lg:px-8">
         <div className="flex justify-between h-[72px] items-center">
           <div className="flex items-center gap-2.5">
