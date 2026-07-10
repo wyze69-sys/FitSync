@@ -2,6 +2,8 @@ const cors = require("cors");
 const express = require("express");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
+const swaggerUi = require("swagger-ui-express");
+const { swaggerSpec } = require("./src/config/swagger");
 const apiRoutes = require("./src/routes/routes");
 const { errorHandler, notFoundHandler } = require("./src/middleware/errorMiddleware");
 
@@ -31,6 +33,18 @@ app.use(
 );
 
 app.use(express.json({ limit: "100kb" }));
+
+// Interactive API documentation. This route intentionally allows Swagger UI's
+// local inline bootstrap script while the rest of the API keeps Helmet defaults.
+app.use(
+  "/api-docs",
+  (req, res, next) => {
+    res.setHeader("Content-Security-Policy", "default-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'");
+    next();
+  },
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, { customSiteTitle: "FitSync API Docs" })
+);
 
 // Global rate limiting to protect every endpoint from abuse.
 // Stricter, auth-specific limits are layered on top in authRoutes.

@@ -22,6 +22,8 @@ DROP TABLE IF EXISTS workout_sets;
 DROP TABLE IF EXISTS workout_exercises;
 DROP TABLE IF EXISTS workouts;
 DROP TABLE IF EXISTS workout_templates;
+DROP TABLE IF EXISTS activity_library;
+DROP TABLE IF EXISTS nutrition_foods;
 DROP TABLE IF EXISTS exercise_categories;
 DROP TABLE IF EXISTS users;
 
@@ -56,6 +58,68 @@ CREATE TABLE exercise_categories (
     is_custom BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Detailed activity catalog used by the Log Workout experience.
+CREATE TABLE activity_library (
+    id VARCHAR(50) PRIMARY KEY,
+    slug VARCHAR(100) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    category_slug VARCHAR(80) NOT NULL,
+    category_id VARCHAR(50) NULL,
+    description TEXT,
+    base_met DECIMAL(4,2) NOT NULL DEFAULT 3.50,
+    intensity_level ENUM('low','moderate','high','very_high') NOT NULL DEFAULT 'moderate',
+    calorie_method VARCHAR(40) NOT NULL DEFAULT 'met_duration',
+    pace_profile VARCHAR(40) NULL,
+    supports_distance BOOLEAN NOT NULL DEFAULT FALSE,
+    supports_duration BOOLEAN NOT NULL DEFAULT TRUE,
+    supports_sets_reps_weight BOOLEAN NOT NULL DEFAULT FALSE,
+    supports_bodyweight BOOLEAN NOT NULL DEFAULT FALSE,
+    supports_reps_only BOOLEAN NOT NULL DEFAULT FALSE,
+    supports_hold_time BOOLEAN NOT NULL DEFAULT FALSE,
+    distance_multiplier DECIMAL(6,3) NULL,
+    bodyweight_factor DECIMAL(4,2) NULL,
+    volume_modifier_min DECIMAL(4,2) NULL,
+    volume_modifier_max DECIMAL(4,2) NULL,
+    default_duration_min INT NULL,
+    equipment VARCHAR(255) NULL,
+    primary_muscles VARCHAR(255) NULL,
+    secondary_muscles VARCHAR(255) NULL,
+    tracking_fields JSON NULL,
+    calculation_notes TEXT NULL,
+    sort_order INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_activity_category FOREIGN KEY (category_id) REFERENCES exercise_categories(id) ON DELETE SET NULL,
+    INDEX idx_activity_category (category_slug),
+    INDEX idx_activity_active (is_active)
+);
+
+-- Dataset-backed nutrition catalog used by the Nutrition experience.
+CREATE TABLE nutrition_foods (
+    id VARCHAR(160) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    serving_size VARCHAR(120) NOT NULL DEFAULT 'dataset serving',
+    calories INT NOT NULL DEFAULT 0,
+    protein_g DECIMAL(8,3) NOT NULL DEFAULT 0,
+    carbs_g DECIMAL(8,3) NOT NULL DEFAULT 0,
+    fat_g DECIMAL(8,3) NOT NULL DEFAULT 0,
+    fiber_g DECIMAL(8,3) NOT NULL DEFAULT 0,
+    sugar_g DECIMAL(8,3) NOT NULL DEFAULT 0,
+    sodium_mg DECIMAL(10,3) NOT NULL DEFAULT 0,
+    food_type VARCHAR(40) NOT NULL DEFAULT 'general',
+    diet_tags JSON NULL,
+    source_dataset VARCHAR(255) NULL,
+    source_file VARCHAR(120) NULL,
+    source_group VARCHAR(40) NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_nutrition_name (name),
+    INDEX idx_nutrition_food_type (food_type),
+    INDEX idx_nutrition_active (is_active)
 );
 
 CREATE TABLE workouts (
