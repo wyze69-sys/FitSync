@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { AlertTriangle } from "lucide-react";
 
 /**
@@ -32,16 +33,20 @@ export default function ConfirmDialog({
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-4 animate-fade-in"
+      className="fixed inset-0 z-[999] flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-dialog-title"
-      onClick={onCancel}
     >
       <div
-        className="bg-surface w-full max-w-sm rounded-md border border-border shadow-lg p-6 space-y-6 animate-slide-up"
+        className="absolute inset-0 bg-black/60 animate-fade-in"
+        onClick={onCancel}
+        aria-hidden="true"
+      />
+      <div
+        className="relative bg-surface w-full max-w-sm rounded-md border border-border shadow-lg p-6 space-y-6 animate-slide-up"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-start gap-4">
@@ -92,6 +97,7 @@ export default function ConfirmDialog({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -6,6 +6,7 @@ import DashboardProfileSummary from "../components/dashboard/DashboardProfileSum
 import LoadingSpinner from "../components/common/LoadingSpinner.jsx";
 import { BadgeMedal } from "../components/gamification/AchievementBadge.jsx";
 import feedbackService from "../services/feedbackService.js";
+import LogoutConfirmDialog from "../components/modals/LogoutConfirmDialog.jsx";
 
 function numberOrDash(value, suffix = "") {
   const number = Number(value || 0);
@@ -45,6 +46,7 @@ export default function You() {
   const currentStreak = Number(gamification?.currentStreak || 0);
 
   const [showAllBadges, setShowAllBadges] = useState(false);
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const [fbSubject, setFbSubject] = useState("");
   const [fbMessage, setFbMessage] = useState("");
   const [fbSubmitting, setFbSubmitting] = useState(false);
@@ -311,7 +313,7 @@ export default function You() {
             </div>
             <button
               type="button"
-              onClick={handleLogout}
+              onClick={() => setIsLogoutDialogOpen(true)}
               className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-white/[0.02] px-4 py-2 text-xs font-black uppercase tracking-widest text-text hover:bg-white/[0.08] transition-all cursor-pointer"
             >
               <LogOut className="h-4 w-4 text-primary" /> Logout
@@ -319,6 +321,12 @@ export default function You() {
           </section>
         </aside>
       </div>
+
+      <LogoutConfirmDialog
+        open={isLogoutDialogOpen}
+        onConfirm={handleLogout}
+        onCancel={() => setIsLogoutDialogOpen(false)}
+      />
     </div>
   );
 }
