@@ -19,7 +19,8 @@ async function ensureDatabaseExists() {
     host: process.env.DB_HOST,
     port: Number(process.env.DB_PORT || 8889),
     user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD
+    password: process.env.DB_PASSWORD,
+    ssl: process.env.DB_HOST && process.env.DB_HOST.includes('aiven') ? { rejectUnauthorized: false } : undefined
   });
 
   await connection.query(`CREATE DATABASE IF NOT EXISTS \`${safeDatabase}\``);
@@ -991,10 +992,13 @@ async function seedDefaults() {
 }
 
 async function initializeDatabase() {
-  await ensureDatabaseExists();
-  await createTables();
+  // Skip ensureDatabaseExists on Aiven – databases are managed via the Aiven console
+  if (!process.env.DB_HOST || !process.env.DB_HOST.includes('aiven')) {
+    await ensureDatabaseExists();
+    await createTables();
+    await seedDefaults();
+  }
   await applySchemaUpgrades();
-  await seedDefaults();
 }
 
 module.exports = { initializeDatabase };
