@@ -35,7 +35,7 @@ export const RANK_ART = {
   level_10: xpLevel10
 };
 
-// Streak badge artwork is intentionally not implemented yet.
+// Kept for compatibility with existing imports; non-XP badges use text fallbacks below.
 export const STREAK_ART = {
   streak_3: null,
   streak_7: null,
@@ -62,6 +62,38 @@ function isLevelRequirement(requirementType) {
   return requirementType === "level" || requirementType === "xp_level" || requirementType === "rank";
 }
 
+function initialsFrom(value) {
+  const words = String(value || "")
+    .trim()
+    .split(/[\s_-]+/)
+    .filter(Boolean);
+
+  return words.slice(0, 2).map((word) => word[0]).join("").toUpperCase();
+}
+
+/**
+ * Returns a compact text/symbol fallback for achievements without image art.
+ * Admin-provided symbols take priority, followed by a stable streak or name emblem.
+ * @param {object} badge
+ * @returns {string}
+ */
+export function getBadgeFallback(badge) {
+  if (!badge) return "AC";
+
+  const configuredIcon = String(badge.icon || "").trim();
+  if (configuredIcon) {
+    return Array.from(configuredIcon).slice(0, 3).join("");
+  }
+
+  const requirementType = String(badge.requirement || badge.requirementType || "").toLowerCase();
+  const code = String(badge.code || "").toLowerCase();
+  if (requirementType === "streak" || code.startsWith("streak_")) {
+    return "ST";
+  }
+
+  return initialsFrom(badge.name) || initialsFrom(badge.code) || "AC";
+}
+
 export function getBadgeAsset(badge) {
   if (!badge) return null;
 
@@ -75,7 +107,7 @@ export function getBadgeAsset(badge) {
   if (hasCodeOrReq) {
     const isXP = code.match(/^level[_-]?\d+$/) || isLevelRequirement(requirementType);
     if (!isXP) {
-      return null; // Keep non-XP badges blank
+      return null;
     }
   }
 

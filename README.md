@@ -372,6 +372,17 @@ Core behavior is regression-checked with backend tests and the frontend producti
 - [ ] View AI insight on the dashboard.
 - [ ] Activate/deactivate a test user account and verify they cannot log in while inactive.
 
+## Continuous Integration
+
+GitHub Actions runs the CI workflow in `.github/workflows/ci.yml` on pushes and pull requests to `main`.
+
+The workflow verifies:
+
+- Client install and production build
+- Backend install and test suite
+
+If CI fails on a pull request, review the logs first. If WarpFix is installed on the repository, you can ask it to help by commenting `@warpfix fix-ci` or `/fix-ci` on the pull request.
+
 ## Security Notes
 
 - Do not commit real `.env` files.

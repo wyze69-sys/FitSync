@@ -136,34 +136,29 @@ const CHECKIN_XP = 10;
 const DEFAULT_LEVEL = { levelNumber: 1, xpRequired: 0, badgeUnlock: "level_1", title: "Starter" };
 
 /**
- * Streak milestone -> achievement code mapping. A user is awarded every badge
- * whose threshold is at or below their current streak. Codes match the seeded
- * achievements catalog (database/seed.sql, bootstrap.js) and the frontend
- * STREAK_ART mapping (client/src/utils/badgeAssets.js).
- */
-const STREAK_BADGE_THRESHOLDS = [
-  { streak: 3, code: "streak_3" },
-  { streak: 7, code: "streak_7" },
-  { streak: 14, code: "streak_14" },
-  { streak: 30, code: "streak_30" }
-];
-
-/**
  * Awards streak milestone badges for the user's current streak. Idempotent:
  * relies on the repository's INSERT IGNORE on user_achievements, so repeated
  * summary calls never duplicate an unlock. Does not touch XP/level logic.
  * @param {string} userId User id.
- * @param {number} currentStreak Current (weekly) streak count.
+ * @param {number} currentStreak Current daily streak count.
  * @returns {Promise<string[]>} Codes that were newly unlocked by this call.
  */
 async function awardStreakBadges(userId, currentStreak) {
   const streak = Number(currentStreak || 0);
+  const catalog = await gamificationRepository.getAchievementCatalog();
   const newlyAwarded = [];
-  for (const { streak: threshold, code } of STREAK_BADGE_THRESHOLDS) {
-    if (streak >= threshold) {
-      const didUnlock = await gamificationRepository.unlockAchievement(userId, code);
-      if (didUnlock) newlyAwarded.push(code);
+  for (const achievement of catalog) {
+    if (!achievement || !achievement.isActive || achievement.requirementType !== "streak") {
+      continue;
     }
+
+    const threshold = Number(achievement.requirementValue);
+    if (!Number.isFinite(threshold) || streak < threshold) {
+      continue;
+    }
+
+    const didUnlock = await gamificationRepository.unlockAchievement(userId, achievement.code);
+    if (didUnlock) newlyAwarded.push(achievement.code);
   }
   return newlyAwarded;
 }
