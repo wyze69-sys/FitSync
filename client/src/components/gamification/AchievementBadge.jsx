@@ -1,4 +1,4 @@
-import getBadgeAsset, { tierFromLevel } from "../../utils/badgeAssets.js";
+import getBadgeAsset, { getBadgeFallback, tierFromLevel } from "../../utils/badgeAssets.js";
 
 /**
  * Legacy tier helper kept for backwards compatibility with existing callers.
@@ -40,8 +40,7 @@ function LockEmblem({ className = "h-5 w-5" }) {
 }
 
 /**
- * Renders a single premium XP-level image when available.
- * Non-XP achievements stay visually blank until separate artwork exists.
+ * Renders XP-level image art when available and a compact emblem otherwise.
  */
 export function BadgeMedal({ badge, level, title, size = "md", locked = false, showLevel = true }) {
   const source = badge ?? (level !== undefined ? { level, name: title } : null);
@@ -68,10 +67,12 @@ export function BadgeMedal({ badge, level, title, size = "md", locked = false, s
       ) : (
         <span
           aria-hidden="true"
-          className={`block h-full w-full rounded-full border border-dashed border-border/70 bg-bg/35 transition-all duration-300 ${
-            locked ? "opacity-30" : "shadow-sm"
+          className={`grid h-full w-full place-items-center rounded-full border border-border bg-bg font-mono text-lg font-bold tracking-wider text-primary transition-all duration-300 ${
+            locked ? "opacity-30 grayscale" : "shadow-sm"
           }`}
-        />
+        >
+          {getBadgeFallback(source)}
+        </span>
       )}
       {locked && (
         <span className="absolute inset-0 grid place-items-center">

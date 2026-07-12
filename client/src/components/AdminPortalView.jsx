@@ -31,11 +31,63 @@ import Spinner from "./common/Spinner.jsx";
 import ErrorBanner from "./common/ErrorBanner.jsx";
 import ConfirmDialog from "./modals/ConfirmDialog.jsx";
 import LogoutConfirmDialog from "./modals/LogoutConfirmDialog.jsx";
-import getBadgeAsset from "../utils/badgeAssets.js";
+import getBadgeAsset, { getBadgeFallback } from "../utils/badgeAssets.js";
 
 // Inputs read on the light admin surface: subtle inset rest state, white on focus.
 const INPUT =
   "px-3 py-2 bg-bg border border-border rounded-sm text-xs text-text focus:bg-surface focus:border-primary focus:outline-none transition-all";
+
+const asArray = (value) => (Array.isArray(value) ? value : []);
+
+function AdminLoadingState({ label }) {
+  return <Spinner label={label} className="py-12" />;
+}
+
+function AdminEmptyState({ icon: Icon, title, description, actionLabel, onAction, compact = false }) {
+  return (
+    <div className={`bg-surface border border-border rounded-sm text-center ${compact ? "p-8" : "p-12"}`}>
+      {Icon && (
+        <span className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-sm border border-border bg-bg text-primary">
+          <Icon className="h-5 w-5" aria-hidden="true" />
+        </span>
+      )}
+      <h3 className="text-sm font-bold text-text">{title}</h3>
+      {description && (
+        <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-muted">{description}</p>
+      )}
+      {actionLabel && onAction && (
+        <button
+          type="button"
+          onClick={onAction}
+          className="mt-4 rounded-sm bg-primary px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-white transition-all hover:bg-muted"
+        >
+          {actionLabel}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function BadgeVisual({ badge, className = "h-[72px] w-[72px]" }) {
+  const src = getBadgeAsset(badge);
+
+  return src ? (
+    <img
+      src={src}
+      alt=""
+      aria-hidden="true"
+      className={`${className} object-contain drop-shadow-[0_3px_7px_rgba(0,0,0,0.28)]`}
+      draggable="false"
+    />
+  ) : (
+    <span
+      aria-hidden="true"
+      className={`${className} grid place-items-center rounded-full border border-border bg-bg font-mono text-base font-bold tracking-wider text-primary`}
+    >
+      {getBadgeFallback(badge)}
+    </span>
+  );
+}
 
 function StatCard({ label, value, icon: Icon, hint }) {
   return (
@@ -71,6 +123,7 @@ export default function AdminPortalView() {
     statistics: "stats",
     users: "users",
     categories: "categories",
+    templates: "templates",
     badges: "badges",
     challenges: "challenges",
     announcements: "announcements",
@@ -134,7 +187,7 @@ export default function AdminPortalView() {
 
   // Badges state
   const [badges, setBadges] = useState([]);
-  const levelBadges = badges.filter(badge => badge && badge.code && badge.code.startsWith("level_"));
+  const displayBadges = asArray(badges).filter(Boolean);
   const [badgesLoading, setBadgesLoading] = useState(false);
   const [badgesError, setBadgesError] = useState(null);
   const [isAddingBadge, setIsAddingBadge] = useState(false);
@@ -195,15 +248,60 @@ export default function AdminPortalView() {
   const [feedbackError, setFeedbackError] = useState(null);
   const [feedbackFilters, setFeedbackFilters] = useState({ status: "", type: "" });
   const [triageId, setTriageId] = useState(null);
-  const [fbNewStatus, setFbNewStatus] = useState("");
-  const [fbAdminNote, setFbAdminNote] = useState("");
-  const [fbSaving, setFbSaving] = useState(false);
+  const [feedbackTriageById, setFeedbackTriageById] = useState({});
   const [pendingDeleteFeedback, setPendingDeleteFeedback] = useState(null);
 
   // Analytics state
   const [analyticsData, setAnalyticsData] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError, setAnalyticsError] = useState(null);
+
+  const openFeedbackTriage = useCallback((fb) => {
+    setFeedbackTriageById((prev) => {
+      if (prev[fb.id]) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [fb.id]: {
+          status: fb.status,
+          adminNote: fb.adminNote || "",
+          saving: false
+        }
+      };
+    });
+    setTriageId(fb.id);
+  }, []);
+
+  const closeFeedbackTriage = useCallback((feedbackId) => {
+    setTriageId((current) => (current === feedbackId ? null : current));
+  }, []);
+
+  const patchFeedbackTriage = useCallback((feedbackId, patch) => {
+    setFeedbackTriageById((prev) => {
+      if (!prev[feedbackId]) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [feedbackId]: {
+          ...prev[feedbackId],
+          ...patch
+        }
+      };
+    });
+  }, []);
+
+  const clearFeedbackTriage = useCallback((feedbackId) => {
+    setFeedbackTriageById((prev) => {
+      if (!prev[feedbackId]) {
+        return prev;
+      }
+      const next = { ...prev };
+      delete next[feedbackId];
+      return next;
+    });
+  }, []);
 
 
   const loadCoreData = useCallback(async () => {
@@ -216,8 +314,8 @@ export default function AdminPortalView() {
         adminService.getCategoryAnalytics()
       ]);
       setStats(statsData);
-      setCategories(catData);
-      setAnalytics(analyticsData);
+      setCategories(asArray(catData));
+      setAnalytics(asArray(analyticsData));
     } catch (err) {
       setError(err.message || "Failed to load admin data.");
     } finally {
@@ -228,7 +326,7 @@ export default function AdminPortalView() {
   const loadUsers = useCallback(async () => {
     try {
       const data = await adminService.getUsers(userFilters);
-      setUsers(data);
+      setUsers(asArray(data));
     } catch (err) {
       setError(err.message || "Failed to load users.");
     }
@@ -248,7 +346,7 @@ export default function AdminPortalView() {
     setTemplatesError(null);
     try {
       const data = await adminService.getTemplates();
-      setTemplates(data);
+      setTemplates(asArray(data));
     } catch (err) {
       setTemplatesError(err.message || "Failed to load workout templates.");
     } finally {
@@ -267,7 +365,7 @@ export default function AdminPortalView() {
     setBadgesError(null);
     try {
       const data = await adminService.getBadges();
-      setBadges(data);
+      setBadges(asArray(data));
     } catch (err) {
       setBadgesError(err.message || "Failed to load badges.");
     } finally {
@@ -286,7 +384,7 @@ export default function AdminPortalView() {
     setChallengesError(null);
     try {
       const data = await adminService.getChallenges();
-      setChallenges(data);
+      setChallenges(asArray(data));
     } catch (err) {
       setChallengesError(err.message || "Failed to load challenges.");
     } finally {
@@ -306,7 +404,7 @@ export default function AdminPortalView() {
     setAnnouncementsError(null);
     try {
       const data = await adminService.getAnnouncements();
-      setAnnouncements(data);
+      setAnnouncements(asArray(data));
     } catch (err) {
       setAnnouncementsError(err.message || "Failed to load announcements.");
     } finally {
@@ -325,7 +423,7 @@ export default function AdminPortalView() {
     setFeedbackError(null);
     try {
       const data = await adminService.getFeedbackList(feedbackFilters);
-      setFeedbackList(data);
+      setFeedbackList(asArray(data));
     } catch (err) {
       setFeedbackError(err.message || "Failed to load feedback.");
     } finally {
@@ -951,6 +1049,7 @@ export default function AdminPortalView() {
     { key: "stats", label: "Dashboard", icon: BarChart3, path: "/admin/dashboard" },
     { key: "users", label: "Users", icon: Users, path: "/admin/users" },
     { key: "categories", label: "Workout Categories", icon: Layers, path: "/admin/categories" },
+    { key: "templates", label: "Workout Templates", icon: FileCheck, path: "/admin/templates" },
     { key: "badges_challenges", label: "Badges & Challenges", icon: Award, path: "/admin/badges" },
     { key: "announcements", label: "Announcements", icon: Megaphone, path: "/admin/announcements" },
     { key: "feedback", label: "User Feedback", icon: MessageSquare, path: "/admin/feedback" },
@@ -966,7 +1065,7 @@ export default function AdminPortalView() {
     analytics: "Analytics"
   };
 
-  if (section === "workouts" || section === "templates") {
+  if (section === "workouts") {
     return <Navigate to="/admin/dashboard" replace />;
   }
   if (section === "achievements") {
@@ -1505,31 +1604,20 @@ export default function AdminPortalView() {
                       </div>
 
                       {templatesLoading && templates.length === 0 ? (
-                        <Spinner label="Loading templates..." className="py-12" />
+                        <AdminLoadingState label="Loading templates..." />
                       ) : templatesError ? (
                         <ErrorBanner message={templatesError} onRetry={loadTemplates} />
                       ) : templates.length === 0 ? (
-                        <div className="bg-surface p-12 rounded-sm border border-border text-center space-y-4">
-                          <div className="h-12 w-12 bg-bg border border-border rounded-sm flex items-center justify-center mx-auto text-muted">
-                            <FileCheck className="h-6 w-6 text-primary" aria-hidden="true" />
-                          </div>
-                          <div className="space-y-1">
-                            <h3 className="text-sm text-text font-bold">No workout templates</h3>
-                            <p className="text-xs text-muted max-w-sm mx-auto leading-relaxed">
-                              There are no templates configured yet. Create one to help users get started logging workouts quickly.
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              resetTemplateForm();
-                              setIsAddingTemplate(true);
-                            }}
-                            className="mx-auto px-4 py-1.5 bg-primary hover:bg-muted text-white text-xs font-semibold uppercase tracking-widest rounded-sm cursor-pointer transition-all"
-                          >
-                            Create First Template
-                          </button>
-                        </div>
+                        <AdminEmptyState
+                          icon={FileCheck}
+                          title="No workout templates"
+                          description="There are no templates configured yet. Create one to help users get started logging workouts quickly."
+                          actionLabel="Create First Template"
+                          onAction={() => {
+                            resetTemplateForm();
+                            setIsAddingTemplate(true);
+                          }}
+                        />
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {templates.map(template => (
@@ -1572,7 +1660,7 @@ export default function AdminPortalView() {
                                       Exercises Preview
                                     </div>
                                     <div className="space-y-1 max-h-32 overflow-y-auto">
-                                      {template.exercises.map((ex, idx) => (
+                                      {asArray(template.exercises).map((ex, idx) => (
                                         <div key={idx} className="flex justify-between text-muted">
                                           <span className="font-medium text-text">{ex.exerciseName}</span>
                                           <span>{ex.duration}m · {ex.sets?.length || 0} sets</span>
@@ -1823,7 +1911,7 @@ export default function AdminPortalView() {
                                               <div className="text-muted">Duration: {ex.duration} min</div>
                                               {ex.sets && ex.sets.length > 0 && (
                                                 <div className="flex flex-wrap gap-1 mt-1">
-                                                  {ex.sets.map((set, setIdx) => (
+                                                  {asArray(ex.sets).map((set, setIdx) => (
                                                     <span key={setIdx} className="px-1.5 py-0.5 bg-surface border border-border text-muted rounded-sm text-[9px] font-mono">
                                                       S{setIdx + 1}: {set.reps}x{set.weight}kg
                                                     </span>
@@ -2019,50 +2107,30 @@ export default function AdminPortalView() {
                         </button>
                       </div>
 
-                      {badgesLoading && levelBadges.length === 0 ? (
-                        <Spinner label="Loading badges..." className="py-12" />
+                      {badgesLoading && displayBadges.length === 0 ? (
+                        <AdminLoadingState label="Loading badges..." />
                       ) : badgesError ? (
                         <ErrorBanner message={badgesError} onRetry={loadBadges} />
-                      ) : levelBadges.length === 0 ? (
-                        <div className="bg-surface p-12 rounded-sm border border-border text-center space-y-4">
-                          <div className="h-12 w-12 bg-bg border border-border rounded-sm flex items-center justify-center mx-auto text-muted">
-                            <Award className="h-6 w-6 text-primary" aria-hidden="true" />
-                          </div>
-                          <div className="space-y-1">
-                            <h3 className="text-sm text-text font-bold">No achievement badges</h3>
-                            <p className="text-xs text-muted max-w-sm mx-auto leading-relaxed">
-                              There are no badges configured yet. Create one to get started with gamification rewards.
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              resetBadgeForm();
-                              setIsAddingBadge(true);
-                            }}
-                            className="mx-auto px-4 py-1.5 bg-primary hover:bg-muted text-white text-xs font-semibold uppercase tracking-widest rounded-sm cursor-pointer transition-all"
-                          >
-                            Create First Badge
-                          </button>
-                        </div>
+                      ) : displayBadges.length === 0 ? (
+                        <AdminEmptyState
+                          icon={Award}
+                          title="No achievement badges"
+                          description="There are no badges configured yet. Create one to get started with gamification rewards."
+                          actionLabel="Create First Badge"
+                          onAction={() => {
+                            resetBadgeForm();
+                            setIsAddingBadge(true);
+                          }}
+                        />
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {levelBadges.map(badge => (
+                          {displayBadges.map(badge => (
                             <div key={badge.code} className={`bg-surface rounded-sm border p-5 flex flex-col justify-between transition-all ${badge.isActive ? "border-border hover:border-primary/50" : "border-border/60 opacity-75 hover:opacity-100"}`}>
                               <div className="space-y-3">
                                 <div className="flex items-start justify-between gap-4">
                                   <div className="flex items-center gap-3.5">
-                                    <div className={`grid place-items-center h-[88px] w-[88px] shrink-0 rounded-xl border bg-gradient-to-b from-bg to-surface ${badge.isActive ? "border-primary/30" : "border-border grayscale opacity-60"}`}>
-                                      {getBadgeAsset(badge) ? (
-                                        <img
-                                          src={getBadgeAsset(badge)}
-                                          alt={`${badge.name} XP level badge art`}
-                                          className="h-[72px] w-[72px] object-contain drop-shadow-[0_3px_7px_rgba(0,0,0,0.28)]"
-                                          draggable="false"
-                                        />
-                                      ) : (
-                                        <span className="block h-[72px] w-[72px] rounded-full border border-dashed border-border bg-bg/50" aria-hidden="true" />
-                                      )}
+                                    <div className={`grid place-items-center h-[88px] w-[88px] shrink-0 rounded-xl border bg-bg ${badge.isActive ? "border-primary/30" : "border-border grayscale opacity-60"}`}>
+                                      <BadgeVisual badge={badge} />
                                     </div>
                                     <div>
                                       <h3 className="text-sm font-bold text-text line-clamp-2">{badge.name}</h3>
@@ -2274,32 +2342,20 @@ export default function AdminPortalView() {
                                 Badge Icon (Emoji / Symbol)
                               </label>
                               <div className="flex items-center gap-3.5 mb-2.5 p-3 bg-bg border border-border rounded-lg">
-                                <div className="grid place-items-center h-[80px] w-[80px] shrink-0 rounded-xl border border-primary/30 bg-gradient-to-b from-bg to-surface">
-                                  {getBadgeAsset({
+                                <div className="grid place-items-center h-[80px] w-[80px] shrink-0 rounded-xl border border-primary/30 bg-surface">
+                                  <BadgeVisual
+                                    className="h-[68px] w-[68px]"
+                                    badge={{
                                     code: bdgCode,
                                     name: bdgName,
                                     requirement: bdgReqType === "custom" ? bdgCustomReqType : bdgReqType,
                                     value: bdgReqValue,
                                     icon: bdgIcon
-                                  }) ? (
-                                    <img
-                                      src={getBadgeAsset({
-                                        code: bdgCode,
-                                        name: bdgName,
-                                        requirement: bdgReqType === "custom" ? bdgCustomReqType : bdgReqType,
-                                        value: bdgReqValue,
-                                        icon: bdgIcon
-                                      })}
-                                      alt="XP level badge art preview"
-                                      className="h-[68px] w-[68px] object-contain drop-shadow-[0_3px_7px_rgba(0,0,0,0.28)]"
-                                      draggable="false"
-                                    />
-                                  ) : (
-                                    <span className="block h-[68px] w-[68px] rounded-full border border-dashed border-border bg-bg/50" aria-hidden="true" />
-                                  )}
+                                    }}
+                                  />
                                 </div>
                                 <p className="text-[10px] text-muted leading-relaxed">
-                                  XP-level badges use level art automatically. Other badge types stay blank until separate artwork is added.
+                                  XP-level badges keep their image art. Other badge types use the configured symbol or a compact text emblem.
                                 </p>
                               </div>
                               <div className="flex gap-2">
@@ -2307,14 +2363,14 @@ export default function AdminPortalView() {
                                   id="bdg-icon"
                                   type="text"
                                   maxLength={80}
-                                  placeholder="Leave blank until artwork exists"
+                                  placeholder="Optional short symbol or initials"
                                   value={bdgIcon}
                                   onChange={(e) => setBdgIcon(e.target.value)}
                                   className={`${INPUT} flex-grow`}
                                 />
                               </div>
                               <p className="mt-2.5 text-[9px] font-mono text-muted uppercase tracking-wider">
-                                No emoji/icon presets. Add real artwork later.
+                                Leave blank to derive an emblem from the badge name or requirement.
                               </p>
                             </div>
                           </div>
@@ -2365,31 +2421,20 @@ export default function AdminPortalView() {
                       </div>
 
                       {challengesLoading && challenges.length === 0 ? (
-                        <Spinner label="Loading challenges..." className="py-12" />
+                        <AdminLoadingState label="Loading challenges..." />
                       ) : challengesError ? (
                         <ErrorBanner message={challengesError} onRetry={loadChallenges} />
                       ) : challenges.length === 0 ? (
-                        <div className="bg-surface p-12 rounded-sm border border-border text-center space-y-4">
-                          <div className="h-12 w-12 bg-bg border border-border rounded-sm flex items-center justify-center mx-auto text-muted">
-                            <Award className="h-6 w-6 text-primary" aria-hidden="true" />
-                          </div>
-                          <div className="space-y-1">
-                            <h3 className="text-sm text-text font-bold">No platform challenges</h3>
-                            <p className="text-xs text-muted max-w-sm mx-auto leading-relaxed">
-                              There are no challenges configured yet. Create one to set weekly targets.
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              resetChallengeForm();
-                              setIsAddingChallenge(true);
-                            }}
-                            className="mx-auto px-4 py-1.5 bg-primary hover:bg-muted text-white text-xs font-semibold uppercase tracking-widest rounded-sm cursor-pointer transition-all"
-                          >
-                            Create First Challenge
-                          </button>
-                        </div>
+                        <AdminEmptyState
+                          icon={Award}
+                          title="No platform challenges"
+                          description="There are no challenges configured yet. Create one to set weekly targets."
+                          actionLabel="Create First Challenge"
+                          onAction={() => {
+                            resetChallengeForm();
+                            setIsAddingChallenge(true);
+                          }}
+                        />
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                           {challenges.map(challenge => (
@@ -2715,31 +2760,20 @@ export default function AdminPortalView() {
                       </div>
 
                       {announcementsLoading && announcements.length === 0 ? (
-                        <Spinner label="Loading announcements..." className="py-12" />
+                        <AdminLoadingState label="Loading announcements..." />
                       ) : announcementsError ? (
                         <ErrorBanner message={announcementsError} onRetry={loadAnnouncements} />
                       ) : announcements.length === 0 ? (
-                        <div className="bg-surface p-12 rounded-sm border border-border text-center space-y-4">
-                          <div className="h-12 w-12 bg-bg border border-border rounded-sm flex items-center justify-center mx-auto text-muted">
-                            <Megaphone className="h-6 w-6 text-primary" aria-hidden="true" />
-                          </div>
-                          <div className="space-y-1">
-                            <h3 className="text-sm text-text font-bold">No platform announcements</h3>
-                            <p className="text-xs text-muted max-w-sm mx-auto leading-relaxed">
-                              There are no announcements configured yet. Create one to display global alerts to users.
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              resetAnnouncementForm();
-                              setIsAddingAnnouncement(true);
-                            }}
-                            className="mx-auto px-4 py-1.5 bg-primary hover:bg-muted text-white text-xs font-semibold uppercase tracking-widest rounded-sm cursor-pointer transition-all"
-                          >
-                            Create First Announcement
-                          </button>
-                        </div>
+                        <AdminEmptyState
+                          icon={Megaphone}
+                          title="No platform announcements"
+                          description="There are no announcements configured yet. Create one to display global alerts to users."
+                          actionLabel="Create First Announcement"
+                          onAction={() => {
+                            resetAnnouncementForm();
+                            setIsAddingAnnouncement(true);
+                          }}
+                        />
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                           {announcements.map((ann) => (
@@ -2991,17 +3025,21 @@ export default function AdminPortalView() {
                   {feedbackError && <ErrorBanner message={feedbackError} onRetry={loadFeedback} />}
 
                   {feedbackLoading ? (
-                    <div className="flex justify-center py-12"><Spinner /></div>
+                    <AdminLoadingState label="Loading feedback..." />
                   ) : feedbackList.length === 0 ? (
-                    <div className="bg-surface border border-border rounded-sm p-10 text-center space-y-2">
-                      <MessageSquare className="h-8 w-8 text-muted/40 mx-auto" />
-                      <p className="text-sm font-semibold text-text">No feedback submitted yet.</p>
-                      <p className="text-xs text-muted">Feedback from users will appear here once submitted.</p>
-                    </div>
+                    <AdminEmptyState
+                      icon={MessageSquare}
+                      title={feedbackFilters.status || feedbackFilters.type ? "No feedback matches these filters" : "No feedback submitted yet"}
+                      description={feedbackFilters.status || feedbackFilters.type
+                        ? "Reset the filters to review the full feedback queue."
+                        : "Feedback from users will appear here once submitted."}
+                      compact
+                    />
                   ) : (
                     <div className="space-y-2">
                       {feedbackList.map((fb) => {
-                        const isOpen = triageId === fb.id;
+                        const triage = feedbackTriageById[fb.id];
+                        const isOpen = triageId === fb.id && Boolean(triage);
                         const STATUS_COLORS = {
                           new: "bg-primary/10 text-primary border-primary/20",
                           in_progress: "bg-amber-500/10 text-amber-600 border-amber-500/20",
@@ -3015,7 +3053,7 @@ export default function AdminPortalView() {
                               <div className="flex-grow min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap mb-1">
                                   <span className={`text-[10px] font-mono px-2 py-0.5 rounded-sm border uppercase tracking-widest ${STATUS_COLORS[fb.status] || STATUS_COLORS.new}`}>
-                                    {fb.status.replace("_", " ")}
+                                    {String(fb.status || "new").replace("_", " ")}
                                   </span>
                                   <span className="text-[10px] font-mono px-2 py-0.5 rounded-sm border border-border bg-bg text-muted uppercase tracking-widest">
                                     {TYPE_LABELS[fb.type] || fb.type}
@@ -3040,11 +3078,9 @@ export default function AdminPortalView() {
                                 type="button"
                                 onClick={() => {
                                   if (isOpen) {
-                                    setTriageId(null);
+                                    closeFeedbackTriage(fb.id);
                                   } else {
-                                    setTriageId(fb.id);
-                                    setFbNewStatus(fb.status);
-                                    setFbAdminNote(fb.adminNote || "");
+                                    openFeedbackTriage(fb);
                                   }
                                 }}
                                 className="shrink-0 px-3 py-1.5 bg-bg hover:bg-border/40 border border-border text-xs font-mono rounded-sm text-text cursor-pointer transition-all"
@@ -3063,8 +3099,8 @@ export default function AdminPortalView() {
                                   <div className="space-y-1">
                                     <label className="text-[10px] font-mono uppercase tracking-widest text-muted block">Update status</label>
                                     <select
-                                      value={fbNewStatus}
-                                      onChange={(e) => setFbNewStatus(e.target.value)}
+                                      value={triage?.status ?? fb.status}
+                                      onChange={(e) => patchFeedbackTriage(fb.id, { status: e.target.value })}
                                       className={INPUT + " w-full"}
                                     >
                                       <option value="new">New</option>
@@ -3077,8 +3113,8 @@ export default function AdminPortalView() {
                                     <label className="text-[10px] font-mono uppercase tracking-widest text-muted block">Admin note (optional)</label>
                                     <input
                                       type="text"
-                                      value={fbAdminNote}
-                                      onChange={(e) => setFbAdminNote(e.target.value)}
+                                      value={triage?.adminNote ?? (fb.adminNote || "")}
+                                      onChange={(e) => patchFeedbackTriage(fb.id, { adminNote: e.target.value })}
                                       placeholder="Internal note..."
                                       className={INPUT + " w-full"}
                                     />
@@ -3087,30 +3123,32 @@ export default function AdminPortalView() {
                                 <div className="flex gap-3">
                                   <button
                                     type="button"
-                                    disabled={fbSaving}
+                                    disabled={triage?.saving || false}
                                     onClick={async () => {
-                                      setFbSaving(true);
+                                      patchFeedbackTriage(fb.id, { saving: true });
+                                      const draft = feedbackTriageById[fb.id] || { status: fb.status, adminNote: fb.adminNote || "" };
                                       try {
                                         await adminService.updateFeedback(fb.id, {
-                                          status: fbNewStatus,
-                                          adminNote: fbAdminNote || null
+                                          status: draft.status,
+                                          adminNote: draft.adminNote || null
                                         });
                                         push("Feedback updated.", "success");
-                                        setTriageId(null);
+                                        closeFeedbackTriage(fb.id);
+                                        clearFeedbackTriage(fb.id);
                                         loadFeedback();
                                       } catch (err) {
                                         push(err.message || "Failed to update feedback.", "info");
                                       } finally {
-                                        setFbSaving(false);
+                                        patchFeedbackTriage(fb.id, { saving: false });
                                       }
                                     }}
                                     className="px-4 py-1.5 bg-primary hover:bg-muted text-white text-xs font-bold uppercase tracking-widest rounded-sm transition-all cursor-pointer"
                                   >
-                                    {fbSaving ? "Saving..." : "Save"}
+                                    {triage?.saving ? "Saving..." : "Save"}
                                   </button>
                                   <button
                                     type="button"
-                                    onClick={() => setTriageId(null)}
+                                    onClick={() => closeFeedbackTriage(fb.id)}
                                     className="px-4 py-1.5 bg-bg hover:bg-border/30 border border-border text-text text-xs font-mono rounded-sm transition-all cursor-pointer"
                                   >
                                     Cancel
@@ -3150,7 +3188,7 @@ export default function AdminPortalView() {
                   {analyticsError && <ErrorBanner message={analyticsError} onRetry={loadAnalytics} />}
 
                   {analyticsLoading ? (
-                    <div className="flex justify-center py-12"><Spinner /></div>
+                    <AdminLoadingState label="Loading analytics..." />
                   ) : analyticsData ? (
                     <>
                       {/* User Activity */}
@@ -3180,8 +3218,13 @@ export default function AdminPortalView() {
                             <span className="ml-2 text-primary normal-case">· Most used: {analyticsData.mostUsedCategory.name}</span>
                           )}
                         </h3>
-                        {analyticsData.workoutsByCategory.length === 0 ? (
-                          <p className="text-xs text-muted">No workout data yet.</p>
+                        {asArray(analyticsData.workoutsByCategory).length === 0 ? (
+                          <AdminEmptyState
+                            icon={BarChart3}
+                            title="No workout data yet"
+                            description="Category usage will appear after users log workouts."
+                            compact
+                          />
                         ) : (
                           <div className="bg-surface border border-border rounded-sm overflow-hidden">
                             <table className="w-full text-xs">
@@ -3194,7 +3237,7 @@ export default function AdminPortalView() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {analyticsData.workoutsByCategory.map((cat, i) => (
+                                {asArray(analyticsData.workoutsByCategory).map((cat, i) => (
                                   <tr key={cat.id} className={`border-b border-border last:border-0 ${i === 0 && cat.usageCount > 0 ? "bg-primary/5" : ""}`}>
                                     <td className="px-4 py-2.5 text-text font-medium">
                                       {cat.name}
@@ -3225,7 +3268,7 @@ export default function AdminPortalView() {
                               </tr>
                             </thead>
                             <tbody>
-                              {Object.entries(analyticsData.feedbackByStatus).map(([status, count]) => (
+                              {Object.entries(analyticsData.feedbackByStatus || {}).map(([status, count]) => (
                                 <tr key={status} className="border-b border-border last:border-0">
                                   <td className="px-4 py-2.5 text-text capitalize">{status.replace("_", " ")}</td>
                                   <td className="px-4 py-2.5 text-right font-mono text-text">{count}</td>
@@ -3246,9 +3289,12 @@ export default function AdminPortalView() {
                       </section>
                     </>
                   ) : (
-                    <div className="bg-surface border border-border rounded-sm p-10 text-center">
-                      <p className="text-xs text-muted">No analytics data available.</p>
-                    </div>
+                    <AdminEmptyState
+                      icon={BarChart3}
+                      title="No analytics data available"
+                      description="Refresh the page to try loading the latest platform analytics."
+                      compact
+                    />
                   )}
                 </div>
               )}
@@ -3296,11 +3342,11 @@ export default function AdminPortalView() {
               <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted mb-2">
                 Recent workouts
               </h3>
-              {detail.recentWorkouts.length === 0 ? (
+              {asArray(detail.recentWorkouts).length === 0 ? (
                 <p className="text-xs text-muted">No workouts logged.</p>
               ) : (
                 <div className="space-y-1.5">
-                  {detail.recentWorkouts.map((workout) => (
+                  {asArray(detail.recentWorkouts).map((workout) => (
                     <div
                       key={workout.id}
                       className="flex items-center justify-between text-xs bg-bg border border-border rounded-sm px-3 py-2"
@@ -3356,6 +3402,7 @@ export default function AdminPortalView() {
             push("Feedback deleted.", "success");
             setPendingDeleteFeedback(null);
             setTriageId(null);
+            clearFeedbackTriage(pendingDeleteFeedback.id);
             loadFeedback();
           } catch (err) {
             push(err.message || "Failed to delete feedback.", "info");

@@ -46,13 +46,13 @@ router.post("/categories", validate(categorySchema), adminController.createCateg
 router.put("/categories/:id", validate(categoryUpdateSchema), adminController.updateCategory);
 router.delete("/categories/:id", adminController.deleteCategory);
 
-// // Workout Templates management
-// router.get("/templates", templateController.getTemplates);
-// router.get("/templates/:id", templateController.getTemplateDetail);
-// router.post("/templates", validate(templateCreateSchema), templateController.createTemplate);
-// router.put("/templates/:id", validate(templateUpdateSchema), templateController.updateTemplate);
-// router.put("/templates/:id/status", validate(templateStatusSchema), templateController.updateTemplateStatus);
-// router.delete("/templates/:id", templateController.deleteTemplate);
+// Workout Templates management
+router.get("/templates", templateController.getTemplates);
+router.get("/templates/:id", templateController.getTemplateDetail);
+router.post("/templates", validate(templateCreateSchema), templateController.createTemplate);
+router.put("/templates/:id", validate(templateUpdateSchema), templateController.updateTemplate);
+router.put("/templates/:id/status", validate(templateStatusSchema), templateController.updateTemplateStatus);
+router.delete("/templates/:id", templateController.deleteTemplate);
 
 // Achievement Badges management
 router.get("/badges", achievementController.getBadges);
