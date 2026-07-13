@@ -85,3 +85,21 @@ test("a user cannot delete another user's weight log (delete is user-scoped)", a
     weightRepository.deleteWeightLog = original;
   }
 });
+
+test("a user cannot reset another user's workout history (reset is user-scoped)", async () => {
+  const original = workoutRepository.resetWorkoutHistory;
+  let receivedUserId = null;
+  workoutRepository.resetWorkoutHistory = async (userId) => {
+    receivedUserId = userId;
+    return true;
+  };
+
+  try {
+    const result = await workoutService.resetWorkoutHistoryByUserId("acting_user");
+    assert.strictEqual(result.success, true);
+    assert.strictEqual(receivedUserId, "acting_user");
+  } finally {
+    workoutRepository.resetWorkoutHistory = original;
+  }
+});
+

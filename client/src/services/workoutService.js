@@ -26,9 +26,14 @@ const workoutService = {
     return apiClient.del(`/workouts/${id}`);
   },
 
+  resetWorkoutHistory() {
+    return apiClient.del("/workouts/history");
+  },
+
   getCategories() {
     return apiClient.get("/categories");
   }
 };
 
 export default workoutService;
+

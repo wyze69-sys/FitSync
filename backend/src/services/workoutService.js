@@ -297,7 +297,13 @@ const workoutService = {
       throw httpError("Workout record not found.", 404);
     }
     return { success: true, message: "Workout deleted successfully." };
+  },
+
+  async resetWorkoutHistoryByUserId(userId) {
+    await workoutRepository.resetWorkoutHistory(userId);
+    return { success: true, message: "Workout history reset successfully." };
   }
 };
 
 module.exports = { workoutService };
+

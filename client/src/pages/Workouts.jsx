@@ -130,6 +130,8 @@ export default function Workouts() {
   const { push, refreshAll } = useOutletContext() || {};
   const [isDeleting, setIsDeleting] = useState(false);
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState(false);
+  const [isConfirmResetOpen, setIsConfirmResetOpen] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -172,6 +174,21 @@ export default function Workouts() {
       push?.(err.message || "Failed to delete workout.", "info");
     } finally {
       setIsDeleting(false);
+    }
+  }
+
+  async function handleConfirmReset() {
+    setIsConfirmResetOpen(false);
+    setIsResetting(true);
+    try {
+      await workoutService.resetWorkoutHistory();
+      push?.("Workout history reset successfully.", "success");
+      refreshAll?.();
+      await loadWorkouts({ page: 1 });
+    } catch (err) {
+      push?.(err.message || "Failed to reset workout history.", "info");
+    } finally {
+      setIsResetting(false);
     }
   }
 
@@ -308,12 +325,23 @@ export default function Workouts() {
         title="All logged workouts"
         description="Review your past workout sessions, dates, duration, calories, and XP earned."
         action={
-          <Link
-            to="/log"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/20 hover:shadow-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg shrink-0"
-          >
-            <span>+ Log workout</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setIsConfirmResetOpen(true)}
+              disabled={isResetting}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-500/15 disabled:opacity-50 transition-all cursor-pointer shadow-lg shadow-red-500/5 hover:shadow-red-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-bg shrink-0"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Reset Workout History</span>
+            </button>
+            <Link
+              to="/log"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/20 hover:shadow-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg shrink-0"
+            >
+              <span>+ Log workout</span>
+            </Link>
+          </div>
         }
       />
 
@@ -794,6 +822,16 @@ export default function Workouts() {
         destructive={true}
         onConfirm={handleConfirmDelete}
         onCancel={() => setIsConfirmDeleteDialogOpen(false)}
+      />
+
+      <ConfirmDialog
+        open={isConfirmResetOpen}
+        title="Reset Workout History"
+        message="This will permanently delete your workout history. Your profile info, XP, badges, streaks, nutrition, and account will not be changed."
+        confirmLabel="Reset"
+        destructive={true}
+        onConfirm={handleConfirmReset}
+        onCancel={() => setIsConfirmResetOpen(false)}
       />
     </main>
   );

@@ -51,7 +51,17 @@ const workoutController = {
     } catch (err) {
       next(err);
     }
+  },
+
+  async resetWorkoutHistory(req, res, next) {
+    try {
+      const result = await workoutService.resetWorkoutHistoryByUserId(req.user.id);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
   }
 };
 
 module.exports = { workoutController };
+

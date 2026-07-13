@@ -309,6 +309,11 @@ async function deleteWorkout(id, userId) {
   return result.affectedRows > 0;
 }
 
+async function resetWorkoutHistory(userId) {
+  const [result] = await pool.execute("DELETE FROM workouts WHERE user_id = ?", [userId]);
+  return result.affectedRows > 0;
+}
+
 module.exports = {
   workoutRepository: {
     getWorkoutsByUserId,
@@ -316,6 +321,8 @@ module.exports = {
     createWorkout,
     updateWorkout,
     applyWorkoutReward,
-    deleteWorkout
+    deleteWorkout,
+    resetWorkoutHistory
   }
 };
+

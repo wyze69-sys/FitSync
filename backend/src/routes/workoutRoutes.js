@@ -14,6 +14,8 @@ router.get(
 );
 router.post("/", authenticateToken, validate(workoutBodySchema), workoutController.createWorkout);
 router.put("/:id", authenticateToken, validate(workoutBodySchema), workoutController.updateWorkout);
+router.delete("/history", authenticateToken, workoutController.resetWorkoutHistory);
 router.delete("/:id", authenticateToken, workoutController.deleteWorkout);
+
 
 module.exports = router;
