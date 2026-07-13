@@ -224,35 +224,90 @@ test("getPlan flags an aggressive requested target with a warning", async () => 
   });
 });
 
-test("getPlan includes today's workout calories and adjusts the target", async () => {
-  const windows = emptyWindows();
-  windows.today.workoutCount = 1;
-  windows.today.totalCaloriesBurned = 600; // half = 300, under the 400 cap
+test("getPlan weight-loss users add back 25% capped at 200, base calories unchanged", async () => {
+  const windowsNoWorkout = emptyWindows();
+  const windowsWorkout600 = emptyWindows();
+  windowsWorkout600.today.workoutCount = 1;
+  windowsWorkout600.today.totalCaloriesBurned = 600; // 25% = 150
 
-  await withMocks({ user: completeUser, windows }, async () => {
+  const windowsWorkout1200 = emptyWindows();
+  windowsWorkout1200.today.workoutCount = 1;
+  windowsWorkout1200.today.totalCaloriesBurned = 1200; // 25% = 300, capped at 200
+
+  // 1. Base calorie plan target
+  let baseCalories;
+  await withMocks({ user: completeUser, windows: windowsNoWorkout }, async () => {
+    const plan = await nutritionService.getPlan("usr_1", {});
+    baseCalories = plan.activePlan.calories;
+    assert.strictEqual(plan.calculations.todayWorkoutCalories, 0);
+    assert.strictEqual(plan.calculations.workoutCaloriesAddedBack, 0);
+    assert.strictEqual(plan.calculations.todayAdjustedTarget, baseCalories);
+  });
+
+  // 2. 25% add back below cap (600 -> 150)
+  await withMocks({ user: completeUser, windows: windowsWorkout600 }, async () => {
     const plan = await nutritionService.getPlan("usr_1", {});
     assert.strictEqual(plan.calculations.todayWorkoutCalories, 600);
-    assert.strictEqual(
-      plan.calculations.todayAdjustedTarget,
-      plan.activePlan.calories + 300
-    );
+    assert.strictEqual(plan.calculations.workoutCaloriesAddedBack, 150);
+    assert.strictEqual(plan.calculations.todayAdjustedTarget, baseCalories + 150);
+    assert.strictEqual(plan.activePlan.calories, baseCalories, "base activePlan.calories should remain unchanged");
     assert.ok(
-      plan.notes.some((n) => n.includes("Today workout burn")),
-      "expected the workout-allowance note"
+      plan.notes.some((n) => n.includes("For weight loss, FitSync adds back only a small part of workout calories")),
+      "expected the weight loss workout-allowance note"
     );
+  });
+
+  // 3. 25% add back capped at 200 (1200 -> 200)
+  await withMocks({ user: completeUser, windows: windowsWorkout1200 }, async () => {
+    const plan = await nutritionService.getPlan("usr_1", {});
+    assert.strictEqual(plan.calculations.todayWorkoutCalories, 1200);
+    assert.strictEqual(plan.calculations.workoutCaloriesAddedBack, 200);
+    assert.strictEqual(plan.calculations.todayAdjustedTarget, baseCalories + 200);
+    assert.strictEqual(plan.activePlan.calories, baseCalories, "base activePlan.calories should remain unchanged");
   });
 });
 
-test("getPlan caps the today workout allowance at 400 kcal", async () => {
-  const windows = emptyWindows();
-  windows.today.totalCaloriesBurned = 1200; // half = 600, capped to 400
+test("getPlan maintain/gain users add back 50% capped at 400, base calories unchanged", async () => {
+  const maintainUser = { ...completeUser, goal: "Maintain weight" };
+  const windowsNoWorkout = emptyWindows();
+  const windowsWorkout600 = emptyWindows();
+  windowsWorkout600.today.workoutCount = 1;
+  windowsWorkout600.today.totalCaloriesBurned = 600; // 50% = 300
 
-  await withMocks({ user: completeUser, windows }, async () => {
+  const windowsWorkout1200 = emptyWindows();
+  windowsWorkout1200.today.workoutCount = 1;
+  windowsWorkout1200.today.totalCaloriesBurned = 1200; // 50% = 600, capped at 400
+
+  // 1. Base calorie plan target
+  let baseCalories;
+  await withMocks({ user: maintainUser, windows: windowsNoWorkout }, async () => {
     const plan = await nutritionService.getPlan("usr_1", {});
-    assert.strictEqual(
-      plan.calculations.todayAdjustedTarget,
-      plan.activePlan.calories + 400
+    baseCalories = plan.activePlan.calories;
+    assert.strictEqual(plan.calculations.todayWorkoutCalories, 0);
+    assert.strictEqual(plan.calculations.workoutCaloriesAddedBack, 0);
+    assert.strictEqual(plan.calculations.todayAdjustedTarget, baseCalories);
+  });
+
+  // 2. 50% add back below cap (600 -> 300)
+  await withMocks({ user: maintainUser, windows: windowsWorkout600 }, async () => {
+    const plan = await nutritionService.getPlan("usr_1", {});
+    assert.strictEqual(plan.calculations.todayWorkoutCalories, 600);
+    assert.strictEqual(plan.calculations.workoutCaloriesAddedBack, 300);
+    assert.strictEqual(plan.calculations.todayAdjustedTarget, baseCalories + 300);
+    assert.strictEqual(plan.activePlan.calories, baseCalories, "base activePlan.calories should remain unchanged");
+    assert.ok(
+      plan.notes.some((n) => n.includes("Today workout burn partially increases today's food allowance")),
+      "expected the maintain/gain workout-allowance note"
     );
+  });
+
+  // 3. 50% add back capped at 400 (1200 -> 400)
+  await withMocks({ user: maintainUser, windows: windowsWorkout1200 }, async () => {
+    const plan = await nutritionService.getPlan("usr_1", {});
+    assert.strictEqual(plan.calculations.todayWorkoutCalories, 1200);
+    assert.strictEqual(plan.calculations.workoutCaloriesAddedBack, 400);
+    assert.strictEqual(plan.calculations.todayAdjustedTarget, baseCalories + 400);
+    assert.strictEqual(plan.activePlan.calories, baseCalories, "base activePlan.calories should remain unchanged");
   });
 });
 

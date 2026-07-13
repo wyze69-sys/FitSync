@@ -122,15 +122,22 @@ const nutritionService = {
 
     // Today's workout burn increases today's allowance, capped so a big day
     // cannot balloon intake; the weekly plan itself stays balanced.
-    const todayAdjustedTarget = Math.round(
-      activePlan.calories + Math.min(todayWorkoutCalories * 0.5, 400)
-    );
+    const addBackRate = activePlan.direction === "lose" ? 0.25 : 0.5;
+    const addBackCap = activePlan.direction === "lose" ? 200 : 400;
+    const workoutCaloriesAddedBack = Math.min(todayWorkoutCalories * addBackRate, addBackCap);
+    const todayAdjustedTarget = Math.round(activePlan.calories + workoutCaloriesAddedBack);
 
     const notes = [];
     if (todayWorkoutCalories > 0) {
-      notes.push(
-        "Today workout burn partially increases today's food allowance while the weekly plan remains balanced."
-      );
+      if (activePlan.direction === "lose") {
+        notes.push(
+          "For weight loss, FitSync adds back only a small part of workout calories so you can recover while keeping a calorie deficit."
+        );
+      } else {
+        notes.push(
+          "Today workout burn partially increases today's food allowance while the weekly plan remains balanced."
+        );
+      }
     }
 
     const allergies = parseAllergies(query.allergies);
@@ -159,6 +166,7 @@ const nutritionService = {
         activityFactor,
         calorieFloor,
         todayWorkoutCalories,
+        workoutCaloriesAddedBack,
         todayAdjustedTarget
       },
       requestedPlan,
