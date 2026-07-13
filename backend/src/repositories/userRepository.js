@@ -322,6 +322,25 @@ async function getUserDetail(id) {
   };
 }
 
+async function resetUserProfile(id) {
+  const [result] = await pool.execute(
+    `UPDATE users 
+     SET age = NULL,
+         gender = NULL,
+         height = NULL,
+         weight = NULL,
+         weight_kg = NULL,
+         target_weight = NULL,
+         preferred_workout_type = NULL,
+         goal = 'Maintain fitness',
+         activity_level = 'Sedentary'
+     WHERE id = ?`,
+    [id]
+  );
+  if (result.affectedRows === 0) return undefined;
+  return getUserById(id);
+}
+
 module.exports = {
   userRepository: {
     getUserById,
@@ -331,6 +350,7 @@ module.exports = {
     updateUserRole,
     updateUserStatus,
     getAdminUserList,
-    getUserDetail
+    getUserDetail,
+    resetUserProfile
   }
 };

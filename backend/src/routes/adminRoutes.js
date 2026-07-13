@@ -40,6 +40,7 @@ router.get("/users", validate(adminUserQuerySchema, "query"), adminController.ge
 router.get("/users/:id", adminController.getUserDetail);
 router.put("/users/:id/role", validate(roleUpdateSchema), adminController.updateUserRole);
 router.put("/users/:id/status", validate(statusUpdateSchema), adminController.updateUserStatus);
+router.post("/users/:id/reset-profile", adminController.resetUserProfile);
 
 router.get("/categories/analytics", adminController.getCategoryAnalytics);
 router.post("/categories", validate(categorySchema), adminController.createCategory);

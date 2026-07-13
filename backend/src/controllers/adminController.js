@@ -97,6 +97,15 @@ const adminController = {
     } catch (err) {
       next(err);
     }
+  },
+
+  async resetUserProfile(req, res, next) {
+    try {
+      const updated = await adminService.resetUserProfile(req.user.id, req.params.id);
+      res.json(updated);
+    } catch (err) {
+      next(err);
+    }
   }
 };
 

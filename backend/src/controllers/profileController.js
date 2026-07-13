@@ -29,6 +29,15 @@ const profileController = {
     } catch (err) {
       next(err);
     }
+  },
+
+  async resetProfile(req, res, next) {
+    try {
+      const updatedUser = await userService.resetProfile(req.user.id);
+      res.json(updatedUser);
+    } catch (err) {
+      next(err);
+    }
   }
 };
 

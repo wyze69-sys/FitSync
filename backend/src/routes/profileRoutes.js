@@ -13,4 +13,10 @@ router.post(
   profileController.updateProfile
 );
 
+router.post(
+  "/reset-profile",
+  authenticateToken,
+  profileController.resetProfile
+);
+
 module.exports = router;

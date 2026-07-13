@@ -18,6 +18,10 @@ const authService = {
 
   updateProfile(profileData) {
     return apiClient.post("/profile/update", profileData);
+  },
+
+  resetProfile() {
+    return apiClient.post("/profile/reset-profile");
   }
 };
 

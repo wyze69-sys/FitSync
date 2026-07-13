@@ -24,6 +24,17 @@ const userService = {
     const updatedUser = await userRepository.updateUser(userId, fields);
     const { passwordHash, ...userSafe } = updatedUser;
     return userSafe;
+  },
+
+  async resetProfile(userId) {
+    const updatedUser = await userRepository.resetUserProfile(userId);
+    if (!updatedUser) {
+      const err = new Error("User not found");
+      err.status = 404;
+      throw err;
+    }
+    const { passwordHash, ...userSafe } = updatedUser;
+    return userSafe;
   }
 };
 

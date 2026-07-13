@@ -156,6 +156,10 @@ const adminService = {
   // Analytics
   getAnalytics() {
     return apiClient.get("/admin/analytics");
+  },
+
+  resetUserProfile(id) {
+    return apiClient.post(`/admin/users/${id}/reset-profile`);
   }
 };
 

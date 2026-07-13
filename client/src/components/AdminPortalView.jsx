@@ -142,6 +142,7 @@ export default function AdminPortalView() {
 
   const [userFilters, setUserFilters] = useState({ search: "", role: "", status: "" });
   const [detail, setDetail] = useState(null);
+  const [pendingResetProfile, setPendingResetProfile] = useState(null);
 
   const [catName, setCatName] = useState("");
   const [catDesc, setCatDesc] = useState("");
@@ -1558,6 +1559,15 @@ export default function AdminPortalView() {
                                           ) : (
                                             <UserCheck className="h-3.5 w-3.5" />
                                           )}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => setPendingResetProfile(item)}
+                                          aria-label="Reset profile info"
+                                          title="Reset profile info"
+                                          className="text-muted hover:text-red-500 p-1.5 transition-all cursor-pointer"
+                                        >
+                                          <RefreshCw className="h-3.5 w-3.5" />
                                         </button>
                                       </>
                                     )}
@@ -3363,6 +3373,24 @@ export default function AdminPortalView() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(pendingResetProfile)}
+        title="Reset profile info?"
+        message={`This will reset body stats and goals (age, weight, height, goal, activity level) for ${pendingResetProfile?.name} to defaults. Workouts, XP logs, level, badges, and history will not be changed.`}
+        confirmLabel="Reset"
+        onConfirm={async () => {
+          try {
+            await adminService.resetUserProfile(pendingResetProfile.id);
+            push("Profile info reset successfully.", "success");
+            setPendingResetProfile(null);
+            loadUsers();
+          } catch (err) {
+            push(err.message || "Failed to reset profile info.", "info");
+          }
+        }}
+        onCancel={() => setPendingResetProfile(null)}
+      />
 
       <ConfirmDialog
         open={Boolean(pendingDeleteCat)}

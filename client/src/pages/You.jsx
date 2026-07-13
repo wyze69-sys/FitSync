@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate, useOutletContext } from "react-router-dom";
-import { MessageSquare, Trophy, Clock, LogOut } from "lucide-react";
+import { MessageSquare, Trophy, Clock, LogOut, RotateCcw } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import DashboardProfileSummary from "../components/dashboard/DashboardProfileSummary.jsx";
 import LoadingSpinner from "../components/common/LoadingSpinner.jsx";
 import { BadgeMedal } from "../components/gamification/AchievementBadge.jsx";
 import feedbackService from "../services/feedbackService.js";
 import LogoutConfirmDialog from "../components/modals/LogoutConfirmDialog.jsx";
+import ConfirmDialog from "../components/modals/ConfirmDialog.jsx";
+import authService from "../services/authService.js";
 
 function numberOrDash(value, suffix = "") {
   const number = Number(value || 0);
@@ -47,6 +49,7 @@ export default function You() {
 
   const [showAllBadges, setShowAllBadges] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [fbSubject, setFbSubject] = useState("");
   const [fbMessage, setFbMessage] = useState("");
   const [fbSubmitting, setFbSubmitting] = useState(false);
@@ -318,6 +321,13 @@ export default function You() {
             >
               <LogOut className="h-4 w-4 text-primary" /> Logout
             </button>
+            <button
+              type="button"
+              onClick={() => setIsResetDialogOpen(true)}
+              className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-red-500/30 bg-red-500/5 px-4 py-2 text-xs font-black uppercase tracking-widest text-red-400 hover:bg-red-500/10 hover:border-red-500/50 transition-all cursor-pointer"
+            >
+              <RotateCcw className="h-4 w-4 text-red-500" /> Reset Profile Info
+            </button>
           </section>
         </aside>
       </div>
@@ -326,6 +336,24 @@ export default function You() {
         open={isLogoutDialogOpen}
         onConfirm={handleLogout}
         onCancel={() => setIsLogoutDialogOpen(false)}
+      />
+
+      <ConfirmDialog
+        open={isResetDialogOpen}
+        title="Reset profile info?"
+        message="This will reset your body stats and goals (age, weight, height, goal, activity level) to defaults. Workouts, XP logs, level, badges, and history will not be changed."
+        confirmLabel="Reset"
+        onConfirm={async () => {
+          try {
+            const updatedUser = await authService.resetProfile();
+            handleProfileUpdated(updatedUser);
+            push?.("Profile info reset successfully.", "success");
+            setIsResetDialogOpen(false);
+          } catch (err) {
+            push?.(err.message || "Failed to reset profile info.", "info");
+          }
+        }}
+        onCancel={() => setIsResetDialogOpen(false)}
       />
     </div>
   );

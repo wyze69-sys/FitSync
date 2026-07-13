@@ -82,6 +82,18 @@ const adminService = {
 
   async getAnalytics() {
     return categoryRepository.getAnalyticsData();
+  },
+
+  async resetUserProfile(adminId, userId) {
+    if (userId === adminId) {
+      throw httpError("You cannot reset your own profile info through the admin console.", 400);
+    }
+    const updated = await userRepository.resetUserProfile(userId);
+    if (!updated) {
+      throw httpError("User not found.", 404);
+    }
+    const { passwordHash, ...safeUser } = updated;
+    return safeUser;
   }
 };
 
