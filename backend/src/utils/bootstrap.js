@@ -595,16 +595,25 @@ async function seedAchievements() {
   }
 }
 
-async function seedUsers() {
+async function seedAdminUser() {
   const adminPasswordHash = bcryptjs.hashSync("admin123", 10);
-  const userPasswordHash = bcryptjs.hashSync("fitness123", 10);
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
   await pool.execute(
     `INSERT IGNORE INTO users (id, email, name, role, password_hash)
      VALUES (?, ?, ?, ?, ?)`,
     ["usr_admin", "admin@fitsync.com", "Alex Roberts (Admin)", "admin", adminPasswordHash]
   );
+
+  await pool.execute(
+    `INSERT IGNORE INTO user_gamification (user_id, total_xp, level, next_level_xp)
+     VALUES (?, 0, 1, 150)`,
+    ["usr_admin"]
+  );
+}
+
+async function seedUsers() {
+  const userPasswordHash = bcryptjs.hashSync("fitness123", 10);
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
   await pool.execute(
     `INSERT IGNORE INTO users (
@@ -633,7 +642,8 @@ async function seedUsers() {
 
   await pool.execute(
     `INSERT IGNORE INTO user_gamification (user_id, total_xp, level, next_level_xp)
-     SELECT id, 0, 1, 150 FROM users`
+     VALUES (?, 0, 1, 150)`,
+    ["usr_demo"]
   );
 }
 
@@ -980,15 +990,32 @@ async function seedNutritionFoods() {
 async function seedDefaults() {
   const today = new Date();
 
+  // Global/reference data is safe to keep seeding/upserting.
   await seedCategories();
   await seedActivityLibrary();
   await seedNutritionFoods();
   await seedLevels();
   await seedAchievements();
-  await seedUsers();
-  await seedWeightLogs(today);
-  await seedWorkouts(today);
-  await seedInsight(today);
+
+  // Admin user must always exist and is safe to run on startup.
+  await seedAdminUser();
+
+  const [[demoUserExists]] = await pool.execute(
+    "SELECT 1 AS exists_flag FROM users WHERE id = ? LIMIT 1",
+    ["usr_demo"]
+  );
+
+  if (!demoUserExists) {
+    console.log("Demo user not found. Running first-time demo user seeding.");
+    // User-specific demo history is only seeded during first-time setup.
+    // After a user resets workout history, backend restarts must not recreate fake workouts.
+    await seedUsers();
+    await seedWeightLogs(today);
+    await seedWorkouts(today);
+    await seedInsight(today);
+  } else {
+    console.log("Demo user already exists. Skipping user-specific demo seeding.");
+  }
 }
 
 async function initializeDatabase() {
