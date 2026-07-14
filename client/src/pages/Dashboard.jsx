@@ -245,6 +245,7 @@ export default function Dashboard() {
   const previousLevelRef = useRef(null);
   const shownStreakMilestonesRef = useRef(new Set());
   const shownUnlockRef = useRef(new Set());
+  const initialFetchRef = useRef(false);
 
   const [streakStatus, setStreakStatus] = useState(null);
   const [streakLoading, setStreakLoading] = useState(true);
@@ -312,28 +313,80 @@ export default function Dashboard() {
     };
   }, [authUser, cleanWeightLogs, context.user]);
 
-  const fetchStreakStatus = async () => {
-    try {
-      const res = await gamificationService.getStreakStatus();
-      setStreakStatus(res);
-    } catch (err) {
-      console.error("Failed to fetch streak status", err);
-    } finally {
-      setStreakLoading(false);
-    }
-  };
+  useEffect(() => {
+    let cancelled = false;
 
-  const fetchActiveAnnouncements = async () => {
-    try {
-      const res = await announcementService.getActiveAnnouncements();
-      setAnnouncements(res || []);
-    } catch (err) {
-      console.error("Failed to fetch active announcements", err);
-      setAnnouncements([]);
-    } finally {
-      setAnnouncementsLoading(false);
+    if (!initialFetchRef.current) {
+      initialFetchRef.current = true;
+
+      setStreakLoading(true);
+      setAnnouncementsLoading(true);
+      setNutritionLoading(true);
+
+      Promise.all([
+        gamificationService.getStreakStatus()
+          .then((res) => {
+            if (!cancelled) setStreakStatus(res);
+          })
+          .catch((err) => {
+            console.error("Failed to fetch streak status", err);
+            if (!cancelled) setStreakStatus(null);
+          })
+          .finally(() => {
+            if (!cancelled) setStreakLoading(false);
+          }),
+
+        announcementService.getActiveAnnouncements()
+          .then((res) => {
+            if (!cancelled) setAnnouncements(res || []);
+          })
+          .catch((err) => {
+            console.error("Failed to fetch active announcements", err);
+            if (!cancelled) setAnnouncements([]);
+          })
+          .finally(() => {
+            if (!cancelled) setAnnouncementsLoading(false);
+          }),
+
+        nutritionService.getPlan({ mode: "safe", limit: 3 })
+          .then((res) => {
+            if (!cancelled) setNutritionPlan(res);
+          })
+          .catch((err) => {
+            console.error("Failed to fetch nutrition plan", err);
+            if (!cancelled) setNutritionPlan(null);
+          })
+          .finally(() => {
+            if (!cancelled) setNutritionLoading(false);
+          }),
+
+        insightService.getInsights()
+          .then((insights) => {
+            if (!cancelled && Array.isArray(insights) && insights.length > 0) {
+              setAiInsight(insights[0]);
+            }
+          })
+          .catch(() => {})
+      ]);
+    } else {
+      const fetchStreak = async () => {
+        try {
+          const res = await gamificationService.getStreakStatus();
+          if (!cancelled) setStreakStatus(res);
+        } catch (err) {
+          console.error("Failed to fetch streak status", err);
+          if (!cancelled) setStreakStatus(null);
+        } finally {
+          if (!cancelled) setStreakLoading(false);
+        }
+      };
+      fetchStreak();
     }
-  };
+
+    return () => {
+      cancelled = true;
+    };
+  }, [gamification]);
 
   const handleDismissAnnouncement = (id) => {
     const updated = [...dismissedIds, id];
@@ -345,20 +398,7 @@ export default function Dashboard() {
     }
   };
 
-  useEffect(() => {
-    fetchStreakStatus();
-  }, [gamification]);
 
-  const fetchNutritionPlan = async () => {
-    try {
-      const res = await nutritionService.getPlan({ mode: "safe", limit: 3 });
-      setNutritionPlan(res);
-    } catch (err) {
-      console.error("Failed to fetch nutrition plan", err);
-    } finally {
-      setNutritionLoading(false);
-    }
-  };
 
   const handleQuickWeightUpdate = async (event) => {
     event.preventDefault();
@@ -385,10 +425,7 @@ export default function Dashboard() {
     }
   };
 
-  useEffect(() => {
-    fetchActiveAnnouncements();
-    fetchNutritionPlan();
-  }, []);
+
 
   const handleRestoreStreak = async () => {
     setActionLoading(true);
@@ -418,21 +455,7 @@ export default function Dashboard() {
     }
   };
 
-  // Fetch latest AI insight on mount
-  useEffect(() => {
-    let cancelled = false;
-    insightService
-      .getInsights()
-      .then((insights) => {
-        if (!cancelled && Array.isArray(insights) && insights.length > 0) {
-          setAiInsight(insights[0]);
-        }
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+
 
   const handleGenerateInsight = async () => {
     setAiLoading(true);
