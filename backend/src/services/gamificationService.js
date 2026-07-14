@@ -803,38 +803,44 @@ async function startNewStreak(userId) {
  * @returns {Promise<object>}
  */
 async function buildSummary(userId) {
-  const weeklyStatus = await getWeeklyStreakStatus(userId);
-
-  const activeDates = await gamificationRepository.getActivityDates(userId);
-  const stats = computeStreakStats(activeDates);
-
-  // Award streak milestone badges from the DAILY activity streak so they match
-  // the day-based badge names/descriptions (Three Day Start = 3-day streak,
-  // One Week Streak = 7-day, Two Week Habit = 14-day, Thirty Day Streak = 30-day).
-  // Idempotent via INSERT IGNORE, so this is safe to run on every summary fetch.
-  await awardStreakBadges(userId, stats.currentStreak);
-
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  const weekly = await gamificationRepository.getWeeklyWorkoutTotals(userId, toDateStr(sevenDaysAgo));
 
-  // Sync to user_streaks table for admin stats and compatibility
-  await gamificationRepository.upsertStreak(
-    userId,
-    weeklyStatus.weeklyStreak,
-    weeklyStatus.weeklyLongestStreak,
-    weeklyStatus.lastCountedWeekStart
-  );
-
-  const [[userRow]] = await pool.execute("SELECT COALESCE(total_xp, 0) AS total_xp FROM users WHERE id = ?", [
-    userId
+  const [
+    weeklyStatus,
+    activeDates,
+    weekly,
+    userQueryResult,
+    todayData
+  ] = await Promise.all([
+    getWeeklyStreakStatus(userId),
+    gamificationRepository.getActivityDates(userId),
+    gamificationRepository.getWeeklyWorkoutTotals(userId, toDateStr(sevenDaysAgo)),
+    pool.execute("SELECT COALESCE(total_xp, 0) AS total_xp FROM users WHERE id = ?", [userId]),
+    getTodaySummary(userId)
   ]);
+
+  const [[userRow]] = userQueryResult;
+  const stats = computeStreakStats(activeDates);
+
   const totalXp = Number(userRow?.total_xp || 0);
-  const level = await getCurrentLevel(totalXp);
-  const nextLevel = await getNextLevel(level.levelNumber);
-  const catalog = await gamificationRepository.getAchievementCatalog();
-  const unlocked = await gamificationRepository.getUnlockedAchievements(userId);
-  const todayData = await getTodaySummary(userId);
+
+  const [, , level] = await Promise.all([
+    awardStreakBadges(userId, stats.currentStreak),
+    gamificationRepository.upsertStreak(
+      userId,
+      weeklyStatus.weeklyStreak,
+      weeklyStatus.weeklyLongestStreak,
+      weeklyStatus.lastCountedWeekStart
+    ),
+    getCurrentLevel(totalXp)
+  ]);
+
+  const [nextLevel, catalog, unlocked] = await Promise.all([
+    getNextLevel(level.levelNumber),
+    gamificationRepository.getAchievementCatalog(),
+    gamificationRepository.getUnlockedAchievements(userId)
+  ]);
 
   const visibleCatalog = catalog.filter(
     (achievement) => achievement.isActive || unlocked.has(achievement.code)
