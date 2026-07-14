@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { Link, useOutletContext } from "react-router-dom";
 import {
@@ -313,80 +313,120 @@ export default function Dashboard() {
     };
   }, [authUser, cleanWeightLogs, context.user]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    if (!initialFetchRef.current) {
-      initialFetchRef.current = true;
-
-      setStreakLoading(true);
-      setAnnouncementsLoading(true);
-      setNutritionLoading(true);
-
-      Promise.all([
-        gamificationService.getStreakStatus()
-          .then((res) => {
-            if (!cancelled) setStreakStatus(res);
-          })
-          .catch((err) => {
-            console.error("Failed to fetch streak status", err);
-            if (!cancelled) setStreakStatus(null);
-          })
-          .finally(() => {
-            if (!cancelled) setStreakLoading(false);
-          }),
-
-        announcementService.getActiveAnnouncements()
-          .then((res) => {
-            if (!cancelled) setAnnouncements(res || []);
-          })
-          .catch((err) => {
-            console.error("Failed to fetch active announcements", err);
-            if (!cancelled) setAnnouncements([]);
-          })
-          .finally(() => {
-            if (!cancelled) setAnnouncementsLoading(false);
-          }),
-
-        nutritionService.getPlan({ mode: "safe", limit: 3 })
-          .then((res) => {
-            if (!cancelled) setNutritionPlan(res);
-          })
-          .catch((err) => {
-            console.error("Failed to fetch nutrition plan", err);
-            if (!cancelled) setNutritionPlan(null);
-          })
-          .finally(() => {
-            if (!cancelled) setNutritionLoading(false);
-          }),
-
-        insightService.getInsights()
-          .then((insights) => {
-            if (!cancelled && Array.isArray(insights) && insights.length > 0) {
-              setAiInsight(insights[0]);
-            }
-          })
-          .catch(() => {})
-      ]);
-    } else {
-      const fetchStreak = async () => {
-        try {
-          const res = await gamificationService.getStreakStatus();
-          if (!cancelled) setStreakStatus(res);
-        } catch (err) {
-          console.error("Failed to fetch streak status", err);
-          if (!cancelled) setStreakStatus(null);
-        } finally {
-          if (!cancelled) setStreakLoading(false);
-        }
-      };
-      fetchStreak();
+  const loadStreakStatus = useCallback(async (active = { current: true }) => {
+    setStreakLoading(true);
+    try {
+      const res = await gamificationService.getStreakStatus();
+      if (active.current) {
+        setStreakStatus(res);
+      }
+    } catch (err) {
+      console.error("Failed to fetch streak status", err);
+      if (active.current) {
+        setStreakStatus(null);
+      }
+    } finally {
+      if (active.current) {
+        setStreakLoading(false);
+      }
     }
+  }, []);
+
+  const loadActiveAnnouncements = useCallback(async (active = { current: true }) => {
+    setAnnouncementsLoading(true);
+    try {
+      const res = await announcementService.getActiveAnnouncements();
+      if (active.current) {
+        setAnnouncements(res || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch active announcements", err);
+      if (active.current) {
+        setAnnouncements([]);
+      }
+    } finally {
+      if (active.current) {
+        setAnnouncementsLoading(false);
+      }
+    }
+  }, []);
+
+  const loadNutritionPlan = useCallback(async (active = { current: true }) => {
+    setNutritionLoading(true);
+    try {
+      const res = await nutritionService.getPlan({ mode: "safe", limit: 3 });
+      if (active.current) {
+        setNutritionPlan(res);
+      }
+    } catch (err) {
+      console.error("Failed to fetch nutrition plan", err);
+      if (active.current) {
+        setNutritionPlan(null);
+      }
+    } finally {
+      if (active.current) {
+        setNutritionLoading(false);
+      }
+    }
+  }, []);
+
+  const loadAiInsights = useCallback(async (active = { current: true }) => {
+    try {
+      const insights = await insightService.getInsights();
+      if (active.current && Array.isArray(insights) && insights.length > 0) {
+        setAiInsight(insights[0]);
+      }
+    } catch (err) {
+      // silently fail — card shows fallback
+    }
+  }, []);
+
+  useEffect(() => {
+    const active = { current: true };
+
+    Promise.all([
+      loadStreakStatus(active),
+      loadActiveAnnouncements(active),
+      loadNutritionPlan(active),
+      loadAiInsights(active)
+    ]);
 
     return () => {
-      cancelled = true;
+      active.current = false;
     };
-  }, [gamification]);
+  }, [loadStreakStatus, loadActiveAnnouncements, loadNutritionPlan, loadAiInsights]);
+
+  const prevStreakRef = useRef(null);
+  const prevWorkoutsRef = useRef(null);
+
+  useEffect(() => {
+    if (context.loading || !gamification || Object.keys(gamification).length === 0) {
+      return;
+    }
+
+    const currentStreakVal = n(gamification.currentStreak);
+    const todayWorkoutsVal = n(gamification.todayWorkouts);
+
+    if (prevStreakRef.current === null) {
+      prevStreakRef.current = currentStreakVal;
+      prevWorkoutsRef.current = todayWorkoutsVal;
+      return;
+    }
+
+    const streakChanged = currentStreakVal !== prevStreakRef.current;
+    const workoutsChanged = todayWorkoutsVal !== prevWorkoutsRef.current;
+
+    if (streakChanged || workoutsChanged) {
+      prevStreakRef.current = currentStreakVal;
+      prevWorkoutsRef.current = todayWorkoutsVal;
+
+      const active = { current: true };
+      loadStreakStatus(active);
+      return () => {
+        active.current = false;
+      };
+    }
+  }, [context.loading, gamification, loadStreakStatus]);
 
   const handleDismissAnnouncement = (id) => {
     const updated = [...dismissedIds, id];
