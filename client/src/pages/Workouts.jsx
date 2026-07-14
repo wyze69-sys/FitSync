@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import PageHeader from "../components/common/PageHeader.jsx";
 import EmptyState from "../components/common/EmptyState.jsx";
-import LoadingSpinner from "../components/common/LoadingSpinner.jsx";
+import Skeleton from "../components/common/Skeleton.jsx";
 import workoutService from "../services/workoutService.js";
 import ConfirmDialog from "../components/modals/ConfirmDialog.jsx";
 
@@ -291,9 +291,6 @@ export default function Workouts() {
   const totalXp = workouts.reduce((sum, w) => sum + w.xp, 0);
   const totalDuration = workouts.reduce((sum, w) => sum + w.duration, 0);
 
-  if (loading) {
-    return <LoadingSpinner label="Loading workout history" />;
-  }
 
   if (error) {
     return (
@@ -352,9 +349,13 @@ export default function Workouts() {
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-zinc-950/20 text-[#0f9b73] dark:text-[#2dd4a8] border border-transparent">
             <Dumbbell className="h-4.5 w-4.5" />
           </div>
-          <div>
+          <div className="flex-1 min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted">Total Workouts</p>
-            <h4 className="text-xl font-bold text-text mt-0.5">{totalWorkouts}</h4>
+            {loading ? (
+              <Skeleton className="mt-0.5 h-7 w-12 rounded" />
+            ) : (
+              <h4 className="text-xl font-bold text-text mt-0.5">{totalWorkouts}</h4>
+            )}
             <p className="text-[10px] text-[#0f9b73] dark:text-[#2dd4a8] font-medium mt-0.5">Sessions loaded</p>
           </div>
         </div>
@@ -364,9 +365,13 @@ export default function Workouts() {
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-zinc-950/20 text-orange-600 dark:text-orange-400 border border-transparent">
             <Flame className="h-4.5 w-4.5" />
           </div>
-          <div>
+          <div className="flex-1 min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted">Calories</p>
-            <h4 className="text-xl font-bold text-text mt-0.5">{totalCalories.toLocaleString()}</h4>
+            {loading ? (
+              <Skeleton className="mt-0.5 h-7 w-20 rounded" />
+            ) : (
+              <h4 className="text-xl font-bold text-text mt-0.5">{totalCalories.toLocaleString()}</h4>
+            )}
             <p className="text-[10px] text-orange-600 dark:text-orange-400 font-medium mt-0.5">Calories from loaded workouts</p>
           </div>
         </div>
@@ -376,9 +381,13 @@ export default function Workouts() {
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-zinc-950/20 text-[#0f9b73] dark:text-[#2dd4a8] border border-transparent">
             <Award className="h-4.5 w-4.5" />
           </div>
-          <div>
+          <div className="flex-1 min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted">XP Earned</p>
-            <h4 className="text-xl font-bold text-text mt-0.5">{totalXp.toLocaleString()}</h4>
+            {loading ? (
+              <Skeleton className="mt-0.5 h-7 w-20 rounded" />
+            ) : (
+              <h4 className="text-xl font-bold text-text mt-0.5">{totalXp.toLocaleString()}</h4>
+            )}
             <p className="text-[10px] text-[#0f9b73] dark:text-[#2dd4a8] font-medium mt-0.5">XP from loaded workouts</p>
           </div>
         </div>
@@ -388,9 +397,13 @@ export default function Workouts() {
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-zinc-950/20 text-[#0f9b73] dark:text-[#2dd4a8] border border-transparent">
             <Clock className="h-4.5 w-4.5" />
           </div>
-          <div>
+          <div className="flex-1 min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted">Total Duration</p>
-            <h4 className="text-xl font-bold text-text mt-0.5">{formatDuration(totalDuration)}</h4>
+            {loading ? (
+              <Skeleton className="mt-0.5 h-7 w-16 rounded" />
+            ) : (
+              <h4 className="text-xl font-bold text-text mt-0.5">{formatDuration(totalDuration)}</h4>
+            )}
             <p className="text-[10px] text-[#0f9b73] dark:text-[#2dd4a8] font-medium mt-0.5">Time from loaded workouts</p>
           </div>
         </div>
@@ -482,7 +495,63 @@ export default function Workouts() {
       </form>
 
       {/* Table section */}
-      {workouts.length === 0 ? (
+      {loading ? (
+        <div className="rounded-2xl border border-border bg-surface p-2.5 shadow-lg shadow-black/5 overflow-x-auto">
+          <table className="min-w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-border text-xs uppercase tracking-widest text-muted">
+                <th className="px-4 py-3">Date</th>
+                <th className="px-4 py-3">Workout</th>
+                <th className="px-4 py-3">Category</th>
+                <th className="px-4 py-3">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-muted/80" />
+                    Duration
+                  </span>
+                </th>
+                <th className="px-4 py-3">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Flame className="w-3.5 h-3.5 text-muted/80" />
+                    Calories
+                  </span>
+                </th>
+                <th className="px-4 py-3">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Award className="w-3.5 h-3.5 text-muted/80" />
+                    XP Earned
+                  </span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: 5 }).map((_, idx) => (
+                <tr key={idx} className="border-b border-border last:border-b-0 skeleton-soft">
+                  <td className="px-4 py-3.5">
+                    <div className="h-4 w-16 bg-border/60 rounded" />
+                    <div className="h-3 w-10 bg-border/40 rounded mt-1.5" />
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <div className="h-4 w-40 bg-border/60 rounded" />
+                    <div className="h-3 w-24 bg-border/40 rounded mt-1.5" />
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <div className="h-6 w-16 bg-border/40 rounded-full" />
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <div className="h-4 w-12 bg-border/60 rounded" />
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <div className="h-4 w-12 bg-border/60 rounded" />
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <div className="h-4 w-12 bg-border/60 rounded" />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : workouts.length === 0 ? (
         <EmptyState
           icon={Dumbbell}
           title={fromDate && toDate ? "No workouts found in this range" : "No workouts logged yet"}
