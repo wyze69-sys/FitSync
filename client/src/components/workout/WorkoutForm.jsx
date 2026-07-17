@@ -186,7 +186,7 @@ export default function WorkoutForm({
               required
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="block w-full pl-9 pr-3 py-2 bg-bg border border-border rounded-sm text-xs text-text focus:border-primary focus:outline-none transition-all"
+              className="min-w-0 block w-full pl-9 pr-3 py-2 bg-bg border border-border rounded-sm text-xs text-text focus:border-primary focus:outline-none transition-all"
             />
           </div>
         </div>
