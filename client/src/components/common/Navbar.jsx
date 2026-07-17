@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import {
   Dumbbell,
   Home,
@@ -69,7 +69,7 @@ export default function Navbar({ onLogoutRequest }) {
     >
       <div className="max-w-[1400px] mx-auto px-7 lg:px-8">
         <div className="flex justify-between h-[72px] items-center">
-          <div className="flex items-center gap-2.5">
+          <Link to="/" className="flex items-center gap-2.5 cursor-pointer">
             <img
               src="/brand/fitsync-logo.png"
               alt="FitSync logo"
@@ -78,7 +78,7 @@ export default function Navbar({ onLogoutRequest }) {
             <span className="font-display tracking-tight text-xl lg:text-2xl font-black text-primary select-none">
               FITSYNC.
             </span>
-          </div>
+          </Link>
 
           <div className="hidden xl:flex items-center justify-center space-x-7 lg:space-x-8 flex-1 mx-6">
             {links.map(({ to, label, icon: Icon, end }) => (
