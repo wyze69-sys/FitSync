@@ -140,7 +140,6 @@ export default function DashboardProfileSummary({ user, onProfileUpdated, onToas
               <input
                 id="p-name"
                 type="text"
-                required
                 value={form.name}
                 onChange={(e) => setField("name", e.target.value)}
                 className={INPUT}
@@ -186,7 +185,6 @@ export default function DashboardProfileSummary({ user, onProfileUpdated, onToas
                 <input
                   id="p-height"
                   type="number"
-                  required
                   value={form.height}
                   onChange={(e) => setField("height", e.target.value)}
                   className={INPUT}
@@ -200,7 +198,6 @@ export default function DashboardProfileSummary({ user, onProfileUpdated, onToas
                   id="p-weight"
                   type="number"
                   step="0.1"
-                  required
                   value={form.weight}
                   onChange={(e) => setField("weight", e.target.value)}
                   className={INPUT}
