@@ -589,7 +589,7 @@ export default function Log() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
+                <div className="min-w-0 overflow-hidden">
                   <label className="text-xs font-bold uppercase tracking-wider text-secondary">
                     Date
                   </label>
@@ -597,18 +597,18 @@ export default function Log() {
                     type="date" 
                     value={details.date} 
                     onChange={(e) => setDetails((current) => ({ ...current, date: e.target.value }))} 
-                    className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" 
+                    className="appearance-none box-border min-w-0 max-w-full mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" 
                   />
                 </div>
 
-                <div>
+                <div className="min-w-0 overflow-hidden">
                   <label className="text-xs font-bold uppercase tracking-wider text-secondary">
                     Intensity <span className="text-red-500">*</span>
                   </label>
                   <select 
                     value={details.intensity} 
                     onChange={(e) => setDetails((current) => ({ ...current, intensity: e.target.value }))} 
-                    className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="appearance-none mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
                     <option value="low">Low</option>
                     <option value="med">Medium</option>
