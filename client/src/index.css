@@ -91,9 +91,20 @@ input[type="number"] {
   }
 
   input,
-  select,
   textarea {
     color: var(--text);
+  }
+
+  select {
+    color: var(--text);
+    appearance: none;
+    -webkit-appearance: none;
+    /* Modern chevron SVG */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236f7a86'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3e%3c/path%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem 1rem;
+    padding-right: 2.25rem !important;
   }
 
   input:focus-visible,
@@ -351,13 +362,13 @@ input[type="number"] {
 .admin-console input,
 .admin-console select,
 .admin-console textarea {
-  background: var(--admin-inset) !important;
+  background-color: var(--admin-inset) !important;
   border-color: var(--admin-border) !important;
   color: var(--admin-text) !important;
 }
 .admin-console input:focus,
 .admin-console select:focus,
-.admin-console textarea:focus { background: var(--admin-panel) !important; }
+.admin-console textarea:focus { background-color: var(--admin-panel) !important; }
 .admin-console input::placeholder,
 .admin-console textarea::placeholder { color: #97A0AC; }
 
