@@ -346,7 +346,7 @@ export default function Workouts() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Total Workouts Card */}
         <div className="rounded-2xl border border-border bg-surface p-4 shadow-lg shadow-black/5 flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-zinc-950/20 text-[#0f9b73] dark:text-[#2dd4a8] border border-transparent">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-zinc-500/20 text-[#0f9b73] dark:text-[#2dd4a8] border border-transparent">
             <Dumbbell className="h-4.5 w-4.5" />
           </div>
           <div className="flex-1 min-w-0">
@@ -362,7 +362,7 @@ export default function Workouts() {
 
         {/* Calories Card */}
         <div className="rounded-2xl border border-border bg-surface p-4 shadow-lg shadow-black/5 flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-zinc-950/20 text-orange-600 dark:text-orange-400 border border-transparent">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-zinc-500/20 text-orange-600 dark:text-orange-400 border border-transparent">
             <Flame className="h-4.5 w-4.5" />
           </div>
           <div className="flex-1 min-w-0">
@@ -378,7 +378,7 @@ export default function Workouts() {
 
         {/* XP Card */}
         <div className="rounded-2xl border border-border bg-surface p-4 shadow-lg shadow-black/5 flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-zinc-950/20 text-[#0f9b73] dark:text-[#2dd4a8] border border-transparent">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-zinc-500/20 text-[#0f9b73] dark:text-[#2dd4a8] border border-transparent">
             <Award className="h-4.5 w-4.5" />
           </div>
           <div className="flex-1 min-w-0">
@@ -394,7 +394,7 @@ export default function Workouts() {
 
         {/* Total Duration Card */}
         <div className="rounded-2xl border border-border bg-surface p-4 shadow-lg shadow-black/5 flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-zinc-950/20 text-[#0f9b73] dark:text-[#2dd4a8] border border-transparent">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-zinc-500/20 text-[#0f9b73] dark:text-[#2dd4a8] border border-transparent">
             <Clock className="h-4.5 w-4.5" />
           </div>
           <div className="flex-1 min-w-0">
@@ -415,7 +415,7 @@ export default function Workouts() {
         className="rounded-2xl border border-border bg-surface p-4 shadow-lg shadow-black/5 flex flex-col gap-3 relative overflow-hidden"
       >
         <div className="flex items-start gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-zinc-950/20 text-primary border border-transparent">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-zinc-500/20 text-primary border border-transparent">
             <Calendar className="w-4.5 h-4.5" />
           </div>
           <div>
