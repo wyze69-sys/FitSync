@@ -589,7 +589,7 @@ export default function Log() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
+                <div className="min-w-0">
                   <label className="text-xs font-bold uppercase tracking-wider text-secondary">
                     Date
                   </label>
@@ -597,7 +597,7 @@ export default function Log() {
                     type="date" 
                     value={details.date} 
                     onChange={(e) => setDetails((current) => ({ ...current, date: e.target.value }))} 
-                    className="mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" 
+                    className="min-w-0 mt-2 w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" 
                   />
                 </div>
 
