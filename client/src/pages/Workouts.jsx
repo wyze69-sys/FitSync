@@ -424,8 +424,8 @@ export default function Workouts() {
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row items-stretch md:items-end gap-3 w-full">
-          <div className="flex-1 min-w-0">
+        <div className="flex flex-col md:flex-row items-stretch md:items-end space-y-3 md:space-y-0 md:space-x-3 w-full">
+          <div className="w-full md:flex-1 min-w-0 overflow-hidden">
             <label
               htmlFor="from-date"
               className="block text-[10px] font-bold uppercase tracking-wider text-muted"
@@ -437,7 +437,7 @@ export default function Workouts() {
               type="date"
               value={fromDate}
               onChange={(event) => setFromDate(event.target.value)}
-              className="min-w-0 mt-1 w-full rounded-xl border border-border bg-bg px-3 py-2 text-sm text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="appearance-none box-border min-w-0 max-w-full mt-1 w-full rounded-xl border border-border bg-bg px-3 py-2 text-sm text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             />
           </div>
 
@@ -450,7 +450,7 @@ export default function Workouts() {
             </div>
           </div>
 
-          <div className="flex-1 min-w-0">
+          <div className="w-full md:flex-1 min-w-0 overflow-hidden">
             <label
               htmlFor="to-date"
               className="block text-[10px] font-bold uppercase tracking-wider text-muted"
@@ -462,7 +462,7 @@ export default function Workouts() {
               type="date"
               value={toDate}
               onChange={(event) => setToDate(event.target.value)}
-              className="min-w-0 mt-1 w-full rounded-xl border border-border bg-bg px-3 py-2 text-sm text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="appearance-none box-border min-w-0 max-w-full mt-1 w-full rounded-xl border border-border bg-bg px-3 py-2 text-sm text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             />
           </div>
 
