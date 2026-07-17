@@ -44,11 +44,11 @@ export default function DashboardProfileSummary({ user, onProfileUpdated, onToas
     try {
       const updated = await authService.updateProfile({
         name: form.name,
-        age: form.age ? Number(form.age) : undefined,
+        age: form.age !== "" ? Number(form.age) : (user.age ? 0 : undefined),
         gender: form.gender,
-        height: form.height ? Number(form.height) : undefined,
-        weight: form.weight ? Number(form.weight) : undefined,
-        targetWeight: form.targetWeight ? Number(form.targetWeight) : undefined,
+        height: form.height !== "" ? Number(form.height) : (user.height ? 0 : undefined),
+        weight: form.weight !== "" ? Number(form.weight) : (user.weight ? 0 : undefined),
+        targetWeight: form.targetWeight !== "" ? Number(form.targetWeight) : (user.targetWeight ? 0 : undefined),
         preferredWorkoutType: form.preferredWorkoutType,
         goal: form.goal,
         activityLevel: form.activityLevel
