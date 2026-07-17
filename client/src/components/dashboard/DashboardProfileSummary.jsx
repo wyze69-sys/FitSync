@@ -67,6 +67,19 @@ export default function DashboardProfileSummary({ user, onProfileUpdated, onToas
     <button
       type="button"
       onClick={() => {
+        if (isEditing) {
+          setForm({
+            name: user.name || "",
+            age: user.age?.toString() || "",
+            gender: user.gender || "male",
+            height: user.height?.toString() || "",
+            weight: user.weight?.toString() || "",
+            targetWeight: user.targetWeight?.toString() || "",
+            preferredWorkoutType: user.preferredWorkoutType || "Strength",
+            goal: user.goal || GOALS[0],
+            activityLevel: user.activityLevel || "Moderately active"
+          });
+        }
         setIsEditing((value) => !value);
         setError(null);
       }}
