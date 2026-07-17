@@ -497,7 +497,7 @@ export default function Log() {
           <QuickLogGrid categories={finalCategories} selectedSlug={category.slug} onSelect={handleCategorySelect} />
         </div>
 
-        <SubtypePicker category={category} selectedSubtype={subtype} workoutTitle={debouncedWorkoutTitle} onSelect={handleSubtypeSelect} />
+        <SubtypePicker category={category} selectedSubtype={subtype} workoutTitle={workoutTitle} onSelect={handleSubtypeSelect} />
 
         <section className="rounded-2xl border border-border bg-surface p-4 md:p-5 shadow-sm">
           {/* Header block with metadata and estimate card */}

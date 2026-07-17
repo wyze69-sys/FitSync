@@ -198,7 +198,7 @@ export default function SubtypePicker({ category, selectedSubtype, workoutTitle,
                 key={subtype.slug}
                 onClick={() => onSelect(subtype)}
                 aria-pressed={active}
-                className={`group relative flex flex-col justify-between rounded-2xl border p-4 text-left transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                className={`group relative flex flex-col justify-between rounded-2xl border p-4 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all duration-150 ${
                   active 
                     ? "border-primary bg-primary text-white shadow-md shadow-primary/20 scale-[1.01]" 
                     : "border-border bg-bg/40 text-text hover:border-primary/50 hover:bg-bg/85 hover:-translate-y-[1px] hover:shadow-sm"
