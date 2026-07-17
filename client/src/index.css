@@ -14,6 +14,7 @@ input[type="number"] {
 
 :root,
 .light {
+  color-scheme: light;
   /* Lovable-style tactical LIGHT palette — paper + ink */
   --primary: #0f9b73;
   --primary-bright: #12b587;
@@ -28,6 +29,7 @@ input[type="number"] {
 }
 
 .dark {
+  color-scheme: dark;
   /* Lovable-style tactical DARK palette */
   --primary: #2dd4a8;
   --primary-bright: #73ffb8;
@@ -73,7 +75,6 @@ input[type="number"] {
     background-color: var(--bg-app);
     color: var(--text);
     -webkit-font-smoothing: antialiased;
-    color-scheme: light dark;
   }
 
   button,
