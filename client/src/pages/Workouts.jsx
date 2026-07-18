@@ -483,7 +483,7 @@ export default function Workouts() {
               type="button"
               onClick={handleClear}
               disabled={isSearching}
-              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-border bg-bg px-4 py-2 text-sm font-semibold text-text hover:border-primary disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-border bg-bg px-4 py-2 text-sm font-semibold text-text hover:border-primary cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Clear</span>
@@ -491,7 +491,7 @@ export default function Workouts() {
             <button
               type="submit"
               disabled={isSearching || isPartial}
-              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-bright disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-bright cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Search className="w-3.5 h-3.5" />
               <span>{isSearching ? "Searching…" : "Search"}</span>
