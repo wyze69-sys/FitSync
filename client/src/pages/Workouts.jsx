@@ -723,7 +723,7 @@ export default function Workouts() {
           </div>
         </div>
       )}
-
+/* Workout Detail Modal for displaying selected workout information */
       {/* Detail Modal */}
       {selectedWorkout && createPortal(
         <div
