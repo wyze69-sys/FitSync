@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { Link, useOutletContext } from "react-router-dom";
 import {
   Dumbbell,
@@ -138,17 +137,6 @@ export default function Workouts() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const LIMIT = 10;
-
-  useEffect(() => {
-    if (selectedWorkout) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [selectedWorkout]);
 
   const handlePrevPage = async () => {
     if (page > 1) {
@@ -723,11 +711,11 @@ export default function Workouts() {
           </div>
         </div>
       )}
-/* Workout Detail Modal for displaying selected workout information */
-      {/* Detail Modal */}
-      {selectedWorkout && createPortal(
+
+Replace 'bg-black/80' with 'bg-black/80 backdrop-opacity-80' for clarity.
+      {selectedWorkout && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-opacity-80 animate-fade-in"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 animate-fade-in"
           onClick={() => setSelectedWorkout(null)}
           role="dialog"
           aria-modal="true"
@@ -892,8 +880,7 @@ export default function Workouts() {
               </button>
             </div>
           </div>
-        </div>,
-        document.body
+        </div>
       )}
 
       <ConfirmDialog
