@@ -712,10 +712,10 @@ export default function Workouts() {
         </div>
       )}
 
-      {/* Detail Modal */}
+Replace 'bg-black/80' with 'bg-black/80 backdrop-opacity-80' for clarity.
       {selectedWorkout && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 animate-fade-in"
           onClick={() => setSelectedWorkout(null)}
           role="dialog"
           aria-modal="true"
