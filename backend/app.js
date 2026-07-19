@@ -34,16 +34,35 @@ app.use(
 
 app.use(express.json({ limit: "100kb" }));
 
-// Interactive API documentation. This route intentionally allows Swagger UI's
-// local inline bootstrap script while the rest of the API keeps Helmet defaults.
+// Fresh interactive API documentation. Disable caching so Swagger never shows
+// an old specification after the backend restarts.
+app.get("/api-docs.json", (req, res) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.json(swaggerSpec);
+});
+
 app.use(
   "/api-docs",
   (req, res, next) => {
-    res.setHeader("Content-Security-Policy", "default-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'");
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.setHeader(
+      "Content-Security-Policy",
+      "default-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'"
+    );
     next();
   },
   swaggerUi.serve,
-  swaggerUi.setup(swaggerSpec, { customSiteTitle: "FitSync API Docs" })
+  swaggerUi.setup(swaggerSpec, {
+    customSiteTitle: "FitSync API — Swagger",
+    explorer: false,
+    swaggerOptions: {
+      persistAuthorization: false,
+      displayRequestDuration: true,
+      docExpansion: "list",
+      filter: true,
+      tryItOutEnabled: true
+    }
+  })
 );
 
 // Global rate limiting to protect every endpoint from abuse.
